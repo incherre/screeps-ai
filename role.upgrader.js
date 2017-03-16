@@ -1,0 +1,92 @@
+/*
+This is the AI for the upgrader role.
+An upgrader should take energy from "energy stores."
+Once an upgrader is full, it should use the energy to upgrade the room controller.
+*/
+
+// ***** Options *****
+var maxUpgraderParts = 7;
+var capacityConstant = .55;
+// ***** End *****
+
+var find = require('manager.roomInfo');
+
+var _run = function(creep) {
+    if(creep.memory.working && creep.carry.energy == 0) {
+        creep.memory.working = false;
+        creep.say('gathering');
+	}
+	else if(!creep.memory.working && creep.carry.energy == creep.carryCapacity) {
+	    creep.memory.working = true;
+	    creep.say('upgrading');
+	}
+
+	if(creep.memory.working) {
+        if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+            creep.moveTo(creep.room.controller);
+        }
+    }
+    else {
+        var target = find.getClosestStore(creep);
+        if(target != null){
+            if(creep.withdraw(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(target);
+            }
+        }
+        else {
+            target = creep.pos.findClosestByRange(find.getGroundEnergy(creep.room));
+            if(creep.pickup(target) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(target);
+            }
+        }
+    }
+}
+
+var _make = function(spawn, energy_limit){
+    var numOfPart = Math.floor(energy_limit / 200);
+    if(numOfPart > maxUpgraderParts){numOfPart = maxUpgraderParts;}
+
+    var body = [];
+    for(let i = 0; i < numOfPart; i++){
+        body.push(WORK);
+        body.push(CARRY);
+        body.push(MOVE);
+    }
+
+    var mem = {role: 'upgrader', home: spawn.room.controller.id, long_range: false, working: false};
+
+    var retVal = spawn.createCreep(body, null, mem);
+    if(retVal < 0){
+        return 0;
+    }
+    else{
+        spawn.room.MY_CREEPS.push(Game.creeps[retVal]);
+        spawn.room.UPGRADERS.push(Game.creeps[retVal]);
+        var total = 0;
+        for(let i = 0; i < body.length; i++){
+            total +=  BODYPART_COST[body[i]];
+        }
+        return total;
+    }
+}
+
+var _shouldMake = function(room){
+    var target = 0;
+    if(room.controller.level < 6){
+        target = Math.ceil(room.controller.level / 2);
+    }
+    else if(room.storage != undefined && room.storage.store[RESOURCE_ENERGY] > (room.storage.storeCapacity * capacityConstant)){
+        target = 2;
+    }
+    else{
+        target = 1;
+    }
+
+    return find.getUpgraders(room).length < target;
+}
+
+module.exports = {
+    run: _run,
+    make: _make,
+    shouldMake: _shouldMake
+};

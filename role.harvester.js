@@ -1,0 +1,110 @@
+/*
+This is the AI for the harvester role.
+A harvester should select a source when spawned, and move to that source. If that source has a container next to it, then the harvester should sit on the container.
+Once a harvester gets to it's final position, it will just harvest energy and drop it.
+*/
+
+// ***** Options *****
+var maxHarvesterParts = 8;
+var idealBody = [MOVE, WORK, WORK, WORK];
+// ***** End *****
+
+var find = require('manager.roomInfo');
+
+var _run = function(creep) {
+    var target = Game.getObjectById(creep.memory.source);
+    if(creep.ticksToLive % 7 == 0 && _.filter(creep.pos.lookFor(LOOK_STRUCTURES), (structure) => {return structure.structureType == STRUCTURE_CONTAINER}).length == 0){ // every 7th tick, but not all at once as in the case of multiple harvesters using universal time.
+        // check for containers and move to them if they exist.
+        var container = _findContainer(target);
+        if(container != false){
+            creep.moveTo(container);
+            return;
+        }
+    }
+
+    if(creep.harvest(target) == ERR_NOT_IN_RANGE) {
+        creep.moveTo(target);
+    }
+}
+
+var _make = function(spawn, energy_limit){
+    var temp_energy = energy_limit;
+    var body = [];
+    for(let i = 0; i < maxHarvesterParts; i++){
+        if(temp_energy >= BODYPART_COST[idealBody[i % idealBody.length]]){
+            body.push(idealBody[i % idealBody.length]);
+            temp_energy -= BODYPART_COST[idealBody[i % idealBody.length]];
+        }
+        else {
+            break;
+        }
+    }
+
+    var _target = '';
+    var sources = find.getSources(spawn.room);
+    for(let name in sources){
+        if(_open(sources[name])){
+            _target = sources[name].id;
+            break;
+        }
+    }
+    if(_target == ''){_target = sources[0].id;}
+
+    var mem = {role: 'harvester', home: spawn.room.controller.id, long_range: false, source: _target};
+
+    var retVal = spawn.createCreep(body, null, mem);
+    if(retVal < 0){
+        return 0;
+    }
+    else{
+        spawn.room.MY_CREEPS.push(Game.creeps[retVal]);
+        spawn.room.HARVESTERS.push(Game.creeps[retVal]);
+        var total = 0;
+        for(let i = 0; i < body.length; i++){
+            total +=  BODYPART_COST[body[i]];
+        }
+        return total;
+    }
+}
+
+var _open = function(source){
+    var harvesters = find.getHarvesters(source.room);
+    for(i in harvesters){
+        if(harvesters[i].memory.source == source.id){
+            return false;
+        }
+    }
+    return true;
+}
+
+var _findContainer = function(source){
+    var x = source.pos.x;
+    var y = source.pos.y;
+    var r = 1;
+    var y1 = y-r;
+    if(y1 < 0){y1 = 0;}
+    var x1 = x-r;
+    if(x1 < 0){x1 = 0;}
+    var y2 = y+r;
+    if(y2 > 49){y2 = 49;}
+    var x2 = x+r;
+    if(x2 > 49){x2 = 49;}
+
+    var list = source.room.lookForAtArea(LOOK_STRUCTURES,y1,x1,y2,x2,true);
+    for(let i in list){
+        if(list[i].structure.structureType == STRUCTURE_CONTAINER){
+            return list[i].structure;
+        }
+    }
+    return false;
+}
+
+var _shouldMake = function(room){
+    return find.getHarvesters(room).length < find.getSources(room).length;
+}
+
+module.exports = {
+    run: _run,
+    make: _make,
+    shouldMake: _shouldMake
+};
