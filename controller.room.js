@@ -63,7 +63,7 @@ var _spawnCreeps = function(room){
         return;
     }
     else if(find.getHandymen(room).length == 0 && (find.getCouriers(room).length == 0 || find.getHarvesters(room).length == 0)){ // Emergency spawning
-        creepLimits.handyman.lib.make(spawns[0], room.energyAvailable);
+        creepLimits.handyman.make(spawns[0], room.energyAvailable);
     }
     else { // regular spawning
         var energyMax = room.energyCapacityAvailable;
