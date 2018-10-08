@@ -89,7 +89,7 @@ var _spawnSingleCreep = function(spawn, energy_limit){
 
 // *** Towers ***
 var _controlTowers = function(room){
-    tower = find.getTowers(room);
+    var tower = find.getTowers(room);
     for(let i in tower){
         _operateTower(tower[i]);
     }
