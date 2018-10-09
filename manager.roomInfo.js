@@ -51,7 +51,7 @@ var _getFillables = function(room){
         room.FILLABLES = _.filter(_getStructures(room), (structure) => {
             return (structure.structureType == STRUCTURE_EXTENSION ||
                     structure.structureType == STRUCTURE_SPAWN ||
-                    structure.structureType == STRUCTURE_TOWER) &&
+                    (structure.structureType == STRUCTURE_TOWER && room.energyAvailable > 0.5 * room.energyCapacityAvailable)) &&
                     structure.my &&
                     structure.energy < structure.energyCapacity;
         });

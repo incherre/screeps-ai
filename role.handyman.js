@@ -8,6 +8,10 @@ If the colony is in dire need, the handyman should act as one of the old style h
 // ***** Options *****
 var maxHandymanParts = 8;
 var repairsPer = 10;
+var resourceThreshold = 100;
+var resourceRange = 1;
+var roadThresh = 90;
+var energyMin = 12;
 // ***** End *****
 
 var find = require('manager.roomInfo');
@@ -39,7 +43,7 @@ var _run = function(creep) {
     }
     else if(find.getHarvesters(creep.room).length == 0 || find.getCouriers(creep.room).length == 0){ // if the colony need someone to get energy, act as an inefficient harvester
         if(creep.memory.working){
-            var target = creep.pos.findClosestByRange(find.getFillables(creep.room));
+            var target = creep.pos.findClosestByRange(_.filter(find.getFillables(creep.room), (structure) => {return (structure.structureType != STRUCTURE_TOWER);}));
             if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(target);
             }
@@ -48,6 +52,34 @@ var _run = function(creep) {
             var source = creep.pos.findClosestByRange(find.getSources(creep.room), {filter: (source) => {return (source.energy > 0 && find.isOpen(source, creep))}});
             if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(source);
+            }
+            if(source == null){ // TODO clean up!
+                var energy = _.filter(find.getGroundEnergy(creep.room), (resource) => {return resource.amount > energyMin && (resource.amount >= resourceThreshold || creep.pos.inRangeTo(resource, resourceRange));});
+                var target = null;
+                var ground = false;
+
+                if(energy.length > 0){
+                    target = creep.pos.findClosestByRange(energy);
+                    ground = true;
+                }
+                else {
+                    target = creep.pos.findClosestByRange(find.getContainerEnergy(creep.room), {filter: (container) => {return container.store[RESOURCE_ENERGY] >= resourceThreshold || creep.pos.inRangeTo(container, resourceRange);}});
+                }
+
+                if(target == null){target = creep.room.storage;}
+
+                if(target != null){
+                    var ret;
+                    if(ground){
+                        ret = creep.pickup(target);
+                    }
+                    else {
+                        ret = creep.withdraw(target, RESOURCE_ENERGY);
+                    }
+                    if(ret == ERR_NOT_IN_RANGE){
+                        creep.moveTo(target);
+                    }
+                }
             }
         }
     }

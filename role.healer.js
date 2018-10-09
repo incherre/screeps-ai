@@ -5,7 +5,7 @@ A healer should go to the room specified by healFlag and heal the friendly creep
 
 // ***** Options *****
 var healFlag = 'heal';
-var maxHealerParts = 6;
+var maxHealerParts = 25;
 // ***** End *****
 
 var find = require('manager.roomInfo');

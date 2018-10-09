@@ -5,7 +5,7 @@ Once a warrior is in the same room as it's flag, if there are enemy creeps, it w
 */
 
 // ***** Options *****
-var maxWarriorParts = 10;
+var maxWarriorParts = 25;
 var message = ['placeholder', 'any energy', 'that you', 'use to', 'attack me', 'isn\'t used', 'for your', 'colony. :('];
 // ***** End *****
 

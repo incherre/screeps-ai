@@ -8,7 +8,7 @@ If the raider is injured and idle, it should move to the 'heal' flag.
 // ***** Options *****
 var raiderFlag = 'raid';
 var healFlag = 'heal';
-var maxRaiderParts = 8;
+var maxRaiderParts = 12;
 // ***** End *****
 
 var find = require('manager.roomInfo');
@@ -70,7 +70,7 @@ var _make = function(spawn, energy_limit){
 
 var _shouldMake = function(room){
     if(_shouldRaid()){
-		return find.getRaiders(room).length < 1;
+		return find.getRaiders(room).length < 2;
 	}
 	else{
 		return false;
