@@ -12,13 +12,13 @@ var creepLimits = {
     handyman: require('role.handyman'),
     courier: require('role.courier'),
     harvester: require('role.harvester'),
-    warrior: require('role.warrior'), 
-    healer: require('role.healer'),
+    //warrior: require('role.warrior'), 
+    //healer: require('role.healer'),
     upgrader: require('role.upgrader'),
     waller: require('role.waller'),
     miner: require('role.miner'),
-    claimer: require('role.claimer'),
-    raider: require('role.raider')
+    //claimer: require('role.claimer'),
+    //raider: require('role.raider')
 };
 
 //* For the official server: (remove one slash to disable)
