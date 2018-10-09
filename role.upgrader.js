@@ -27,15 +27,15 @@ var _run = function(creep) {
         }
     }
     else {
-        var target = find.getClosestStore(creep);
+        var target = creep.pos.findClosestByRange(find.getGroundEnergy(creep.room));
         if(target != null){
-            if(creep.withdraw(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+            if(creep.pickup(target) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(target);
             }
         }
         else {
-            target = creep.pos.findClosestByRange(find.getGroundEnergy(creep.room));
-            if(creep.pickup(target) == ERR_NOT_IN_RANGE) {
+            target = find.getClosestStore(creep);
+            if(creep.withdraw(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(target);
             }
         }
