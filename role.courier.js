@@ -10,6 +10,7 @@ var resourceThreshold = 100;
 var resourceRange = 1;
 var roadThresh = 90;
 var energyMin = 12;
+var controllerRange = 3;
 // ***** End *****
 
 var find = require('manager.roomInfo');
@@ -25,7 +26,7 @@ var _run = function(creep){
 	}
 
     if(creep.memory.working){
-        var energy = _.filter(find.getGroundEnergy(creep.room), (resource) => {return resource.amount > energyMin && (resource.amount >= resourceThreshold || creep.pos.inRangeTo(resource, resourceRange));});
+        var energy = _.filter(find.getGroundEnergy(creep.room), (resource) => {return !resource.pos.inRangeTo(creep.room.controller, controllerRange) && resource.amount > energyMin && (resource.amount >= resourceThreshold || creep.pos.inRangeTo(resource, resourceRange));});
         var target = null;
         var ground = false;
 
@@ -55,7 +56,16 @@ var _run = function(creep){
     else {
         var target = creep.pos.findClosestByRange(find.getFillables(creep.room));
         if(target == null){target = creep.room.storage;}
-        if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+
+        if(target == null){
+            if(creep.pos.inRangeTo(creep.room.controller, controllerRange)) {
+                creep.drop(RESOURCE_ENERGY);
+            }
+            else {
+                creep.moveTo(creep.room.controller);
+            }
+        }
+        else if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                creep.moveTo(target);
         }
     }
