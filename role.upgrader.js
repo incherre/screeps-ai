@@ -9,6 +9,7 @@ var maxUpgraderParts = 7;
 var capacityConstant = .55;
 // ***** End *****
 
+var upperCapacityConstant = 1 - ((1 - capacityConstant) / 2);
 var find = require('manager.roomInfo');
 
 var _run = function(creep) {
@@ -72,8 +73,11 @@ var _make = function(spawn, energy_limit){
 
 var _shouldMake = function(room){
     var target = 0;
-    if(room.controller.level < 6){
-        target = Math.ceil(room.controller.level / 2);
+    if(room.controller.level <= 4){
+        target = room.controller.level;
+    }
+    else if(room.storage != undefined && room.storage.store[RESOURCE_ENERGY] > (room.storage.storeCapacity * upperCapacityConstant)){
+        target = 3;
     }
     else if(room.storage != undefined && room.storage.store[RESOURCE_ENERGY] > (room.storage.storeCapacity * capacityConstant)){
         target = 2;
