@@ -91,7 +91,7 @@ var _getRoads = function(room){
 
 var _getConstructionSites = function(room){
     if(!room.hasOwnProperty('CONSTRUCTION_SITES')){
-        room.CONSTRUCTION_SITES = room.find(FIND_CONSTRUCTION_SITES, (site) => {return site.my;});
+        room.CONSTRUCTION_SITES = room.find(FIND_CONSTRUCTION_SITES, {filter: (site) => {return site.my;}});
     }
     return room.CONSTRUCTION_SITES;
 }
@@ -134,6 +134,7 @@ var _getGroundEnergy = function(room){
 var _getContainerEnergy = function(room){
     if(!room.hasOwnProperty('CONTAINER_ENERGY')){
         room.CONTAINER_ENERGY = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_CONTAINER && structure.store[RESOURCE_ENERGY] > 0)});
+        room.CONTAINER_ENERGY = room.CONTAINER_ENERGY.concat(room.find(FIND_TOMBSTONES, {filter: (stone) => {return stone.store[RESOURCE_ENERGY] > 0;}}));        
     }
     return room.CONTAINER_ENERGY;
 }
