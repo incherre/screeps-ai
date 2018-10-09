@@ -40,15 +40,10 @@ var _make = function(spawn, energy_limit){
         }
     }
 
-    var _target = '';
-    var sources = find.getSources(spawn.room);
-    for(let name in sources){
-        if(_open(sources[name])){
-            _target = sources[name].id;
-            break;
-        }
-    }
-    if(_target == ''){_target = sources[0].id;}
+    var sources = _.filter(find.getSources(spawn.room), (source) => _open(source));
+    var _target = spawn.pos.findClosestByRange(sources).id;
+    
+    if(_target == null){_target = find.getSources(spawn.room)[0].id;}
 
     var mem = {role: 'harvester', home: spawn.room.controller.id, long_range: false, source: _target};
 
