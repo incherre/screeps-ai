@@ -50,13 +50,12 @@ var _run = function(creep) {
         var target = find.getClosestStore(creep);
         if(target != null){
             if(creep.withdraw(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target);
+                creep.moveTo(target, {costCallback: _obstacles});
             }
         }
         else {
             target = creep.pos.findClosestByRange(find.getGroundEnergy(creep.room));
             if(creep.pickup(target) == ERR_NOT_IN_RANGE) {
-                var obstacles = _.filter(find.getStructures(creep.room), (structure) => {return structure.structureType == STRUCTURE_RAMPART;});
                 creep.moveTo(target, {costCallback: _obstacles});
             }
         }
