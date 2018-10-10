@@ -10,6 +10,15 @@ var maxWallerParts = 8;
 
 var find = require('manager.roomInfo');
 
+var _obstacles = function(roomName, costMatrix) {
+    if(Game.rooms.hasOwnProperty(roomName)) {
+        var ramparts = _.filter(find.getStructures(Game.rooms[roomName]), (structure) => {return structure.structureType == STRUCTURE_RAMPART;});
+        for(let i in ramparts) {
+            costMatrix.set(ramparts[i].pos.x, ramparts[i].pos.y, 255);
+        }
+    }
+}
+
 var _run = function(creep) {
     if(creep.memory.working && creep.carry.energy == 0) {
         creep.memory.working = false;
@@ -28,8 +37,7 @@ var _run = function(creep) {
             var target = creep.pos.findClosestByRange(repair, {filter: (structure) => {return structure.hits == hitsMin;}})
                 
             if(creep.repair(target) == ERR_NOT_IN_RANGE) {
-                var obstacles = _.filter(find.getStructures(creep.room), (structure) => {return structure.structureType == STRUCTURE_RAMPART;});
-                creep.moveTo(target, {avoid: obstacles});
+                creep.moveTo(target, {costCallback: _obstacles});
 			}
         }
         else { // otherwise, upgrade
@@ -49,7 +57,7 @@ var _run = function(creep) {
             target = creep.pos.findClosestByRange(find.getGroundEnergy(creep.room));
             if(creep.pickup(target) == ERR_NOT_IN_RANGE) {
                 var obstacles = _.filter(find.getStructures(creep.room), (structure) => {return structure.structureType == STRUCTURE_RAMPART;});
-                creep.moveTo(target, {avoid: obstacles});
+                creep.moveTo(target, {costCallback: _obstacles});
             }
         }
     }
