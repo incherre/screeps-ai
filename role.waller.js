@@ -20,7 +20,6 @@ var _run = function(creep) {
 	    creep.say('walling');
 	}
 
-
 	if(creep.memory.working) {
         if(find.getRepairableWalls(creep.room).length > 0){ // should regular repair
             // repair
@@ -29,7 +28,8 @@ var _run = function(creep) {
             var target = creep.pos.findClosestByRange(repair, {filter: (structure) => {return structure.hits == hitsMin;}})
                 
             if(creep.repair(target) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target);
+                var obstacles = _.filter(find.getStructures(creep.room), (structure) => {return structure.structureType == STRUCTURE_RAMPART;});
+                creep.moveTo(target, {avoid: obstacles});
 			}
         }
         else { // otherwise, upgrade
@@ -48,7 +48,8 @@ var _run = function(creep) {
         else {
             target = creep.pos.findClosestByRange(find.getGroundEnergy(creep.room));
             if(creep.pickup(target) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target);
+                var obstacles = _.filter(find.getStructures(creep.room), (structure) => {return structure.structureType == STRUCTURE_RAMPART;});
+                creep.moveTo(target, {avoid: obstacles});
             }
         }
     }
