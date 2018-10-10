@@ -28,16 +28,22 @@ var _run = function(creep) {
         }
     }
     else {
-        var target = creep.pos.findClosestByRange(find.getGroundEnergy(creep.room));
-        if(target != null){
-            if(creep.pickup(target) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target);
+        var target1 = creep.pos.findClosestByRange(find.getGroundEnergy(creep.room));
+        var target2 = find.getClosestStore(creep);
+
+        if(target1 != null && creep.room.controller.pos.inRangeTo(target1, 6)){
+            if(creep.pickup(target1) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(target1);
             }
         }
-        else {
-            target = find.getClosestStore(creep);
-            if(creep.withdraw(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target);
+        else if(target2 != null) {
+            if(creep.withdraw(target2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(target2);
+            }
+        }
+        else if(target1 != null) {
+            if(creep.pickup(target1) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(target1);
             }
         }
     }

@@ -10,7 +10,7 @@ var resourceThreshold = 100;
 var resourceRange = 1;
 var roadThresh = 90;
 var energyMin = 12;
-var controllerRange = 3;
+var controllerRange = 2;
 // ***** End *****
 
 var find = require('manager.roomInfo');
