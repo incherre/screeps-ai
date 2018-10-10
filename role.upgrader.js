@@ -79,7 +79,7 @@ var _make = function(spawn, energy_limit){
 
 var _shouldMake = function(room){
     var target = 0;
-    if(room.controller.level <= 4){
+    if(room.controller.level <= 3){
         target = room.controller.level;
     }
     else if(room.storage != undefined && room.storage.store[RESOURCE_ENERGY] > (room.storage.storeCapacity * upperCapacityConstant)){

@@ -49,7 +49,7 @@ var _run = function(creep){
                 ret = creep.withdraw(target, RESOURCE_ENERGY);
             }
             if(ret == ERR_NOT_IN_RANGE){
-                creep.moveTo(target);
+                creep.moveTo(target, {ignoreRoads: true});
             }
         }
     }
@@ -62,11 +62,11 @@ var _run = function(creep){
                 creep.drop(RESOURCE_ENERGY);
             }
             else {
-                creep.moveTo(creep.room.controller);
+                creep.moveTo(creep.room.controller, {ignoreRoads: true, range: controllerRange});
             }
         }
         else if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-               creep.moveTo(target);
+               creep.moveTo(target, {ignoreRoads: true});
         }
     }
 }
