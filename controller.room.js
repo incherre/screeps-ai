@@ -17,6 +17,7 @@ var creepLimits = {
     upgrader: require('role.upgrader'),
     waller: require('role.waller'),
     miner: require('role.miner'),
+    ldh: require('role.ldh'),
     //claimer: require('role.claimer'),
     //raider: require('role.raider')
 };

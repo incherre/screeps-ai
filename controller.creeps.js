@@ -12,6 +12,7 @@ var roles = {
     //warrior: require('role.warrior'),
     //raider: require('role.raider'),
     waller: require('role.waller'),
+    ldh: require('role.ldh'),
     //healer: require('role.healer')
 }
 

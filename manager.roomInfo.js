@@ -225,6 +225,13 @@ var _getRaiders = function(room){
     return Game.RAIDERS;
 }
 
+var _getLdh = function(room){
+    if(!Game.hasOwnProperty('LDH')){
+        Game.LDH = _.filter(Game.creeps, (creep) => {return (creep.memory.role == 'ldh') && (creep.spawning || creep.ticksToLive > (creep.body.length * 3));});
+    }
+    return Game.LDH;
+}
+
 var _getMineral = function(room){
     if(!room.hasOwnProperty('MINERAL')){
         var minerals = room.find(FIND_MINERALS);
@@ -342,6 +349,7 @@ module.exports = {
     canBuild: _canBuild,
     getExtractors: _getExtractors,
     getRaiders: _getRaiders,
+    getLdh: _getLdh,
     getCreepLink: _getCreepLink,
     getRepairableWalls: _getRepairableWalls,
     getWallers: _getWallers,
