@@ -13,7 +13,8 @@ var roles = {
     //raider: require('role.raider'),
     waller: require('role.waller'),
     ldh: require('role.ldh'),
-    //healer: require('role.healer')
+    //healer: require('role.healer'),
+    reserver: require('role.reserver')
 }
 
 var _controlCreeps = function(){

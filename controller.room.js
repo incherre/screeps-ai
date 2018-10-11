@@ -19,7 +19,8 @@ var creepLimits = {
     miner: require('role.miner'),
     ldh: require('role.ldh'),
     //claimer: require('role.claimer'),
-    //raider: require('role.raider')
+    //raider: require('role.raider'),
+    reserver: require('role.reserver')
 };
 
 //* For the official server: (remove one slash to disable)

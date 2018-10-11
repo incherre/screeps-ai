@@ -34,7 +34,8 @@ var _creepFilter = {
     'healer': {roomSpecific: true, valid: (creep) => {return true;}},
     'claimer': {roomSpecific: false, valid: (creep) => {return true;}},
     'raider': {roomSpecific: false, valid: (creep) => {return true;}},
-    'ldh': {roomSpecific: false, valid: (creep) => {return true;}}
+    'ldh': {roomSpecific: false, valid: (creep) => {return true;}},
+    'reserver': {roomSpecific: false, valid: (creep) => {return true;}}
 }
 
 var _populateRoles = function() {

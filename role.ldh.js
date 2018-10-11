@@ -52,17 +52,31 @@ var _run = function(creep) {
 
 var _findTargetNum = function(room) {
     var ldhs = find.getRole(room, 'ldh');
+    var reservers = find.getRole(room, 'reserver');
     var sourceCounts = {};
+    var sourceRooms = {};
     for(let i in targets) {
-        sourceCounts[targets[i].source.id] = {count: 0, num: i};
+        sourceCounts[targets[i].source.id] = {count: 0, num: i, room: targets[i].source.room};
+        sourceRooms[targets[i].source.room] = 0;
     }
     
     for(let i in ldhs) {
         sourceCounts[ldhs[i].memory.source.id].count++;
     }
     
+    for(let i in reservers) {
+        if(sourceRooms.hasOwnProperty(reservers[i].memory.target)) {
+            sourceRooms[reservers[i].memory.target]++;
+        }
+    }
+    
     for(let i in sourceCounts) {
-        if(sourceCounts[i].count <= 0) {
+        let target = 1;
+        if(sourceRooms[sourceCounts[i].room] > 0) {
+            target = 2;
+        }
+
+        if(sourceCounts[i].count < target) {
             return sourceCounts[i].num;
         }
     }
@@ -99,8 +113,7 @@ var _make = function(spawn, energy_limit) {
 }
 
 var _shouldMake = function(room) {
-    var target = targets.length;
-    return find.getRole(room, 'ldh').length < target;
+    return _findTargetNum(room) >= 0;
 }
 
 module.exports = {
