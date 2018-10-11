@@ -65,8 +65,8 @@ var _make = function(spawn, energy_limit){ // make a claimer
         return 0;
     }
     else{
-        spawn.room.MY_CREEPS.push(Game.creeps[retVal]);
-        Game.CLAIMERS.push(Game.creeps[retVal]);
+        find.addRole(Game.creeps[retVal], 'claimer');
+        
         var total = 0;
         for(let i = 0; i < body.length; i++){
             total +=  BODYPART_COST[body[i]];
@@ -77,7 +77,7 @@ var _make = function(spawn, energy_limit){ // make a claimer
 
 var _shouldMake = function(room){
 	if(_shouldClaim()){
-		return find.getClaimers(room).length < 1;
+		return find.getRole(room, 'claimer').length < 1;
 	}
 	else{
 		return false;

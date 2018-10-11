@@ -41,7 +41,7 @@ var _run = function(creep) {
             }
         }
     }
-    else if(find.getHarvesters(creep.room).length == 0 || find.getCouriers(creep.room).length == 0){ // if the colony need someone to get energy, act as an inefficient harvester
+    else if(find.getRole(creep.room, 'harvester').length == 0 || find.getRole(creep.room, 'courier').length == 0){ // if the colony need someone to get energy, act as an inefficient harvester
         if(creep.memory.working){
             var target = creep.pos.findClosestByRange(_.filter(find.getFillables(creep.room), (structure) => {return (structure.structureType != STRUCTURE_TOWER);}));
             if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -161,8 +161,7 @@ var _make = function(spawn, energy_limit){
         return 0;
     }
     else{
-        spawn.room.MY_CREEPS.push(Game.creeps[retVal]);
-        spawn.room.HANDYMEN.push(Game.creeps[retVal]);
+        find.addRole(Game.creeps[retVal], 'handyman');
         var total = 0;
         for(let i = 0; i < body.length; i++){
             total +=  BODYPART_COST[body[i]];
@@ -181,7 +180,7 @@ var _shouldMake = function(room){
         target = 1 + Math.ceil(num / repairsPer);
     }
 
-    return find.getHandymen(room).length < target;
+    return find.getRole(room, 'handyman').length < target;
 }
 
 module.exports = {

@@ -67,8 +67,7 @@ var _make = function(spawn, energy_limit){
         return 0;
     }
     else{
-        spawn.room.MY_CREEPS.push(Game.creeps[retVal]);
-        spawn.room.UPGRADERS.push(Game.creeps[retVal]);
+        find.addRole(Game.creeps[retVal], 'upgrader');
         var total = 0;
         for(let i = 0; i < body.length; i++){
             total +=  BODYPART_COST[body[i]];
@@ -92,7 +91,7 @@ var _shouldMake = function(room){
         target = 1;
     }
 
-    return find.getUpgraders(room).length < target;
+    return find.getRole(room, 'upgrader').length < target;
 }
 
 module.exports = {

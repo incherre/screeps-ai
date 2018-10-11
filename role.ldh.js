@@ -51,7 +51,7 @@ var _run = function(creep) {
 }
 
 var _findTargetNum = function(room) {
-    var ldhs = find.getLdh(room);
+    var ldhs = find.getRole(room, 'ldh');
     var sourceCounts = {};
     for(let i in targets) {
         sourceCounts[targets[i].source.id] = {count: 0, num: i};
@@ -89,8 +89,7 @@ var _make = function(spawn, energy_limit) {
         return 0;
     }
     else{
-        spawn.room.MY_CREEPS.push(Game.creeps[retVal]);
-        Game.LDH.push(Game.creeps[retVal]);
+        find.addRole(Game.creeps[retVal], 'ldh');
         var total = 0;
         for(let i = 0; i < body.length; i++){
             total +=  BODYPART_COST[body[i]];
@@ -101,7 +100,7 @@ var _make = function(spawn, energy_limit) {
 
 var _shouldMake = function(room) {
     var target = targets.length;
-    return find.getLdh(room).length < target;
+    return find.getRole(room, 'ldh').length < target;
 }
 
 module.exports = {

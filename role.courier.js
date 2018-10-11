@@ -88,8 +88,7 @@ var _make = function(spawn, energy_limit){
         return 0;
     }
     else{
-        spawn.room.MY_CREEPS.push(Game.creeps[retVal]);
-        spawn.room.COURIERS.push(Game.creeps[retVal]);
+        find.addRole(Game.creeps[retVal], 'courier');
         var total = 0;
         for(let i = 0; i < body.length; i++){
             total +=  BODYPART_COST[body[i]];
@@ -100,10 +99,10 @@ var _make = function(spawn, energy_limit){
 
 var _shouldMake = function(room){
     if(find.getRoads(room).length > roadThresh){
-        return find.getCouriers(room).length < (find.getHarvesters(room).length + 2);
+        return find.getRole(room, 'courier').length < (find.getRole(room, 'harvester').length + 2);
     }
     else{
-        return find.getCouriers(room).length < (find.getHarvesters(room).length + 1);
+        return find.getRole(room, 'courier').length < (find.getRole(room, 'harvester').length + 1);
     }
 }
 

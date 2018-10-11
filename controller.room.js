@@ -62,7 +62,7 @@ var _spawnCreeps = function(room){
     if(spawns.length == 0){ // Can't make things with no spawn!
         return;
     }
-    else if(find.getHandymen(room).length == 0 && (find.getCouriers(room).length == 0 || find.getHarvesters(room).length == 0)){ // Emergency spawning
+    else if(find.getRole(room, 'handyman').length == 0 && (find.getRole(room, 'courier').length == 0 || find.getRole(room, 'harvester').length == 0)){ // Emergency spawning
         creepLimits.handyman.make(spawns[0], room.energyAvailable);
     }
     else { // regular spawning

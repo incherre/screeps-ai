@@ -56,8 +56,7 @@ var _make = function(spawn, energy_limit){
         return 0;
     }
     else{
-        spawn.room.MY_CREEPS.push(Game.creeps[retVal]);
-        spawn.room.HEALERS.push(Game.creeps[retVal]);
+        find.addRole(Game.creeps[retVal], 'healer');
         var total = 0;
         for(let i = 0; i < body.length; i++){
             total +=  BODYPART_COST[body[i]];
@@ -67,7 +66,7 @@ var _make = function(spawn, energy_limit){
 }
 
 var _shouldMake = function(room){
-    return find.getHealers(room).length < find.getHurtCreeps(room).length;
+    return find.getRole(room, 'healer').length < find.getHurtCreeps(room).length;
 }
 
 module.exports = {

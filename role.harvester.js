@@ -52,8 +52,7 @@ var _make = function(spawn, energy_limit){
         return 0;
     }
     else{
-        spawn.room.MY_CREEPS.push(Game.creeps[retVal]);
-        spawn.room.HARVESTERS.push(Game.creeps[retVal]);
+        find.addRole(Game.creeps[retVal], 'harvester');
         var total = 0;
         for(let i = 0; i < body.length; i++){
             total +=  BODYPART_COST[body[i]];
@@ -63,7 +62,7 @@ var _make = function(spawn, energy_limit){
 }
 
 var _open = function(source){
-    var harvesters = find.getHarvesters(source.room);
+    var harvesters = find.getRole(source.room, 'harvester');
     for(i in harvesters){
         if(harvesters[i].memory.source == source.id){
             return false;
@@ -95,7 +94,7 @@ var _findContainer = function(source){
 }
 
 var _shouldMake = function(room){
-    return find.getHarvesters(room).length < find.getSources(room).length;
+    return find.getRole(room, 'harvester').length < find.getSources(room).length;
 }
 
 module.exports = {

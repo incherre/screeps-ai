@@ -65,8 +65,7 @@ var _make = function(spawn, energy_limit){
         return 0;
     }
     else{
-        spawn.room.MY_CREEPS.push(Game.creeps[retVal]);
-		spawn.room.MINERS.push(Game.creeps[retVal]);
+        find.addRole(Game.creeps[retVal], 'miner');
         var total = 0;
         for(let i = 0; i < body.length; i++){
             total +=  BODYPART_COST[body[i]];
@@ -81,7 +80,7 @@ var _shouldMine = function(room){
 
 var _shouldMake = function(room){
 	if(_shouldMine(room)){
-		return find.getMiners(room).length < 1;
+		return find.getRole(room, 'miner').length < 1;
 	}
 	else{
 		return false;

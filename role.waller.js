@@ -80,8 +80,7 @@ var _make = function(spawn, energy_limit){
         return 0;
     }
     else{
-        spawn.room.MY_CREEPS.push(Game.creeps[retVal]);
-        spawn.room.WALLERS.push(Game.creeps[retVal]);
+        find.addRole(Game.creeps[retVal], 'waller');
         var total = 0;
         for(let i = 0; i < body.length; i++){
             total +=  BODYPART_COST[body[i]];
@@ -99,7 +98,7 @@ var _shouldMake = function(room){
         target = 0;
     }
 
-    return find.getWallers(room).length < target;
+    return find.getRole(room, 'waller').length < target;
 }
 
 module.exports = {

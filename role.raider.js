@@ -58,8 +58,7 @@ var _make = function(spawn, energy_limit){
         return 0;
     }
     else{
-        spawn.room.MY_CREEPS.push(Game.creeps[retVal]);
-        Game.RAIDERS.push(Game.creeps[retVal]);
+        find.addRole(Game.creeps[retVal], 'raider');
         var total = 0;
         for(let i = 0; i < body.length; i++){
             total +=  BODYPART_COST[body[i]];
@@ -70,7 +69,7 @@ var _make = function(spawn, energy_limit){
 
 var _shouldMake = function(room){
     if(_shouldRaid()){
-		return find.getRaiders(room).length < 2;
+		return find.getRole(room, 'raider').length < 2;
 	}
 	else{
 		return false;

@@ -5,10 +5,7 @@ All of the functions in manager.roomInfo will return some list of items in a roo
 //var ttlThresh = 40; // depriciated
 
 var _getMyCreeps = function(room){
-    if(!room.hasOwnProperty('MY_CREEPS')){
-        room.MY_CREEPS = _.filter(Game.creeps, (creep) => {return creep.memory.home == room.controller.id && (creep.spawning || creep.ticksToLive > (creep.body.length * 3));});
-    }
-    return room.MY_CREEPS;
+    return _getRole(room, 'all');
 }
 
 var _getHurtCreeps = function(room){
@@ -24,6 +21,99 @@ var _getHostileCreeps = function(room){
     }
     return room.HOSTILE_CREEPS;
 }
+
+// creep sorting code start
+var _creepFilter = {
+    'harvester': {roomSpecific: true, valid: (creep) => {return (creep.spawning || creep.ticksToLive > (creep.pos.findPathTo(creep.pos.findClosestByRange(_getSpawns(creep.room))).length * 2.5));}},
+    'courier': {roomSpecific: true, valid: (creep) => {return true;}},
+    'handyman': {roomSpecific: true, valid: (creep) => {return true;}},
+    'waller': {roomSpecific: true, valid: (creep) => {return true;}},
+    'miner': {roomSpecific: true, valid: (creep) => {return true;}},
+    'upgrader': {roomSpecific: true, valid: (creep) => {return true;}},
+    'warrior': {roomSpecific: true, valid: (creep) => {return true;}},
+    'healer': {roomSpecific: true, valid: (creep) => {return true;}},
+    'claimer': {roomSpecific: false, valid: (creep) => {return true;}},
+    'raider': {roomSpecific: false, valid: (creep) => {return true;}},
+    'ldh': {roomSpecific: false, valid: (creep) => {return true;}}
+}
+
+var _populateRoles = function() {
+    if(!Game.hasOwnProperty('CREEP_TYPES')) {
+        Game.CREEP_TYPES = {'all': {'all': []}};
+        for(let name in Game.creeps) {
+            let creep = Game.creeps[name];
+            if(creep.memory.hasOwnProperty('role') && _creepFilter.hasOwnProperty(creep.memory.role)) {
+                let filter = _creepFilter[creep.memory.role];
+                if((creep.spawning || creep.ticksToLive > (creep.body.length * 3)) && filter.valid(creep)) {
+                    if(filter.roomSpecific) {
+                        if(!Game.CREEP_TYPES.hasOwnProperty(creep.memory.home)) {
+                            Game.CREEP_TYPES[creep.memory.home] = {'all': []};
+                        }
+                        if(!Game.CREEP_TYPES[creep.memory.home].hasOwnProperty(creep.memory.role)) {
+                            Game.CREEP_TYPES[creep.memory.home][creep.memory.role] = [];
+                        }
+                        
+                        Game.CREEP_TYPES[creep.memory.home][creep.memory.role].push(creep);
+                        Game.CREEP_TYPES[creep.memory.home].all.push(creep);
+                    }
+                    else {
+                        if(!Game.CREEP_TYPES.all.hasOwnProperty(creep.memory.role)) {
+                            Game.CREEP_TYPES.all[creep.memory.role] = [];
+                        }
+                        
+                        Game.CREEP_TYPES.all[creep.memory.role].push(creep);
+                        Game.CREEP_TYPES.all.all.push(creep);
+                    }
+                }
+            }
+            else {
+                console.log('creep ' + name + ' has missing or unknown role');
+            }
+        }
+    }
+}
+
+var _getRole = function(room, role){
+    _populateRoles();
+    
+    var roomCode;
+    if(role != 'all' && _creepFilter[role].roomSpecific) {
+        roomCode = room.controller.id;
+    }
+    else {
+        roomCode = 'all';
+    }
+
+    if(Game.CREEP_TYPES.hasOwnProperty(roomCode) && Game.CREEP_TYPES[roomCode].hasOwnProperty(role)) {
+        return  Game.CREEP_TYPES[roomCode][role];
+    }
+    else {
+        return [];
+    }
+}
+
+var _addRole = function(creep, role) {
+    _populateRoles();
+    
+    var roomCode;
+    if(_creepFilter[role].roomSpecific) {
+        roomCode = creep.memory.home;
+    }
+    else {
+        roomCode = 'all';
+    }
+    
+    if(!Game.CREEP_TYPES.hasOwnProperty(roomCode)) {
+        Game.CREEP_TYPES[roomCode] = {'all': []};
+    }
+    if(!Game.CREEP_TYPES[roomCode].hasOwnProperty(creep.memory.role)) {
+        Game.CREEP_TYPES[roomCode][creep.memory.role] = [];
+    }
+    
+    Game.CREEP_TYPES[roomCode][creep.memory.role].push(creep);
+    Game.CREEP_TYPES[roomCode].all.push(creep);
+}
+// creep sorting code end
 
 var _getStructures = function(room){
     if(!room.hasOwnProperty('STRUCTURES')){
@@ -148,90 +238,6 @@ var _getClosestStore = function(creep){
     }
 }
 
-var _getHarvesters = function(room){
-    if(!room.hasOwnProperty('HARVESTERS')){
-        room.HARVESTERS = _.filter(_getMyCreeps(room), (creep) => {
-            var walkTime = 0;
-            if(creep.memory.role == 'harvester'){
-                walkTime = (creep.body.length * 3) + (creep.pos.findPathTo(creep.pos.findClosestByRange(_getSpawns(room))).length * 2.5);
-                //console.log("Creep " + creep.name + " has a walkTime of " + walkTime);
-            }
-            return (creep.memory.role == 'harvester') && (creep.spawning || creep.ticksToLive > walkTime);
-        });
-    }
-    return room.HARVESTERS;
-}
-
-var _getCouriers = function(room){
-    if(!room.hasOwnProperty('COURIERS')){
-        room.COURIERS = _.filter(_getMyCreeps(room), (creep) => {return (creep.memory.role == 'courier')});
-    }
-    return room.COURIERS;
-}
-
-var _getHandymen = function(room){
-    if(!room.hasOwnProperty('HANDYMEN')){
-        room.HANDYMEN = _.filter(_getMyCreeps(room), (creep) => {return (creep.memory.role == 'handyman')});
-    }
-    return room.HANDYMEN;
-}
-
-var _getWallers = function(room){
-    if(!room.hasOwnProperty('WALLERS')){
-        room.WALLERS = _.filter(_getMyCreeps(room), (creep) => {return (creep.memory.role == 'waller')});
-    }
-    return room.WALLERS;
-}
-
-var _getMiners = function(room){
-    if(!room.hasOwnProperty('MINERS')){
-        room.MINERS = _.filter(_getMyCreeps(room), (creep) => {return (creep.memory.role == 'miner')});
-    }
-    return room.MINERS;
-}
-
-var _getUpgraders = function(room){
-    if(!room.hasOwnProperty('UPGRADERS')){
-        room.UPGRADERS = _.filter(_getMyCreeps(room), (creep) => {return (creep.memory.role == 'upgrader')});
-    }
-    return room.UPGRADERS;
-}
-
-var _getWarriors = function(room){
-    if(!room.hasOwnProperty('WARRIORS')){
-        room.WARRIORS = _.filter(_getMyCreeps(room), (creep) => {return (creep.memory.role == 'warrior')});
-    }
-    return room.WARRIORS;
-}
-
-var _getHealers = function(room){
-    if(!room.hasOwnProperty('HEALERS')){
-        room.HEALERS = _.filter(_getMyCreeps(room), (creep) => {return (creep.memory.role == 'healer')});
-    }
-    return room.HEALERS;
-}
-
-var _getClaimers = function(room){
-    if(!Game.hasOwnProperty('CLAIMERS')){
-        Game.CLAIMERS = _.filter(Game.creeps, (creep) => {return (creep.memory.role == 'claimer') && (creep.spawning || creep.ticksToLive > (creep.body.length * 3));});
-    }
-    return Game.CLAIMERS;
-}
-
-var _getRaiders = function(room){
-    if(!Game.hasOwnProperty('RAIDERS')){
-        Game.RAIDERS = _.filter(Game.creeps, (creep) => {return (creep.memory.role == 'raider') && (creep.spawning || creep.ticksToLive > (creep.body.length * 3));});
-    }
-    return Game.RAIDERS;
-}
-
-var _getLdh = function(room){
-    if(!Game.hasOwnProperty('LDH')){
-        Game.LDH = _.filter(Game.creeps, (creep) => {return (creep.memory.role == 'ldh') && (creep.spawning || creep.ticksToLive > (creep.body.length * 3));});
-    }
-    return Game.LDH;
-}
-
 var _getMineral = function(room){
     if(!room.hasOwnProperty('MINERAL')){
         var minerals = room.find(FIND_MINERALS);
@@ -323,6 +329,7 @@ var _getPortals = function(room){
 module.exports = {
     getMyCreeps: _getMyCreeps,
     getHostileCreeps: _getHostileCreeps,
+    getHurtCreeps: _getHurtCreeps,
     getStructures: _getStructures,
     getSpawns: _getSpawns,
     getAvailableSpawns: _getAvailableSpawns,
@@ -336,24 +343,14 @@ module.exports = {
     getContainerEnergy: _getContainerEnergy,
     getClosestStore: _getClosestStore,
     isOpen: _isOpen,
-    getHarvesters: _getHarvesters,
     getEmergencyRepairable: _getEmergencyRepairable,
     getMineral: _getMineral,
     getTowers: _getTowers,
-    getCouriers: _getCouriers,
-    getClaimers: _getClaimers,
-    getHandymen: _getHandymen,
-    getMiners: _getMiners,
-    getUpgraders: _getUpgraders,
-    getWarriors: _getWarriors,
     canBuild: _canBuild,
     getExtractors: _getExtractors,
-    getRaiders: _getRaiders,
-    getLdh: _getLdh,
     getCreepLink: _getCreepLink,
     getRepairableWalls: _getRepairableWalls,
-    getWallers: _getWallers,
-    getHurtCreeps: _getHurtCreeps,
-    getHealers: _getHealers,
-    getPortals: _getPortals
+    getPortals: _getPortals,
+    getRole: _getRole,
+    addRole: _addRole
 };
