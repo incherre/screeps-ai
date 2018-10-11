@@ -12,11 +12,11 @@ var find = require('manager.roomInfo');
 
 var _run = function(creep) {
     if(creep.memory.target != creep.room.name) {
-        creep.moveTo(new RoomPosition(25, 25, creep.memory.target));
+        creep.moveTo(new RoomPosition(25, 25, creep.memory.target), {ignoreRoads: true});
     }
     else {
         if(creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-            creep.moveTo(creep.room.controller);
+            creep.moveTo(creep.room.controller, {ignoreRoads: true});
         }
     }
 }
@@ -62,14 +62,14 @@ var _make = function(spawn, energy_limit) {
         find.addRole(Game.creeps[retVal], 'reserver');
         
         var total = 0;
-        for(let i = 0; i < body.length; i++){
+        for(let i = 0; i < body.length; i++) {
             total +=  BODYPART_COST[body[i]];
         }
         return total;
     }
 }
 
-var _shouldMake = function(room){
+var _shouldMake = function(room) {
     return find.getRole(room, 'reserver').length < targets.length;
 }
 

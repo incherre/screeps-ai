@@ -13,10 +13,10 @@ var find = require('manager.roomInfo');
 
 var _run = function(creep) {
     var target = Game.getObjectById(creep.memory.source);
-    if(creep.ticksToLive % 7 == 0 && _.filter(creep.pos.lookFor(LOOK_STRUCTURES), (structure) => {return structure.structureType == STRUCTURE_CONTAINER}).length == 0){ // every 7th tick, but not all at once as in the case of multiple harvesters using universal time.
+    if(creep.ticksToLive % 7 == 0 && _.filter(creep.pos.lookFor(LOOK_STRUCTURES), (structure) => {return structure.structureType == STRUCTURE_CONTAINER}).length == 0) { // every 7th tick, but not all at once as in the case of multiple harvesters using universal time.
         // check for containers and move to them if they exist.
         var container = _findContainer(target);
-        if(container != false){
+        if(container != false) {
             creep.moveTo(container);
             return;
         }
@@ -27,11 +27,11 @@ var _run = function(creep) {
     }
 }
 
-var _make = function(spawn, energy_limit){
+var _make = function(spawn, energy_limit) {
     var temp_energy = energy_limit;
     var body = [];
-    for(let i = 0; i < maxHarvesterParts; i++){
-        if(temp_energy >= BODYPART_COST[idealBody[i % idealBody.length]]){
+    for(let i = 0; i < maxHarvesterParts; i++) {
+        if(temp_energy >= BODYPART_COST[idealBody[i % idealBody.length]]) {
             body.push(idealBody[i % idealBody.length]);
             temp_energy -= BODYPART_COST[idealBody[i % idealBody.length]];
         }
@@ -48,30 +48,30 @@ var _make = function(spawn, energy_limit){
     var mem = {role: 'harvester', home: spawn.room.controller.id, long_range: false, source: _target};
 
     var retVal = spawn.createCreep(body, null, mem);
-    if(retVal < 0){
+    if(retVal < 0) {
         return 0;
     }
-    else{
+    else {
         find.addRole(Game.creeps[retVal], 'harvester');
         var total = 0;
-        for(let i = 0; i < body.length; i++){
+        for(let i = 0; i < body.length; i++) {
             total +=  BODYPART_COST[body[i]];
         }
         return total;
     }
 }
 
-var _open = function(source){
+var _open = function(source) {
     var harvesters = find.getRole(source.room, 'harvester');
-    for(i in harvesters){
-        if(harvesters[i].memory.source == source.id){
+    for(i in harvesters) {
+        if(harvesters[i].memory.source == source.id) {
             return false;
         }
     }
     return true;
 }
 
-var _findContainer = function(source){
+var _findContainer = function(source) {
     var x = source.pos.x;
     var y = source.pos.y;
     var r = 1;
@@ -85,15 +85,15 @@ var _findContainer = function(source){
     if(x2 > 49){x2 = 49;}
 
     var list = source.room.lookForAtArea(LOOK_STRUCTURES,y1,x1,y2,x2,true);
-    for(let i in list){
-        if(list[i].structure.structureType == STRUCTURE_CONTAINER){
+    for(let i in list) {
+        if(list[i].structure.structureType == STRUCTURE_CONTAINER) {
             return list[i].structure;
         }
     }
     return false;
 }
 
-var _shouldMake = function(room){
+var _shouldMake = function(room) {
     return find.getRole(room, 'harvester').length < find.getSources(room).length;
 }
 

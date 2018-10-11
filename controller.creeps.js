@@ -17,28 +17,28 @@ var roles = {
     reserver: require('role.reserver')
 }
 
-var _controlCreeps = function(){
+var _controlCreeps = function() {
     for(let i in Memory.creeps) {
         if(!Game.creeps[i]) {
             delete Memory.creeps[i];
         }
     }
 
-    for(let name in Game.creeps){
+    for(let name in Game.creeps) {
         _controlSingleCreep(Game.creeps[name]);
     }
 }
 
-var _controlSingleCreep = function(creep){
-    if(creep.fatigue > 0 || creep.spawning){
+var _controlSingleCreep = function(creep) {
+    if(creep.fatigue > 0 || creep.spawning) {
         return;
     }
-    else if(!creep.memory.long_range && creep.room.controller != undefined && creep.room.controller.id != creep.memory.home){
+    else if(!creep.memory.long_range && creep.room.controller != undefined && creep.room.controller.id != creep.memory.home) {
         creep.moveTo(Game.getObjectById(creep.memory.home))
     }
     else {
-        for(let key in roles){
-            if(key == creep.memory.role){
+        for(let key in roles) {
+            if(key == creep.memory.role) {
                 roles[key].run(creep);
                 break;
             }

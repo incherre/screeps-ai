@@ -11,9 +11,9 @@ var message = ['placeholder', 'any energy', 'that you', 'use to', 'attack me', '
 
 var find = require('manager.roomInfo');
 
-var _run = function(creep){
+var _run = function(creep) {
     var enemy = creep.pos.findClosestByRange(find.getHostileCreeps(creep.room));
-    if(enemy == null){
+    if(enemy == null) {
         var flag = creep.pos.findClosestByRange(_findWarriorFlags(creep.room));
         creep.moveTo(flag);
     }
@@ -21,69 +21,69 @@ var _run = function(creep){
         creep.moveTo(enemy);
     }
     
-    if(enemy != null){
-        if(!creep.memory.was_enemy){
+    if(enemy != null) {
+        if(!creep.memory.was_enemy) {
             creep.memory.start_time = Game.time;
             creep.memory.was_enemy = true;
         }
         
-        if((Game.time - creep.memory.start_time) % message.length == 0){
+        if((Game.time - creep.memory.start_time) % message.length == 0) {
             creep.say(enemy.owner.username, true);
         }
-        else{
+        else {
             creep.say(message[(Game.time - creep.memory.start_time) % message.length], true);
         }
     }
-    else{
+    else {
         creep.memory.was_enemy = false;
     }
 }
 
-var _make = function(spawn, energy_limit){
+var _make = function(spawn, energy_limit) {
     var numOfPart = Math.floor(energy_limit / 130);
     if(numOfPart > maxWarriorParts){numOfPart = maxWarriorParts;}
 
     var body = [];
-    for(let i = 0; i < numOfPart; i++){
+    for(let i = 0; i < numOfPart; i++) {
         body.push(MOVE);
     }
-    for(let i = 0; i < numOfPart; i++){
+    for(let i = 0; i < numOfPart; i++) {
         body.push(ATTACK);
     }
 
     var mem = {role: 'warrior', home: spawn.room.controller.id, long_range: false, start_time: Game.time, was_enemy: false};
 
     var retVal = spawn.createCreep(body, null, mem);
-    if(retVal < 0){
+    if(retVal < 0) {
         return 0;
     }
     else{
         find.addRole(Game.creeps[retVal], 'warrior');
         var total = 0;
-        for(let i = 0; i < body.length; i++){
+        for(let i = 0; i < body.length; i++) {
             total +=  BODYPART_COST[body[i]];
         }
         return total;
     }
 }
 
-var _findWarriorFlags = function(room){
-    if(!room.hasOwnProperty('WARRIOR_FLAGS')){
+var _findWarriorFlags = function(room) {
+    if(!room.hasOwnProperty('WARRIOR_FLAGS')) {
         room.WARRIOR_FLAGS = room.find(FIND_FLAGS, {filter: (flag) => {return (flag.color == COLOR_RED && flag.secondaryColor == COLOR_RED);}});
     }
     return room.WARRIOR_FLAGS;
 }
 
-var _shouldFight = function(room){
+var _shouldFight = function(room) {
     return _findWarriorFlags(room).length > 0 && room.controller.level > 2;
 }
 
-var _shouldMake = function(room){
+var _shouldMake = function(room) {
     var target = 0;
-    if(_shouldFight(room)){
+    if(_shouldFight(room)) {
         target = find.getHostileCreeps(room).length + 1;
     }
-    else{
+    else {
         target = find.getHostileCreeps(room).length;
     }
 

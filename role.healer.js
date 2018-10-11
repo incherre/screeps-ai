@@ -10,62 +10,62 @@ var maxHealerParts = 25;
 
 var find = require('manager.roomInfo');
 
-var _run = function(creep){
+var _run = function(creep) {
     var targets = find.getHurtCreeps(creep.room);
 
-    if(targets.length > 0){
+    if(targets.length > 0) {
         var hitsMin = Math.min.apply(null, targets.map(function(thisCreep){return thisCreep.hits;}));
         var target = creep.pos.findClosestByRange(targets, {filter: (thisCreep) => {return thisCreep.hits == hitsMin;}})
 
         creep.moveTo(target);
-        if(creep.pos.isNearTo(target)){
+        if(creep.pos.isNearTo(target)) {
             creep.heal(target);
         }
-        else{
+        else {
             creep.rangedHeal(target);
         }
     }
-    else if(Game.flags.hasOwnProperty(healFlag) && (creep.memory.long_range || Game.flags[healFlag].room == creep.room)){
+    else if(Game.flags.hasOwnProperty(healFlag) && (creep.memory.long_range || Game.flags[healFlag].room == creep.room)) {
         creep.moveTo(Game.flags[healFlag]);
     }
-    else{
+    else {
         creep.moveTo(creep.pos.findClosestByRange(find.getWarriors(creep.room)));
     }
 }
 
-var _shouldHeal = function(){
+var _shouldHeal = function() {
     return Game.flags.hasOwnProperty(healFlag);
 }
 
-var _make = function(spawn, energy_limit){
+var _make = function(spawn, energy_limit) {
     var numOfPart = Math.floor(energy_limit / 300);
     if(numOfPart > maxHealerParts){numOfPart = maxHealerParts;}
 
     var body = [];
-    for(let i = 0; i < numOfPart; i++){
+    for(let i = 0; i < numOfPart; i++) {
         body.push(MOVE);
     }
-    for(let i = 0; i < numOfPart; i++){
+    for(let i = 0; i < numOfPart; i++) {
         body.push(HEAL);
     }
 
     var mem = {role: 'healer', home: spawn.room.controller.id, long_range: false};
 
     var retVal = spawn.createCreep(body, null, mem);
-    if(retVal < 0){
+    if(retVal < 0) {
         return 0;
     }
-    else{
+    else {
         find.addRole(Game.creeps[retVal], 'healer');
         var total = 0;
-        for(let i = 0; i < body.length; i++){
+        for(let i = 0; i < body.length; i++) {
             total +=  BODYPART_COST[body[i]];
         }
         return total;
     }
 }
 
-var _shouldMake = function(room){
+var _shouldMake = function(room) {
     return find.getRole(room, 'healer').length < find.getHurtCreeps(room).length;
 }
 

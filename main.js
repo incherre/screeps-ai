@@ -14,11 +14,11 @@ var creepControl = require('controller.creeps');
 var roomControl = require('controller.room');
 var trading = require('controller.market');
 
-module.exports.loop = function () {    
+module.exports.loop = function () {
     creepControl.controlCreeps();
     roomControl.controlEstablishedRooms();
 
-    if(trading.shouldTrade()){
+    if(trading.shouldTrade()) {
         trading.trade();
     }
 }

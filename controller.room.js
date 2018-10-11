@@ -35,51 +35,50 @@ var linkPairs = [
 //*/
 // ***** End *****
 
-var _controlEstablishedRooms = function(){
+var _controlEstablishedRooms = function() {
     var myRooms = [];
-    for(let i in Game.spawns){
+    for(let i in Game.spawns) {
         let thisRoom = Game.spawns[i].room;
-        if(myRooms.indexOf(thisRoom) < 0){
+        if(myRooms.indexOf(thisRoom) < 0) {
             myRooms.push(thisRoom);
         }
     }
 
-    for(let i in myRooms){
+    for(let i in myRooms) {
         _controlRoom(myRooms[i]);
     }
 
     _operateLinks();
 }
 
-var _controlRoom = function(room){
+var _controlRoom = function(room) {
     _spawnCreeps(room);
     _controlTowers(room);
     _buildSomething(room);
 }
 
 // *** Spawning ***
-var _spawnCreeps = function(room){
+var _spawnCreeps = function(room) {
     var spawns = find.getAvailableSpawns(room);
-    if(spawns.length == 0){ // Can't make things with no spawn!
+    if(spawns.length == 0) { // Can't make things with no spawn!
         return;
     }
-    else if(find.getRole(room, 'handyman').length == 0 && (find.getRole(room, 'courier').length == 0 || find.getRole(room, 'harvester').length == 0)){ // Emergency spawning
+    else if(find.getRole(room, 'handyman').length == 0 && (find.getRole(room, 'courier').length == 0 || find.getRole(room, 'harvester').length == 0)) { // Emergency spawning
         creepLimits.handyman.make(spawns[0], room.energyAvailable);
     }
     else { // regular spawning
         var energyMax = room.energyCapacityAvailable;
-        for(let i in spawns){
+        for(let i in spawns) {
             _spawnSingleCreep(spawns[i], room.energyCapacityAvailable);
         }
     }
 }
 
-var _spawnSingleCreep = function(spawn, energy_limit){
-    for(let name in creepLimits){
-        if(creepLimits[name].shouldMake(spawn.room)){
-            //console.log('Making a ' + name + ' in room ' + spawn.room.name + '.');
+var _spawnSingleCreep = function(spawn, energy_limit) {
+    for(let name in creepLimits) {
+        if(creepLimits[name].shouldMake(spawn.room) ){
             let retVal = creepLimits[name].make(spawn, energy_limit);
-            if(retVal != 0){
+            if(retVal != 0) {
                 return retVal;
             }
         }
@@ -89,9 +88,9 @@ var _spawnSingleCreep = function(spawn, energy_limit){
 // *** End ***
 
 // *** Towers ***
-var _controlTowers = function(room){
+var _controlTowers = function(room) {
     var tower = find.getTowers(room);
-    for(let i in tower){
+    for(let i in tower) {
         _operateTower(tower[i]);
     }
 }
@@ -101,7 +100,7 @@ var _operateTower = function(tower){
         return creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0  || creep.getActiveBodyparts(HEAL) > 0 || creep.getActiveBodyparts(WORK) > 0;
     }});
     
-    if(closestHostile){
+    if(closestHostile) {
         tower.attack(closestHostile);
         return;
     }
@@ -109,19 +108,19 @@ var _operateTower = function(tower){
     var closestHurt = tower.pos.findClosestByRange(find.getMyCreeps(tower.room), {filter: (creep) => {
         return (creep.hits < creep.hitsMax);
     }});
-    if(closestHurt){
+    if(closestHurt) {
         tower.heal(closestHurt);
         return;
     }
 
     var closestEmergency = tower.pos.findClosestByRange(find.getEmergencyRepairable(tower.room));
-    if(closestEmergency){
+    if(closestEmergency) {
         tower.repair(closestEmergency);
         return;
     }
     
     closestHostile = tower.pos.findClosestByRange(find.getHostileCreeps(tower.room));
-    if(closestHostile){
+    if(closestHostile) {
         tower.attack(closestHostile);
         return;
     }
@@ -129,45 +128,45 @@ var _operateTower = function(tower){
 // *** End ***
 
 // *** Building ***
-var _buildSomething = function(room){
-    if(find.getConstructionSites(room).length > 0){ // we like only one construction site at a time.
+var _buildSomething = function(room) {
+    if(find.getConstructionSites(room).length > 0) { // we like only one construction site at a time.
         return;
     }
-    else if(find.getExtractors(room).length < CONTROLLER_STRUCTURES[STRUCTURE_EXTRACTOR][room.controller.level]){
+    else if(find.getExtractors(room).length < CONTROLLER_STRUCTURES[STRUCTURE_EXTRACTOR][room.controller.level]) {
         _buildExtractor(room);
     }
-    else if(find.getExtensions(room).length < CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][room.controller.level]){
+    else if(find.getExtensions(room).length < CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][room.controller.level]) {
         _buildExtension(room);
     }
 
 }
 
-var _buildExtension = function(room){
+var _buildExtension = function(room) {
     var flags = room.find(FIND_FLAGS, {filter: (flag) => {
         return (flag.color == COLOR_WHITE && flag.secondaryColor == COLOR_YELLOW);
     }});
         
-    if(flags.length){
+    if(flags.length) {
         var flag = flags[0];
         var dx = 0;
         var dy = 0;
         var r = 0;
-        while(!find.canBuild(room, flag.pos.x + dx, flag.pos.y + dy)){
-            if(dx == -r && dy == r){
+        while(!find.canBuild(room, flag.pos.x + dx, flag.pos.y + dy)) {
+            if(dx == -r && dy == r) {
                 dx += 1;
                 dy += 1;
                 r += 1;
             }
-            else if(dx == -r){
+            else if(dx == -r) {
                 dy += 2;
             }
-            else if(dy == -r){
+            else if(dy == -r) {
                 dx -= 2;
             }
-            else if(dx == r){
+            else if(dx == r) {
                 dy -= 2;
             }
-            else if(dy == r){
+            else if(dy == r) {
                 dx += 2;
             }
         }
@@ -175,22 +174,22 @@ var _buildExtension = function(room){
     }
 }
 
-var _buildExtractor = function(room){
+var _buildExtractor = function(room) {
     room.createConstructionSite(find.getMineral(room).pos, STRUCTURE_EXTRACTOR);
 }
 // *** End ***
 
 // *** Links ***
-var _operateLinks = function(){
-    for(let i in linkPairs){
+var _operateLinks = function() {
+    for(let i in linkPairs) {
         _operateLinkPair(linkPairs[i].link1_id, linkPairs[i].link2_id);
     }
 }
 
-var _operateLinkPair = function(link1_id, link2_id){
+var _operateLinkPair = function(link1_id, link2_id) {
     var link1 = Game.getObjectById(link1_id);
     var link2 = Game.getObjectById(link2_id);
-    if(link1 != undefined && link2 != undefined && link1.cooldown == 0 && link1.energy > 0 && (link2.energyCapacity - link2.energy) > 1){
+    if(link1 != undefined && link2 != undefined && link1.cooldown == 0 && link1.energy > 0 && (link2.energyCapacity - link2.energy) > 1) {
         link1.transferEnergy(link2);
     }
 }

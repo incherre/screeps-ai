@@ -30,7 +30,7 @@ var _run = function(creep) {
 	}
 
 	if(creep.memory.working) {
-        if(find.getRepairableWalls(creep.room).length > 0){ // should regular repair
+        if(find.getRepairableWalls(creep.room).length > 0) { // should regular repair
             // repair
             var repair = find.getRepairableWalls(creep.room);
             var hitsMin = Math.min.apply(null, repair.map(function(structure){return structure.hits;}));
@@ -48,7 +48,7 @@ var _run = function(creep) {
     }
     else {
         var target = find.getClosestStore(creep);
-        if(target != null){
+        if(target != null) {
             if(creep.withdraw(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(target, {costCallback: _obstacles});
             }
@@ -62,12 +62,12 @@ var _run = function(creep) {
     }
 }
 
-var _make = function(spawn, energy_limit){
+var _make = function(spawn, energy_limit) {
     var numOfPart = Math.floor(energy_limit / 200);
     if(numOfPart > maxWallerParts){numOfPart = maxWallerParts;}
 
     var body = [];
-    for(let i = 0; i < numOfPart; i++){
+    for(let i = 0; i < numOfPart; i++) {
         body.push(WORK);
         body.push(CARRY);
         body.push(MOVE);
@@ -76,25 +76,25 @@ var _make = function(spawn, energy_limit){
     var mem = {role: 'waller', home: spawn.room.controller.id, long_range: false, working: false};
 
     var retVal = spawn.createCreep(body, null, mem);
-    if(retVal < 0){
+    if(retVal < 0) {
         return 0;
     }
-    else{
+    else {
         find.addRole(Game.creeps[retVal], 'waller');
         var total = 0;
-        for(let i = 0; i < body.length; i++){
+        for(let i = 0; i < body.length; i++) {
             total +=  BODYPART_COST[body[i]];
         }
         return total;
     }
 }
 
-var _shouldMake = function(room){
+var _shouldMake = function(room) {
     var target = 0;
-    if(find.getRepairableWalls(room).length > 0){
+    if(find.getRepairableWalls(room).length > 0) {
         target = 1;
     }
-    else{
+    else {
         target = 0;
     }
 

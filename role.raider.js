@@ -13,8 +13,8 @@ var maxRaiderParts = 12;
 
 var find = require('manager.roomInfo');
 
-var _run = function(creep){
-    if(creep.memory.notify && !creep.spawning){
+var _run = function(creep) {
+    if(creep.memory.notify && !creep.spawning) {
         creep.memory.notify = false;
         creep.notifyWhenAttacked(false);
     }
@@ -23,55 +23,55 @@ var _run = function(creep){
     if(creep.attack(enemy) == ERR_NOT_IN_RANGE) {
         creep.moveTo(enemy);
     }
-    else if(enemy == null && creep.hits < creep.hitsMax && Game.flags.hasOwnProperty(healFlag)){
+    else if(enemy == null && creep.hits < creep.hitsMax && Game.flags.hasOwnProperty(healFlag)) {
         creep.moveTo(Game.flags[healFlag]);
     }
-    else if(enemy == null && _shouldRaid()){
+    else if(enemy == null && _shouldRaid()) {
         creep.moveTo(Game.flags[raiderFlag]);
     }
 }
 
-var _shouldRaid = function(){
+var _shouldRaid = function() {
     return Game.flags.hasOwnProperty(raiderFlag);
 }
 
-var _make = function(spawn, energy_limit){
+var _make = function(spawn, energy_limit) {
     var numOfPart = Math.floor(energy_limit / 190);
     if(numOfPart > maxRaiderParts){numOfPart = maxRaiderParts;}
 
     var body = [];
-    for(let i = 0; i < numOfPart; i++){
+    for(let i = 0; i < numOfPart; i++) {
         body.push(TOUGH);
     }
-    for(let i = 0; i < numOfPart; i++){
+    for(let i = 0; i < numOfPart; i++) {
         body.push(MOVE);
         body.push(MOVE);
     }
-    for(let i = 0; i < numOfPart; i++){
+    for(let i = 0; i < numOfPart; i++) {
         body.push(ATTACK);
     }
 
     var mem = {role: 'raider', home: spawn.room.controller.id, long_range: true, notify: true, waiting: true};
 
     var retVal = spawn.createCreep(body, null, mem);
-    if(retVal < 0){
+    if(retVal < 0) {
         return 0;
     }
     else{
         find.addRole(Game.creeps[retVal], 'raider');
         var total = 0;
-        for(let i = 0; i < body.length; i++){
+        for(let i = 0; i < body.length; i++) {
             total +=  BODYPART_COST[body[i]];
         }
         return total;
     }
 }
 
-var _shouldMake = function(room){
-    if(_shouldRaid()){
+var _shouldMake = function(room) {
+    if(_shouldRaid()) {
 		return find.getRole(room, 'raider').length < 2;
 	}
-	else{
+	else {
 		return false;
 	}
 }

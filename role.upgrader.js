@@ -31,7 +31,7 @@ var _run = function(creep) {
         var target1 = creep.pos.findClosestByRange(find.getGroundEnergy(creep.room));
         var target2 = find.getClosestStore(creep);
 
-        if(target1 != null && creep.room.controller.pos.inRangeTo(target1, 6)){
+        if(target1 != null && creep.room.controller.pos.inRangeTo(target1, 6)) {
             if(creep.pickup(target1) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(target1);
             }
@@ -49,12 +49,12 @@ var _run = function(creep) {
     }
 }
 
-var _make = function(spawn, energy_limit){
+var _make = function(spawn, energy_limit) {
     var numOfPart = Math.floor(energy_limit / 200);
     if(numOfPart > maxUpgraderParts){numOfPart = maxUpgraderParts;}
 
     var body = [];
-    for(let i = 0; i < numOfPart; i++){
+    for(let i = 0; i < numOfPart; i++) {
         body.push(WORK);
         body.push(CARRY);
         body.push(MOVE);
@@ -63,31 +63,31 @@ var _make = function(spawn, energy_limit){
     var mem = {role: 'upgrader', home: spawn.room.controller.id, long_range: false, working: false};
 
     var retVal = spawn.createCreep(body, null, mem);
-    if(retVal < 0){
+    if(retVal < 0) {
         return 0;
     }
-    else{
+    else {
         find.addRole(Game.creeps[retVal], 'upgrader');
         var total = 0;
-        for(let i = 0; i < body.length; i++){
+        for(let i = 0; i < body.length; i++) {
             total +=  BODYPART_COST[body[i]];
         }
         return total;
     }
 }
 
-var _shouldMake = function(room){
+var _shouldMake = function(room) {
     var target = 0;
-    if(room.controller.level <= 3){
+    if(room.controller.level <= 3) {
         target = room.controller.level;
     }
-    else if(room.storage != undefined && room.storage.store[RESOURCE_ENERGY] > (room.storage.storeCapacity * upperCapacityConstant)){
+    else if(room.storage != undefined && room.storage.store[RESOURCE_ENERGY] > (room.storage.storeCapacity * upperCapacityConstant)) {
         target = 3;
     }
-    else if(room.storage != undefined && room.storage.store[RESOURCE_ENERGY] > (room.storage.storeCapacity * capacityConstant)){
+    else if(room.storage != undefined && room.storage.store[RESOURCE_ENERGY] > (room.storage.storeCapacity * capacityConstant)) {
         target = 2;
     }
-    else{
+    else {
         target = 1;
     }
 

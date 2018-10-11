@@ -4,19 +4,19 @@ All of the functions in manager.roomInfo will return some list of items in a roo
 
 //var ttlThresh = 40; // depriciated
 
-var _getMyCreeps = function(room){
+var _getMyCreeps = function(room) {
     return _getRole(room, 'all');
 }
 
-var _getHurtCreeps = function(room){
-    if(!room.hasOwnProperty('HURT_CREEPS')){
+var _getHurtCreeps = function(room) {
+    if(!room.hasOwnProperty('HURT_CREEPS')) {
         room.HURT_CREEPS = _.filter(_getMyCreeps(room), (creep) => {return creep.hits < creep.hitsMax;});
     }
     return room.HURT_CREEPS;
 }
 
-var _getHostileCreeps = function(room){
-    if(!room.hasOwnProperty('HOSTILE_CREEPS')){      
+var _getHostileCreeps = function(room) {
+    if(!room.hasOwnProperty('HOSTILE_CREEPS')) {      
         room.HOSTILE_CREEPS = room.find(FIND_HOSTILE_CREEPS);
     }
     return room.HOSTILE_CREEPS;
@@ -74,7 +74,7 @@ var _populateRoles = function() {
     }
 }
 
-var _getRole = function(room, role){
+var _getRole = function(room, role) {
     _populateRoles();
     
     var roomCode;
@@ -116,29 +116,29 @@ var _addRole = function(creep, role) {
 }
 // creep sorting code end
 
-var _getStructures = function(room){
-    if(!room.hasOwnProperty('STRUCTURES')){
+var _getStructures = function(room) {
+    if(!room.hasOwnProperty('STRUCTURES')) {
         room.STRUCTURES = room.find(FIND_STRUCTURES);
     }
     return room.STRUCTURES;
 }
 
-var _getSpawns = function(room){
-    if(!room.hasOwnProperty('SPAWNS')){
+var _getSpawns = function(room) {
+    if(!room.hasOwnProperty('SPAWNS')) {
         room.SPAWNS = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_SPAWN && structure.my);});
     }
     return room.SPAWNS;
 }
 
-var _getAvailableSpawns = function(room){
-    if(!room.hasOwnProperty('AVAILABLE_SPAWNS')){
+var _getAvailableSpawns = function(room) {
+    if(!room.hasOwnProperty('AVAILABLE_SPAWNS')) {
         room.AVAILABLE_SPAWNS = _.filter(_getSpawns(room), (spawn) => {return spawn.spawning == null;});
     }
     return room.AVAILABLE_SPAWNS;
 }
 
-var _getFillables = function(room){
-    if(!room.hasOwnProperty('FILLABLES')){
+var _getFillables = function(room) {
+    if(!room.hasOwnProperty('FILLABLES')) {
         room.FILLABLES = _.filter(_getStructures(room), (structure) => {
             return (structure.structureType == STRUCTURE_EXTENSION ||
                     structure.structureType == STRUCTURE_SPAWN ||
@@ -146,12 +146,12 @@ var _getFillables = function(room){
                     structure.my &&
                     structure.energy < structure.energyCapacity;
         });
-        if(room.FILLABLES.length == 0){
+        if(room.FILLABLES.length == 0) {
             room.FILLABLES = _.filter(_getStructures(room), (structure) => {
                 return (structure.structureType == STRUCTURE_LINK && (structure.energyCapacity - structure.energy) > 1 && structure.my);
             });
             
-            if(room.terminal != undefined && room.terminal.store[RESOURCE_ENERGY] < room.terminal.storeCapacity / 15){
+            if(room.terminal != undefined && room.terminal.store[RESOURCE_ENERGY] < room.terminal.storeCapacity / 15) {
                 room.FILLABLES.push(room.terminal);
             }
         }
@@ -159,79 +159,79 @@ var _getFillables = function(room){
     return room.FILLABLES;
 }
 
-var _getExtensions = function(room){
-    if(!room.hasOwnProperty('EXTENSIONS')){
+var _getExtensions = function(room) {
+    if(!room.hasOwnProperty('EXTENSIONS')) {
         room.EXTENSIONS = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_EXTENSION && structure.my)});
     }
     return room.EXTENSIONS;
 }
 
-var _getTowers = function(room){
-    if(!room.hasOwnProperty('TOWERS')){
+var _getTowers = function(room) {
+    if(!room.hasOwnProperty('TOWERS')) {
         room.TOWERS = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_TOWER && structure.my)});
     }
     return room.TOWERS;
 }
 
-var _getRoads = function(room){
-    if(!room.hasOwnProperty('ROADS')){
+var _getRoads = function(room) {
+    if(!room.hasOwnProperty('ROADS')) {
         room.ROADS = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_ROAD)});
     }
     return room.ROADS;
 }
 
-var _getConstructionSites = function(room){
-    if(!room.hasOwnProperty('CONSTRUCTION_SITES')){
+var _getConstructionSites = function(room) {
+    if(!room.hasOwnProperty('CONSTRUCTION_SITES')) {
         room.CONSTRUCTION_SITES = room.find(FIND_CONSTRUCTION_SITES, {filter: (site) => {return site.my;}});
     }
     return room.CONSTRUCTION_SITES;
 }
 
-var _getSources = function(room){
-    if(!room.hasOwnProperty('SOURCES')){
+var _getSources = function(room) {
+    if(!room.hasOwnProperty('SOURCES')) {
         room.SOURCES = room.find(FIND_SOURCES);
     }
     return room.SOURCES;
 }
 
-var _getRepairable = function(room){
-    if(!room.hasOwnProperty('REPAIRABLE')){
+var _getRepairable = function(room) {
+    if(!room.hasOwnProperty('REPAIRABLE')) {
         room.REPAIRABLE = _.filter(_getStructures(room), (structure) => {return (structure.structureType != STRUCTURE_RAMPART && (structure.my || structure.structureType == STRUCTURE_ROAD || structure.structureType == STRUCTURE_CONTAINER) && structure.hits < structure.hitsMax);});
     }
     return room.REPAIRABLE;
 }
 
-var _getEmergencyRepairable = function(room){
-    if(!room.hasOwnProperty('EMERGENCY_REPAIRABLE')){
+var _getEmergencyRepairable = function(room) {
+    if(!room.hasOwnProperty('EMERGENCY_REPAIRABLE')) {
         room.EMERGENCY_REPAIRABLE = _.filter(_getRepairable(room).concat(_getRepairableWalls(room)), (structure) => {return (structure.hits < Math.min(0.25 * structure.hitsMax, 10000));});
     }
     return room.EMERGENCY_REPAIRABLE;
 }
 
-var _getRepairableWalls = function(room){
-    if(!room.hasOwnProperty('R_WALLS')){
+var _getRepairableWalls = function(room) {
+    if(!room.hasOwnProperty('R_WALLS')) {
         room.R_WALLS = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_WALL || (structure.my && structure.structureType == STRUCTURE_RAMPART)) && structure.hits < structure.hitsMax;});
     }
     return room.R_WALLS;
 }
 
-var _getGroundEnergy = function(room){
-    if(!room.hasOwnProperty('GROUND_ENERGY')){
+var _getGroundEnergy = function(room) {
+    if(!room.hasOwnProperty('GROUND_ENERGY')) {
         room.GROUND_ENERGY = room.find(FIND_DROPPED_RESOURCES, {filter: (resource) => {return resource.resourceType == RESOURCE_ENERGY;}})
     }
     return room.GROUND_ENERGY;
 }
 
-var _getContainerEnergy = function(room){
-    if(!room.hasOwnProperty('CONTAINER_ENERGY')){
+var _getContainerEnergy = function(room) {
+    if(!room.hasOwnProperty('CONTAINER_ENERGY')) {
         room.CONTAINER_ENERGY = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_CONTAINER && structure.store[RESOURCE_ENERGY] > 0)});
         room.CONTAINER_ENERGY = room.CONTAINER_ENERGY.concat(room.find(FIND_TOMBSTONES, {filter: (stone) => {return stone.store[RESOURCE_ENERGY] > 0;}}));        
     }
     return room.CONTAINER_ENERGY;
 }
 
-var _getClosestStore = function(creep){
-    if(creep.room.storage != undefined && creep.room.storage.store[RESOURCE_ENERGY] > 0){
+var _getClosestStore = function(creep) {
+    if(creep.room.storage != undefined && creep.room.storage.store[RESOURCE_ENERGY] > 0) {
         return creep.room.storage;
     }
     else {
@@ -239,10 +239,10 @@ var _getClosestStore = function(creep){
     }
 }
 
-var _getMineral = function(room){
-    if(!room.hasOwnProperty('MINERAL')){
+var _getMineral = function(room) {
+    if(!room.hasOwnProperty('MINERAL')) {
         var minerals = room.find(FIND_MINERALS);
-        if(minerals.length > 0){
+        if(minerals.length > 0) {
             room.MINERAL = minerals[0];
         }
         else {
@@ -252,15 +252,15 @@ var _getMineral = function(room){
     return room.MINERAL;
 }
 
-var _getExtractors = function(room){
-    if(!room.hasOwnProperty('EXTRACTORS')){
+var _getExtractors = function(room) {
+    if(!room.hasOwnProperty('EXTRACTORS')) {
         room.EXTRACTORS = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_EXTRACTOR && structure.my)});
     }
     return room.EXTRACTORS;
 }
 
-var _getCreepLink = function(creep){
-    if(!creep.hasOwnProperty('LINK')){
+var _getCreepLink = function(creep) {
+    if(!creep.hasOwnProperty('LINK')) {
         var links = creep.pos.findInRange(FIND_MY_STRUCTURES, 1, {filter: (structure) => {return structure.structureType == STRUCTURE_LINK;}});
         if(links.length > 0){
             creep.LINK = links[0];
@@ -272,7 +272,7 @@ var _getCreepLink = function(creep){
     return creep.LINK;
 }
 
-var _isOpen = function(source, thisCreep){
+var _isOpen = function(source, thisCreep) {
     var x = source.pos.x;
     var y = source.pos.y;
     var r = 1;
@@ -286,19 +286,19 @@ var _isOpen = function(source, thisCreep){
     if(x2 > 49){x2 = 49;}
 
     var list = source.room.lookAtArea(y1,x1,y2,x2,false);
-    for(let ys in list){
-        for(let xs in list[ys]){
+    for(let ys in list) {
+        for(let xs in list[ys]) {
             let terra = false;
             let creep = false;
-            for(let i in list[ys][xs]){
-                if(list[ys][xs][i].type == 'creep' && list[ys][xs][i].creep != thisCreep){
+            for(let i in list[ys][xs]) {
+                if(list[ys][xs][i].type == 'creep' && list[ys][xs][i].creep != thisCreep) {
                     creep = true;
                 }
-                if(list[ys][xs][i].type == 'terrain' && list[ys][xs][i].terrain != 'wall'){
+                if(list[ys][xs][i].type == 'terrain' && list[ys][xs][i].terrain != 'wall') {
                     terra = true;
                 }
             }
-            if(terra && !creep){
+            if(terra && !creep) {
                 return true;
             }
         }
@@ -306,22 +306,22 @@ var _isOpen = function(source, thisCreep){
     return false;
 }
 
-var _canBuild = function(room, x, y){
+var _canBuild = function(room, x, y) {
     if(x < 0 || x > 49 || y < 0 || y > 49){
         return false;
     }
 
     var things = room.lookAt(x,y);
-    for(let i in things){
-        if(things[i].type == 'constructionSite' || things[i].type == 'structure' || (things[i].type == 'terrain' && things[i].terrain == 'wall')){
+    for(let i in things) {
+        if(things[i].type == 'constructionSite' || things[i].type == 'structure' || (things[i].type == 'terrain' && things[i].terrain == 'wall')) {
             return false;
         }
     }
     return true;
 }
 
-var _getPortals = function(room){
-    if(!room.hasOwnProperty('PORTALS')){
+var _getPortals = function(room) {
+    if(!room.hasOwnProperty('PORTALS')) {
         room.PORTALS = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_PORTAL)});
     }
     return room.PORTALS;

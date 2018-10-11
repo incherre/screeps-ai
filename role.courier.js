@@ -15,7 +15,7 @@ var controllerRange = 2;
 
 var find = require('manager.roomInfo');
 
-var _run = function(creep){
+var _run = function(creep) {
     if(!creep.memory.working && creep.carry.energy == 0) {
         creep.memory.working = true;
         creep.say('gathering');
@@ -25,12 +25,12 @@ var _run = function(creep){
 	    creep.say('depositing');
 	}
 
-    if(creep.memory.working){
+    if(creep.memory.working) {
         var energy = _.filter(find.getGroundEnergy(creep.room), (resource) => {return !resource.pos.inRangeTo(creep.room.controller, controllerRange) && resource.amount > energyMin && (resource.amount >= resourceThreshold || creep.pos.inRangeTo(resource, resourceRange));});
         var target = null;
         var ground = false;
 
-        if(energy.length > 0){
+        if(energy.length > 0) {
             target = creep.pos.findClosestByRange(energy);
             ground = true;
         }
@@ -40,15 +40,15 @@ var _run = function(creep){
 
         if(target == null){target = creep.room.storage;}
 
-        if(target != null){
+        if(target != null) {
             var ret;
-            if(ground){
+            if(ground) {
                 ret = creep.pickup(target);
             }
             else {
                 ret = creep.withdraw(target, RESOURCE_ENERGY);
             }
-            if(ret == ERR_NOT_IN_RANGE){
+            if(ret == ERR_NOT_IN_RANGE) {
                 creep.moveTo(target, {ignoreRoads: true});
             }
         }
@@ -57,7 +57,7 @@ var _run = function(creep){
         var target = creep.pos.findClosestByRange(find.getFillables(creep.room));
         if(target == null){target = creep.room.storage;}
 
-        if(target == null){
+        if(target == null) {
             if(creep.pos.inRangeTo(creep.room.controller, controllerRange)) {
                 creep.drop(RESOURCE_ENERGY);
             }
@@ -71,12 +71,12 @@ var _run = function(creep){
     }
 }
 
-var _make = function(spawn, energy_limit){
+var _make = function(spawn, energy_limit) {
     var numOfPart = Math.floor(energy_limit / 100);
     if(numOfPart > maxCourierParts){numOfPart = maxCourierParts;}
 
     var body = [];
-    for(let i = 0; i < numOfPart; i++){
+    for(let i = 0; i < numOfPart; i++) {
         body.push(MOVE);
         body.push(CARRY);
     }
@@ -84,24 +84,24 @@ var _make = function(spawn, energy_limit){
     var mem = {role: 'courier', home: spawn.room.controller.id, long_range: false, working: true};
 
     var retVal = spawn.createCreep(body, null, mem);
-    if(retVal < 0){
+    if(retVal < 0) {
         return 0;
     }
-    else{
+    else {
         find.addRole(Game.creeps[retVal], 'courier');
         var total = 0;
-        for(let i = 0; i < body.length; i++){
+        for(let i = 0; i < body.length; i++) {
             total +=  BODYPART_COST[body[i]];
         }
         return total;
     }
 }
 
-var _shouldMake = function(room){
-    if(find.getRoads(room).length > roadThresh){
+var _shouldMake = function(room) {
+    if(find.getRoads(room).length > roadThresh) {
         return find.getRole(room, 'courier').length < (find.getRole(room, 'harvester').length + 2);
     }
-    else{
+    else {
         return find.getRole(room, 'courier').length < (find.getRole(room, 'harvester').length + 1);
     }
 }

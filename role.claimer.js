@@ -13,47 +13,47 @@ var maxClaimerParts = 2; // the maximum number of MOVE, and CLAIM parts a claime
 var find = require('manager.roomInfo');
 
 var _run = function(creep){
-    if(!Game.flags.hasOwnProperty(claimerFlag)){ // if there is no flag, we can't do anything
+    if(!Game.flags.hasOwnProperty(claimerFlag)) { // if there is no flag, we can't do anything
         return;
     }
-    else if(!Game.flags.hasOwnProperty(midpoint) || creep.memory.halfway){
+    else if(!Game.flags.hasOwnProperty(midpoint) || creep.memory.halfway) {
         var target = Game.flags[claimerFlag];
     }
     else{
         var target = Game.flags[midpoint];
     }
 
-    if(Game.flags[claimerFlag].room == creep.room){
+    if(Game.flags[claimerFlag].room == creep.room) {
         var retVal = creep.claimController(Game.flags[claimerFlag].room.controller);
-        if(retVal == ERR_NOT_IN_RANGE){
+        if(retVal == ERR_NOT_IN_RANGE) {
             creep.moveTo(Game.flags[claimerFlag].room.controller);
         }
-        else if(retVal == ERR_GCL_NOT_ENOUGH && creep.reserveController(Game.flags[claimerFlag].room.controller) == ERR_NOT_IN_RANGE){
+        else if(retVal == ERR_GCL_NOT_ENOUGH && creep.reserveController(Game.flags[claimerFlag].room.controller) == ERR_NOT_IN_RANGE) {
             creep.moveTo(Game.flags[claimerFlag].room.controller);
         }
     }
-    else if(Game.flags.hasOwnProperty(midpoint) && Game.flags[midpoint].room == creep.room && find.getPortals(creep.room).length > 0){
+    else if(Game.flags.hasOwnProperty(midpoint) && Game.flags[midpoint].room == creep.room && find.getPortals(creep.room).length > 0) {
         creep.memory.halfway = true;
         creep.moveTo(creep.pos.findClosestByRange(find.getPortals(creep.room)));
     }
-    else if(Game.flags.hasOwnProperty(midpoint) && Game.flags[midpoint].room == creep.room){
+    else if(Game.flags.hasOwnProperty(midpoint) && Game.flags[midpoint].room == creep.room) {
         creep.memory.halfway = true;
     }
-    else{
+    else {
         creep.moveTo(target, {avoid: find.getPortals(creep.room)});
     }
 }
 
-var _shouldClaim = function(){
+var _shouldClaim = function() {
     return Game.flags.hasOwnProperty(claimerFlag);
 }
 
-var _make = function(spawn, energy_limit){ // make a claimer
+var _make = function(spawn, energy_limit) { // make a claimer
     var numOfPart = Math.floor(energy_limit / 650);
     if(numOfPart > maxClaimerParts){numOfPart = maxClaimerParts;}
 
     var body = [];
-    for(let i = 0; i < numOfPart; i++){
+    for(let i = 0; i < numOfPart; i++) {
         body.push(MOVE);
         body.push(CLAIM);
     }
@@ -61,25 +61,25 @@ var _make = function(spawn, energy_limit){ // make a claimer
     var mem = {role: 'claimer', home: spawn.room.controller.id, long_range: true, halfway: false};
 
     var retVal = spawn.createCreep(body, null, mem);
-    if(retVal < 0){
+    if(retVal < 0) {
         return 0;
     }
-    else{
+    else {
         find.addRole(Game.creeps[retVal], 'claimer');
         
         var total = 0;
-        for(let i = 0; i < body.length; i++){
+        for(let i = 0; i < body.length; i++) {
             total +=  BODYPART_COST[body[i]];
         }
         return total;
     }
 }
 
-var _shouldMake = function(room){
-	if(_shouldClaim()){
+var _shouldMake = function(room) {
+	if(_shouldClaim()) {
 		return find.getRole(room, 'claimer').length < 1;
 	}
-	else{
+	else {
 		return false;
 	}
 }

@@ -26,8 +26,8 @@ var _run = function(creep) {
 	    creep.say('working');
 	}
 
-    if(find.getSpawns(creep.room).length == 0){ // we need to build a spawn!
-        if(creep.memory.working){
+    if(find.getSpawns(creep.room).length == 0) { // we need to build a spawn!
+        if(creep.memory.working) {
             // build
             var target = creep.pos.findClosestByRange(find.getConstructionSites(creep.room));
             if(creep.build(target) == ERR_NOT_IN_RANGE) {
@@ -41,8 +41,8 @@ var _run = function(creep) {
             }
         }
     }
-    else if(find.getRole(creep.room, 'harvester').length == 0 || find.getRole(creep.room, 'courier').length == 0){ // if the colony need someone to get energy, act as an inefficient harvester
-        if(creep.memory.working){
+    else if(find.getRole(creep.room, 'harvester').length == 0 || find.getRole(creep.room, 'courier').length == 0) { // if the colony need someone to get energy, act as an inefficient harvester
+        if(creep.memory.working) {
             var target = creep.pos.findClosestByRange(_.filter(find.getFillables(creep.room), (structure) => {return (structure.structureType != STRUCTURE_TOWER);}));
             if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(target);
@@ -53,12 +53,12 @@ var _run = function(creep) {
             if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(source);
             }
-            if(source == null){ // TODO clean up!
+            if(source == null) { // TODO clean up!
                 var energy = _.filter(find.getGroundEnergy(creep.room), (resource) => {return resource.amount > energyMin && (resource.amount >= resourceThreshold || creep.pos.inRangeTo(resource, resourceRange));});
                 var target = null;
                 var ground = false;
 
-                if(energy.length > 0){
+                if(energy.length > 0) {
                     target = creep.pos.findClosestByRange(energy);
                     ground = true;
                 }
@@ -68,15 +68,15 @@ var _run = function(creep) {
 
                 if(target == null){target = creep.room.storage;}
 
-                if(target != null){
+                if(target != null) {
                     var ret;
-                    if(ground){
+                    if(ground) {
                         ret = creep.pickup(target);
                     }
                     else {
                         ret = creep.withdraw(target, RESOURCE_ENERGY);
                     }
-                    if(ret == ERR_NOT_IN_RANGE){
+                    if(ret == ERR_NOT_IN_RANGE) {
                         creep.moveTo(target);
                     }
                 }
@@ -85,7 +85,7 @@ var _run = function(creep) {
     }
     else {
 	    if(creep.memory.working) {
-            if(find.getEmergencyRepairable(creep.room).length > 0){ // should emergency repair
+            if(find.getEmergencyRepairable(creep.room).length > 0) { // should emergency repair
                 // repair
                 var repairs = find.getEmergencyRepairable(creep.room);
                 var hitsMin = Math.min.apply(null, repairs.map(function(structure){return structure.hits;}));
@@ -95,14 +95,14 @@ var _run = function(creep) {
                     creep.moveTo(target);
 			    }
             }
-            else if(find.getConstructionSites(creep.room).length > 0){ // should build
+            else if(find.getConstructionSites(creep.room).length > 0) { // should build
                 // build
                 var target = creep.pos.findClosestByRange(find.getConstructionSites(creep.room));
                 if(creep.build(target) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(target);
 			    }
             }
-            else if(find.getRepairable(creep.room).length > 0){ // should regular repair
+            else if(find.getRepairable(creep.room).length > 0) { // should regular repair
                 // repair
                 var target = creep.pos.findClosestByRange(find.getRepairable(creep.room));
                 
@@ -110,7 +110,7 @@ var _run = function(creep) {
                     creep.moveTo(target);
 			    }
             }
-            else if(find.getRepairableWalls(creep.room).length > 0){ // should repair walls
+            else if(find.getRepairableWalls(creep.room).length > 0) { // should repair walls
                 // repair walls
                 var repairs = find.getRepairableWalls(creep.room);
                 var hitsMin = Math.min.apply(null, repairs.map(function(structure){return structure.hits;}));
@@ -128,7 +128,7 @@ var _run = function(creep) {
         }
         else {
             var target = find.getClosestStore(creep);
-            if(target != null){
+            if(target != null) {
                 if(creep.withdraw(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(target);
                 }
@@ -143,12 +143,12 @@ var _run = function(creep) {
     }
 }
 
-var _make = function(spawn, energy_limit){
+var _make = function(spawn, energy_limit) {
     var numOfPart = Math.floor(energy_limit / 200);
     if(numOfPart > maxHandymanParts){numOfPart = maxHandymanParts;}
 
     var body = [];
-    for(let i = 0; i < numOfPart; i++){
+    for(let i = 0; i < numOfPart; i++) {
         body.push(WORK);
         body.push(CARRY);
         body.push(MOVE);
@@ -163,19 +163,19 @@ var _make = function(spawn, energy_limit){
     else{
         find.addRole(Game.creeps[retVal], 'handyman');
         var total = 0;
-        for(let i = 0; i < body.length; i++){
+        for(let i = 0; i < body.length; i++) {
             total +=  BODYPART_COST[body[i]];
         }
         return total;
     }
 }
 
-var _shouldMake = function(room){
+var _shouldMake = function(room) {
     var target = 0;
-    if(room.controller.level < 3){
+    if(room.controller.level < 3) {
         target = room.controller.level;
     }
-    else{
+    else {
         let num = find.getRepairable(room).length + find.getConstructionSites(room).length;
         target = 1 + Math.ceil(num / repairsPer);
     }
