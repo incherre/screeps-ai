@@ -59,13 +59,14 @@ var _make = function(spawn, energy_limit) {
     body.push(CARRY);
 
     var mem = {role: 'miner', home: spawn.room.controller.id, long_range: false};
-    
-	var retVal = spawn.createCreep(body, null, mem);
+    var name = find.creepNames[Math.floor(Math.random() * find.creepNames.length)] + ' ' + spawn.name + Game.time;
+    var retVal = spawn.spawnCreep(body, name, {memory: mem});
+
     if(retVal < 0) {
         return 0;
     }
     else {
-        find.addRole(Game.creeps[retVal], 'miner');
+        find.addRole(Game.creeps[name], 'miner');
         var total = 0;
         for(let i = 0; i < body.length; i++) {
             total +=  BODYPART_COST[body[i]];

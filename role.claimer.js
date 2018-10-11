@@ -59,13 +59,14 @@ var _make = function(spawn, energy_limit) { // make a claimer
     }
 
     var mem = {role: 'claimer', home: spawn.room.controller.id, long_range: true, halfway: false};
+    var name = find.creepNames[Math.floor(Math.random() * find.creepNames.length)] + ' ' + spawn.name + Game.time;
+    var retVal = spawn.spawnCreep(body, name, {memory: mem});
 
-    var retVal = spawn.createCreep(body, null, mem);
     if(retVal < 0) {
         return 0;
     }
     else {
-        find.addRole(Game.creeps[retVal], 'claimer');
+        find.addRole(Game.creeps[name], 'claimer');
         
         var total = 0;
         for(let i = 0; i < body.length; i++) {

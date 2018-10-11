@@ -2,7 +2,7 @@
 All of the functions in manager.roomInfo will return some list of items in a room, without calculating it an additional time if it has been calculated already during the current game tick.
 */
 
-//var ttlThresh = 40; // depriciated
+var _creepNames = ['Sylvia', 'Persephone', "Sophia", "Emma", "Olivia", "Isabella", "Mia", "Ava", "Lily", "Zoe", "Emily", "Chloe", "Layla", "Madison", "Madelyn", "Abigail", "Aubrey", "Charlotte", "Amelia", "Ella", "Kaylee", "Avery", "Aaliyah", "Hailey", "Hannah", "Addison", "Riley", "Harper", "Aria", "Arianna", "Mackenzie", "Lila", "Evelyn", "Adalyn", "Grace", "Brooklyn", "Ellie", "Anna", "Kaitlyn", "Isabelle", "Sophie", "Scarlett", "Natalie", "Leah", "Sarah", "Nora", "Mila", "Elizabeth", "Lillian", "Kylie", "Audrey", "Lucy", "Maya", "Annabelle", "Makayla", "Gabriella", "Elena", "Victoria", "Claire", "Savannah", "Peyton", "Maria", "Alaina", "Kennedy", "Stella", "Liliana", "Allison", "Samantha", "Keira", "Alyssa", "Reagan", "Molly", "Alexandra", "Violet", "Charlie", "Julia", "Sadie", "Ruby", "Eva", "Alice", "Eliana", "Taylor", "Callie", "Penelope", "Camilla", "Bailey", "Kaelyn", "Alexis", "Kayla", "Katherine", "Sydney", "Lauren", "Jasmine", "London", "Bella", "Adeline", "Caroline", "Vivian", "Juliana", "Gianna", "Skyler", "Jordyn"];
 
 var _getMyCreeps = function(room) {
     return _getRole(room, 'all');
@@ -353,5 +353,6 @@ module.exports = {
     getRepairableWalls: _getRepairableWalls,
     getPortals: _getPortals,
     getRole: _getRole,
-    addRole: _addRole
+    addRole: _addRole,
+    creepNames: _creepNames
 };

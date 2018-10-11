@@ -46,13 +46,14 @@ var _make = function(spawn, energy_limit) {
     if(_target == null){_target = find.getSources(spawn.room)[0].id;}
 
     var mem = {role: 'harvester', home: spawn.room.controller.id, long_range: false, source: _target};
+    var name = find.creepNames[Math.floor(Math.random() * find.creepNames.length)] + ' ' + spawn.name + Game.time;
+    var retVal = spawn.spawnCreep(body, name, {memory: mem});
 
-    var retVal = spawn.createCreep(body, null, mem);
     if(retVal < 0) {
         return 0;
     }
     else {
-        find.addRole(Game.creeps[retVal], 'harvester');
+        find.addRole(Game.creeps[name], 'harvester');
         var total = 0;
         for(let i = 0; i < body.length; i++) {
             total +=  BODYPART_COST[body[i]];

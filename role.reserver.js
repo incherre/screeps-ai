@@ -53,13 +53,14 @@ var _make = function(spawn, energy_limit) {
 
     var targetNum = _findTargetNum(spawn.room);
     var mem = {role: 'reserver', home: spawn.room.controller.id, long_range: true, target: targets[targetNum]};
+    var name = find.creepNames[Math.floor(Math.random() * find.creepNames.length)] + ' ' + spawn.name + Game.time;
+    var retVal = spawn.spawnCreep(body, name, {memory: mem});
 
-    var retVal = spawn.createCreep(body, null, mem);
     if(retVal < 0) {
         return 0;
     }
     else {
-        find.addRole(Game.creeps[retVal], 'reserver');
+        find.addRole(Game.creeps[name], 'reserver');
         
         var total = 0;
         for(let i = 0; i < body.length; i++) {
