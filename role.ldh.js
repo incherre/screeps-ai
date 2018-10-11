@@ -4,7 +4,7 @@ These creeps should harvest energy from adjacent rooms and bring it back to the 
 */
 
 // ***** Options *****
-var maxLdhParts = 8;
+var maxLdhParts = 7;
 var targets = [ {source: {room: "E1S6", id:"5bbcacfc9099fc012e6366d9"}, dropoff: {room: "E1S7", id:"5bbe54b11b8845779a1e79ea"}} ];
 // ***** End *****
 
@@ -30,7 +30,19 @@ var _run = function(creep) {
 	}
 	else {
 	    if(creep.memory.dropoff.room != creep.room.name) {
-	        creep.moveTo(new RoomPosition(25, 25, creep.memory.dropoff.room));
+	        if(find.getConstructionSites(creep.room).length > 0) {
+	            var site = creep.pos.findClosestByRange(find.getConstructionSites(creep.room));
+	            if(creep.build(site) == ERR_NOT_IN_RANGE) {
+	                creep.moveTo(site);
+	            }
+	        }
+	        else {
+	            var repairable = _.filter(find.getRepairable(creep.room), (structure) => {return creep.pos.inRangeTo(structure, 3);});
+	            if(repairable.length > 0) {
+	                creep.repair(repairable[0]);
+	            }
+	            creep.moveTo(new RoomPosition(25, 25, creep.memory.dropoff.room));
+	        }
 	    }
 	    else if(creep.transfer(Game.getObjectById(creep.memory.dropoff.id), RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 	        creep.moveTo(Game.getObjectById(creep.memory.dropoff.id));
@@ -38,7 +50,27 @@ var _run = function(creep) {
 	}
 }
 
-var _make = function(spawn, energy_limit){
+var _findTargetNum = function(room) {
+    var ldhs = find.getLdh(room);
+    var sourceCounts = {};
+    for(let i in targets) {
+        sourceCounts[targets[i].source.id] = {count: 0, num: i};
+    }
+    
+    for(let i in ldhs) {
+        sourceCounts[ldhs[i].memory.source.id].count++;
+    }
+    
+    for(let i in sourceCounts) {
+        if(sourceCounts[i].count <= 0) {
+            return sourceCounts[i].num;
+        }
+    }
+    
+    return -1;
+}
+
+var _make = function(spawn, energy_limit) {
     var numOfPart = Math.floor(energy_limit / 200);
     if(numOfPart > maxLdhParts){numOfPart = maxLdhParts;}
 
@@ -49,8 +81,8 @@ var _make = function(spawn, energy_limit){
         body.push(MOVE);
     }
     
-    var target_num = 0; //TODO(Daniel): Generalize
-    var mem = {role: 'ldh', home: spawn.room.controller.id, long_range: true, working: false, source: targets[target_num].source, dropoff: targets[target_num].dropoff};
+    var targetNum = _findTargetNum(spawn.room);
+    var mem = {role: 'ldh', home: spawn.room.controller.id, long_range: true, working: false, source: targets[targetNum].source, dropoff: targets[targetNum].dropoff};
 
     var retVal = spawn.createCreep(body, null, mem);
     if(retVal < 0){
@@ -67,8 +99,8 @@ var _make = function(spawn, energy_limit){
     }
 }
 
-var _shouldMake = function(room){
-    var target = targets.length * 2;
+var _shouldMake = function(room) {
+    var target = targets.length;
     return find.getLdh(room).length < target;
 }
 
