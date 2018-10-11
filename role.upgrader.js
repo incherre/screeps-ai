@@ -6,10 +6,10 @@ Once an upgrader is full, it should use the energy to upgrade the room controlle
 
 // ***** Options *****
 var maxUpgraderParts = 7;
-var capacityConstant = .55;
+var capacityConstant = .5;
 // ***** End *****
 
-var upperCapacityConstant = 1 - ((1 - capacityConstant) / 2);
+var upperCapacityConstant = Math.min(1 - ((1 - capacityConstant) / 2), capacityConstant * 2);
 var find = require('manager.roomInfo');
 
 var _run = function(creep) {

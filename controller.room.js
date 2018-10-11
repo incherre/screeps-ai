@@ -97,7 +97,7 @@ var _controlTowers = function(room){
 
 var _operateTower = function(tower){
     var closestHostile = tower.pos.findClosestByRange(find.getHostileCreeps(tower.room), {filter: (creep) => {
-        return creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0  || creep.getActiveBodyparts(HEAL) > 0;
+        return creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0  || creep.getActiveBodyparts(HEAL) > 0 || creep.getActiveBodyparts(WORK) > 0;
     }});
     
     if(closestHostile){
@@ -116,6 +116,12 @@ var _operateTower = function(tower){
     var closestEmergency = tower.pos.findClosestByRange(find.getEmergencyRepairable(tower.room));
     if(closestEmergency){
         tower.repair(closestEmergency);
+        return;
+    }
+    
+    closestHostile = tower.pos.findClosestByRange(find.getHostileCreeps(tower.room));
+    if(closestHostile){
+        tower.attack(closestHostile);
         return;
     }
 }
