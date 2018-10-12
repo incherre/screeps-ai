@@ -1,5 +1,45 @@
+const bunkerTemplate = {
+    STRUCTURE_SPAWN: [{dx: -2, dy: 0}, {dx: 0, dy: -2}, {dx: 2, dy: 0}],
+    STRUCTURE_EXTENSION: [
+        {dx: -3, dy: 2}, {dx: -3, dy: 1}, {dx: -3, dy: -1}, {dx: -3, dy: -2}, {dx: -2, dy: -3}, {dx: -1, dy: -3},
+        {dx: 1, dy: -3}, {dx: 2, dy: -3}, {dx: 3, dy: -2}, {dx: 3, dy: -1}, {dx: 3, dy: 1}, {dx: 3, dy: 2},
+        {dx: 2, dy: 3}, {dx: 1, dy: 3}, {dx: -1, dy: 3}, {dx: -2, dy: 3}, {dx: -4, dy: 3}, {dx: -4, dy: 1},
+        {dx: -4, dy: -1}, {dx: -4, dy: -3}, {dx: -3, dy: -4}, {dx: -1, dy: -4}, {dx: 1, dy: -4}, {dx: 3, dy: -4},
+        {dx: 4, dy: -3}, {dx: 4, dy: -1}, {dx: 4, dy: 1}, {dx: 4, dy: 3}, {dx: 3, dy: 4}, {dx: 1, dy: 4},
+        {dx: -1, dy: 4}, {dx: -3, dy: 4}, {dx: -5, dy: 4}, {dx: -5, dy: 3}, {dx: -5, dy: 2}, {dx: -5, dy: 0},
+        {dx: -5, dy: -2}, {dx: -5, dy: -3}, {dx: -5, dy: -4}, {dx: -4, dy: -5}, {dx: -3, dy: -5}, {dx: -2, dy: -5},
+        {dx: 0, dy: -5}, {dx: 2, dy: -5}, {dx: 3, dy: -5}, {dx: 4, dy: -5}, {dx: 5, dy: -4}, {dx: 5, dy: -3},
+        {dx: 5, dy: -2}, {dx: 5, dy: 0}, {dx: 5, dy: 2}, {dx: 5, dy: 3}, {dx: 5, dy: 4}, {dx: 4, dy: 5},
+        {dx: 3, dy: 5}, {dx: 2, dy: 5}, {dx: 0, dy: 5}, {dx: -2, dy: 5}, {dx: -3, dy: 5}, {dx: -4, dy: 5}
+    ],
+    STRUCTURE_TOWER: [{dx: -2, dy: 1}, {dx: -2, dy: -1}, {dx: -1, dy: -1}, {dx: 1, dy: -2}, {dx: 2, dy: -1}, {dx: -2, dy: 1}],
+    STRUCTURE_CONTAINER: [{dx: 0, dy: 0}],
+    STRUCTURE_LINK: [{dx: -1, dy: 2}],
+    STRUCTURE_TERMINAL: [{dx: 1, dy: 2}],
+    STRUCTURE_POWER_SPAWN: [{dx: 0, dy: 2}],
+    STRUCTURE_ROAD: [
+        {dx: -1, dy: 0}, {dx: -1, dy: -1}, {dx: 0, dy: -1}, {dx: 1, dy: -1}, {dx: 1, dy: 0}, {dx: 1, dy: 1},
+        {dx: 0, dy: 1}, {dx: -1, dy: 1}, {dx: -2, dy: 2}, {dx: -2, dy: -2}, {dx: 2, dy: -2}, {dx: 2, dy: 2},
+        {dx: 0, dy: 3}, {dx: -3, dy: 3}, {dx: -3, dy: 0}, {dx: -3, dy: -3}, {dx: 0, dy: -3}, {dx: 3, dy: -3},
+        {dx: 3, dy: 0}, {dx: 3, dy: 3}, {dx: 2, dy: 4}, {dx: 0, dy: 4}, {dx: -2, dy: 4}, {dx: -4, dy: 4},
+        {dx: -4, dy: 2}, {dx: -4, dy: 0}, {dx: -4, dy: -2}, {dx: -4, dy: -4}, {dx: -2, dy: -4}, {dx: 0, dy: -4},
+        {dx: 2, dy: -4}, {dx: 4, dy: -4}, {dx: 4, dy: -2}, {dx: 4, dy: 0}, {dx: 4, dy: 2}, {dx: 4, dy: 4},
+        {dx: 5, dy: 5}, {dx: 1, dy: 5}, {dx: -1, dy: 5}, {dx: -5, dy: 5}, {dx: -5, dy: 1}, {dx: -5, dy: -1},
+        {dx: -5, dy: -5}, {dx: -1, dy: -5}, {dx: 1, dy: -5}, {dx: 5, dy: -5}, {dx: 5, dy: -1}, {dx: 5, dy: 1}
+    ],
+    STRUCTURE_RAMPART: [
+        {dx: 0, dy: 0}, {dx: -1, dy: 0}, {dx: -1, dy: -1}, {dx: 0, dy: -1}, {dx: 1, dy: -1}, {dx: 1, dy: 0},
+        {dx: 1, dy: 1}, {dx: 0, dy: 1}, {dx: -1, dy: 1}, {dx: -2, dy: 2}, {dx: -2, dy: 1}, {dx: -2, dy: 0},
+        {dx: -2, dy: -1}, {dx: -2, dy: -2}, {dx: -1, dy: -2}, {dx: 0, dy: -2}, {dx: 1, dy: -2}, {dx: 2, dy: -2},
+        {dx: 2, dy: -1}, {dx: 2, dy: 0}, {dx: 2, dy: 1}, {dx: 2, dy: 2}, {dx: 1, dy: 2}, {dx: 0, dy: 2},
+        {dx: -1, dy: 2}, {dx: -1, dy: 3}, {dx: -2, dy: 3}, {dx: -3, dy: 2}, {dx: -3, dy: 1}, {dx: -3, dy: -1},
+        {dx: -3, dy: -2}, {dx: -2, dy: -3}, {dx: -1, dy: -3}, {dx: 1, dy: -3}, {dx: 2, dy: -3}, {dx: 3, dy: -2},
+        {dx: 3, dy: -1}, {dx: 3, dy: 1}, {dx: 3, dy: 2}, {dx: 2, dy: 3}, {dx: 1, dy: 3}
+    ]
+};
+
 var calculateOptimalPosition = function(room, minWallDist, controllerWeight, exitWeight, sourceWeight) {
-    // Warning, can take between 12 and 28 cpu! TODO(Daniel): Optimize!
+    // Warning, can take between 5 and 30 cpu, usually around 12. Run rarely.
     // For placing the center of a bunker one might use: calculateOptimalPosition(room, 5, 0.5, -1, 1);
 
     var terrain = room.getTerrain();
