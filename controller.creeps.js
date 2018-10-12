@@ -7,14 +7,14 @@ var roles = {
     courier: require('role.courier'),
     harvester: require('role.harvester'),
     upgrader: require('role.upgrader'),
-    //claimer: require('role.claimer'),
-    miner: require('role.miner'),
-    //warrior: require('role.warrior'),
-    //raider: require('role.raider'),
     waller: require('role.waller'),
+    miner: require('role.miner'),
+    protector: require('role.protector'),
     ldh: require('role.ldh'),
-    //healer: require('role.healer'),
-    reserver: require('role.reserver')
+    reserver: require('role.reserver'),
+    //claimer: require('role.claimer'),
+    //warrior: require('role.warrior'), 
+    //healer: require('role.healer')
 }
 
 var _controlCreeps = function() {

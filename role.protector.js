@@ -1,0 +1,74 @@
+/*
+This is the AI for the protector role.
+A protector should spawn when requested by an ldh and move to the room specified by the ldh.
+Once a protector is in that room, it should fight any enemies that appear in the room.
+*/
+
+// ***** Options *****
+var maxProtectorParts = 12;
+// ***** End *****
+
+var find = require('manager.roomInfo');
+
+var _run = function(creep) {
+    if(creep.memory.notify && !creep.spawning) {
+        creep.memory.notify = false;
+        creep.notifyWhenAttacked(false);
+    }
+    
+    if(creep.memory.target != creep.room.name) {
+	    creep.moveTo(new RoomPosition(25, 25, creep.memory.target));
+	}
+    else {
+        var enemy = creep.pos.findClosestByRange(find.getHostileCreeps(creep.room));
+        if(enemy != null) {
+            creep.attack(enemy);
+            creep.moveTo(enemy);
+        }
+        else {
+            creep.moveTo(creep.room.controller);
+        }
+    }
+}
+
+var _make = function(spawn, energy_limit) {
+    var numOfPart = Math.floor(energy_limit / 190);
+    if(numOfPart > maxProtectorParts){numOfPart = maxProtectorParts;}
+
+    var body = [];
+    for(let i = 0; i < numOfPart; i++) {
+        body.push(MOVE);
+    }
+    for(let i = 0; i < numOfPart; i++) {
+        body.push(ATTACK);
+    }
+
+    var mem = {role: 'protector', home: spawn.room.controller.id, long_range: true, notify: true, target: Memory.PROTECTOR_REQUESTS.pop()};
+    var name = find.creepNames[Math.floor(Math.random() * find.creepNames.length)] + ' ' + spawn.name + Game.time;
+    var retVal = spawn.spawnCreep(body, name, {memory: mem});
+
+    if(retVal < 0) {
+        return 0;
+    }
+    else{
+        find.addRole(Game.creeps[name], 'protector');
+        var total = 0;
+        for(let i = 0; i < body.length; i++) {
+            total +=  BODYPART_COST[body[i]];
+        }
+        return total;
+    }
+}
+
+var _shouldMake = function(room) {
+    if(!Memory.PROTECTOR_REQUESTS) {
+        Memory.PROTECTOR_REQUESTS = [];
+    }
+    return Memory.PROTECTOR_REQUESTS.length > 0;
+}
+
+module.exports = {
+    run: _run,
+    shouldMake: _shouldMake,
+    make: _make
+};

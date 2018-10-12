@@ -12,20 +12,20 @@ var creepLimits = {
     handyman: require('role.handyman'),
     courier: require('role.courier'),
     harvester: require('role.harvester'),
-    //warrior: require('role.warrior'), 
-    //healer: require('role.healer'),
     upgrader: require('role.upgrader'),
     waller: require('role.waller'),
     miner: require('role.miner'),
+    protector: require('role.protector'),
     ldh: require('role.ldh'),
+    reserver: require('role.reserver'),
     //claimer: require('role.claimer'),
-    //raider: require('role.raider'),
-    reserver: require('role.reserver')
+    //warrior: require('role.warrior'), 
+    //healer: require('role.healer')
 };
 
 //* For the official server: (remove one slash to disable)
 var linkPairs = [
-    //nada
+    {link1_id: '5bc03a90eeb4b90a618557c5', link2_id: '5bc03cd6c02fde0a5b926e1e'}
 ];
 //*/
 /* For my server: (add one slash to enable)

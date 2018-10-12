@@ -11,6 +11,10 @@ var targets = [ {source: {room: "E1S6", id:"5bbcacfc9099fc012e6366d9"}, dropoff:
 var find = require('manager.roomInfo');
 
 var _run = function(creep) {
+    if(creep.memory.canCall > 0) {
+        creep.memory.canCall--;
+    }
+
     if(!creep.memory.working && creep.carry.energy == 0) {
         creep.memory.working = true;
         creep.say('harvesting');
@@ -50,6 +54,18 @@ var _run = function(creep) {
 	    }
 	    else if(creep.transfer(Game.getObjectById(creep.memory.dropoff.id), RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 	        creep.moveTo(Game.getObjectById(creep.memory.dropoff.id));
+	    }
+	}
+	
+	if(creep.hits < creep.hitsMax && creep.memory.canCall == 0 && creep.memory.source.room == creep.room.name) {
+	    var attacks = _.filter(creep.room.getEventLog(), (event) => {return event.event == EVENT_ATTACK && event.data.targetId == creep.id;});
+	    if(attacks.length > 0) {
+	        if(!Memory.PROTECTOR_REQUESTS) {
+                Memory.PROTECTOR_REQUESTS = [];
+            }
+            
+            Memory.PROTECTOR_REQUESTS.unshift(creep.memory.source.room);
+            creep.memory.canCall = 150;
 	    }
 	}
 }
@@ -100,7 +116,7 @@ var _make = function(spawn, energy_limit) {
     }
     
     var targetNum = _findTargetNum(spawn.room);
-    var mem = {role: 'ldh', home: spawn.room.controller.id, long_range: true, working: false, source: targets[targetNum].source, dropoff: targets[targetNum].dropoff};
+    var mem = {role: 'ldh', home: spawn.room.controller.id, long_range: true, working: false, source: targets[targetNum].source, dropoff: targets[targetNum].dropoff, canCall: 0};
     var name = find.creepNames[Math.floor(Math.random() * find.creepNames.length)] + ' ' + spawn.name + Game.time;
     var retVal = spawn.spawnCreep(body, name, {memory: mem});
 
