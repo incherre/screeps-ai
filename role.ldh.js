@@ -24,6 +24,10 @@ var _run = function(creep) {
 	    if(creep.memory.source.room != creep.room.name) {
 	        creep.moveTo(new RoomPosition(25, 25, creep.memory.source.room));
 	    }
+	    else if(creep.pos.findInRange(FIND_TOMBSTONES, 1, {filter: (stone) => {return stone.store[RESOURCE_ENERGY] > 0;}}).length > 0) {
+	        creep.withdraw(creep.pos.findInRange(FIND_TOMBSTONES, 1, {filter: (stone) => {return stone.store[RESOURCE_ENERGY] > 0;}})[0], RESOURCE_ENERGY);
+	        creep.moveTo(Game.getObjectById(creep.memory.source.id));
+	    }
 	    else if(creep.harvest(Game.getObjectById(creep.memory.source.id)) == ERR_NOT_IN_RANGE) {
 	        creep.moveTo(Game.getObjectById(creep.memory.source.id));
 	    }
