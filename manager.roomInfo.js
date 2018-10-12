@@ -222,6 +222,13 @@ var _getGroundEnergy = function(room) {
     return room.GROUND_ENERGY;
 }
 
+var _getGroundMinerals = function(room) {
+    if(!room.hasOwnProperty('GROUND_MINERALS')) {
+        room.GROUND_MINERALS = room.find(FIND_DROPPED_RESOURCES, {filter: (resource) => {return resource.resourceType != RESOURCE_ENERGY;}})
+    }
+    return room.GROUND_MINERALS;
+}
+
 var _getContainerEnergy = function(room) {
     if(!room.hasOwnProperty('CONTAINER_ENERGY')) {
         room.CONTAINER_ENERGY = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_CONTAINER && structure.store[RESOURCE_ENERGY] > 0)});
@@ -341,6 +348,7 @@ module.exports = {
     getSources: _getSources,
     getRepairable: _getRepairable,
     getGroundEnergy: _getGroundEnergy,
+    getGroundMinerals: _getGroundMinerals,
     getContainerEnergy: _getContainerEnergy,
     getClosestStore: _getClosestStore,
     isOpen: _isOpen,

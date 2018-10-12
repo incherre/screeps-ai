@@ -70,8 +70,25 @@ var _make = function(spawn, energy_limit) {
     }
 }
 
+var _shouldGo = function(roomName) {
+    let room;
+    if(Game.rooms.hasOwnProperty(room)) {
+        room = Game.rooms[room];
+    }
+    else {
+        return false;
+    }
+    
+    if(room.controller.hasOwnProperty('reservation')) {
+        return room.controller.reservation.ticksToEnd < 4400
+    }
+    else {
+        return true;
+    }
+}
+
 var _shouldMake = function(room) {
-    return find.getRole(room, 'reserver').length < targets.length;
+    return find.getRole(room, 'reserver').length < _.filter(targets, _shouldGo).length;
 }
 
 module.exports = {

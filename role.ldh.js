@@ -55,6 +55,9 @@ var _run = function(creep) {
 	    else if(creep.transfer(Game.getObjectById(creep.memory.dropoff.id), RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 	        creep.moveTo(Game.getObjectById(creep.memory.dropoff.id));
 	    }
+	    else if(creep.transfer(Game.getObjectById(creep.memory.dropoff.id), RESOURCE_ENERGY) == ERR_FULL) {
+	        creep.drop(RESOURCE_ENERGY);
+	    }
 	}
 	
 	if(creep.hits < creep.hitsMax && creep.memory.canCall == 0 && creep.memory.source.room == creep.room.name) {

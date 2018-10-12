@@ -16,11 +16,11 @@ var controllerRange = 2;
 var find = require('manager.roomInfo');
 
 var _run = function(creep) {
-    if(!creep.memory.working && creep.carry.energy == 0) {
+    if(!creep.memory.working && _.sum(creep.carry) == 0) {
         creep.memory.working = true;
         creep.say('gathering');
 	}
-	else if(creep.memory.working && creep.carry.energy == creep.carryCapacity) {
+	else if(creep.memory.working && _.sum(creep.carry) == creep.carryCapacity) {
 	    creep.memory.working = false;
 	    creep.say('depositing');
 	}
@@ -37,8 +37,14 @@ var _run = function(creep) {
         else {
             target = creep.pos.findClosestByRange(find.getContainerEnergy(creep.room), {filter: (container) => {return container.store[RESOURCE_ENERGY] >= resourceThreshold || creep.pos.inRangeTo(container, resourceRange);}});
         }
-
-        if(target == null){target = creep.room.storage;}
+        
+        if(target == null && find.getGroundMinerals().length > 0) {
+            target = creep.pos.findClosestByRange(find.getGroundMinerals());
+            ground = true;
+        }
+        else if(target == null){
+            target = creep.room.storage;
+        }
 
         if(target != null) {
             var ret;
@@ -54,18 +60,25 @@ var _run = function(creep) {
         }
     }
     else {
+        var resource = RESOURCE_ENERGY;
+        if(creep.room.storage && Object.keys(creep.carry).length > 1) {
+            resource = _.filter(Object.keys(creep.carry), (resource) => {return resource != RESOURCE_ENERGY;})[0];
+        }
+
         var target = creep.pos.findClosestByRange(find.getFillables(creep.room));
-        if(target == null){target = creep.room.storage;}
+        if(target == null || resource != RESOURCE_ENERGY) {
+            target = creep.room.storage;
+        }
 
         if(target == null) {
             if(creep.pos.inRangeTo(creep.room.controller, controllerRange)) {
-                creep.drop(RESOURCE_ENERGY);
+                creep.drop(resource);
             }
             else {
                 creep.moveTo(creep.room.controller, {ignoreRoads: true, range: controllerRange});
             }
         }
-        else if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+        else if(creep.transfer(target, resource) == ERR_NOT_IN_RANGE) {
                creep.moveTo(target, {ignoreRoads: true});
         }
     }
