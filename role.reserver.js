@@ -72,8 +72,8 @@ var _make = function(spawn, energy_limit) {
 
 var _shouldGo = function(roomName) {
     let room;
-    if(Game.rooms.hasOwnProperty(room)) {
-        room = Game.rooms[room];
+    if(Game.rooms.hasOwnProperty(roomName)) {
+        room = Game.rooms[roomName];
     }
     else {
         return false;

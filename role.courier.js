@@ -38,8 +38,8 @@ var _run = function(creep) {
             target = creep.pos.findClosestByRange(find.getContainerEnergy(creep.room), {filter: (container) => {return container.store[RESOURCE_ENERGY] >= resourceThreshold || creep.pos.inRangeTo(container, resourceRange);}});
         }
         
-        if(target == null && find.getGroundMinerals().length > 0) {
-            target = creep.pos.findClosestByRange(find.getGroundMinerals());
+        if(target == null && find.getGroundMinerals(creep.room).length > 0) {
+            target = creep.pos.findClosestByRange(find.getGroundMinerals(creep.room));
             ground = true;
         }
         else if(target == null){

@@ -5,7 +5,7 @@ Once an upgrader is full, it should use the energy to upgrade the room controlle
 */
 
 // ***** Options *****
-var maxUpgraderParts = 7;
+var maxUpgraderParts = 8;
 var capacityConstant = .3;
 // ***** End *****
 
