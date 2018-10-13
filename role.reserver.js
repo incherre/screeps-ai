@@ -79,8 +79,8 @@ var _shouldGo = function(roomName) {
         return false;
     }
     
-    if(room.controller.hasOwnProperty('reservation')) {
-        return room.controller.reservation.ticksToEnd < 4400
+    if(room.controller.reservation) {
+        return room.controller.reservation.ticksToEnd < 4400;
     }
     else {
         return true;
@@ -88,7 +88,7 @@ var _shouldGo = function(roomName) {
 }
 
 var _shouldMake = function(room) {
-    return find.getRole(room, 'reserver').length < _.filter(targets, _shouldGo).length;
+    return (!Memory.PROTECTOR_REQUESTS || Memory.PROTECTOR_REQUESTS.length == 0) && find.getRole(room, 'reserver').length < _.filter(targets, _shouldGo).length;
 }
 
 module.exports = {

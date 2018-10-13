@@ -69,7 +69,7 @@ var _spawnCreeps = function(room) {
     else { // regular spawning
         var energyMax = room.energyCapacityAvailable;
         for(let i in spawns) {
-            _spawnSingleCreep(spawns[i], room.energyCapacityAvailable);
+            energyMax -= _spawnSingleCreep(spawns[i], energyMax);
         }
     }
 }
