@@ -5,7 +5,10 @@ These creeps should harvest energy from adjacent rooms and bring it back to the 
 
 // ***** Options *****
 var maxLdhParts = 7;
-var targets = [ {source: {room: "E1S6", id:"5bbcacfc9099fc012e6366d9"}, dropoff: {room: "E1S7", id:"5bbe54b11b8845779a1e79ea"}} ];
+var targets = [
+    {source: {room: "E1S6", id:"5bbcacfc9099fc012e6366d9"}, dropoff: {room: "E1S7", id:"5bbe54b11b8845779a1e79ea"}},
+    {source: {room: "E3S5", id:"5bbcad189099fc012e6369e3"}, dropoff: {room: "E3S4", id:"5bc2679ade4259326dc5cfbb"}}
+];
 // ***** End *****
 
 var find = require('manager.roomInfo');
@@ -26,7 +29,7 @@ var _run = function(creep) {
 	
 	if(creep.memory.working) {
 	    if(creep.memory.source.room != creep.room.name) {
-	        creep.moveTo(new RoomPosition(25, 25, creep.memory.source.room));
+	        creep.moveTo(new RoomPosition(25, 25, creep.memory.source.room), {costCallback: find.avoidSourceKeepersCallback});
 	    }
 	    else if(creep.pos.findInRange(FIND_TOMBSTONES, 1, {filter: (stone) => {return stone.store[RESOURCE_ENERGY] > 0;}}).length > 0) {
 	        creep.withdraw(creep.pos.findInRange(FIND_TOMBSTONES, 1, {filter: (stone) => {return stone.store[RESOURCE_ENERGY] > 0;}})[0], RESOURCE_ENERGY);
@@ -49,7 +52,7 @@ var _run = function(creep) {
 	            if(repairable.length > 0) {
 	                creep.repair(repairable[0]);
 	            }
-	            creep.moveTo(new RoomPosition(25, 25, creep.memory.dropoff.room));
+	            creep.moveTo(new RoomPosition(25, 25, creep.memory.dropoff.room), {costCallback: find.avoidSourceKeepersCallback});
 	        }
 	    }
 	    else if(creep.transfer(Game.getObjectById(creep.memory.dropoff.id), RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -138,7 +141,7 @@ var _make = function(spawn, energy_limit) {
 
 var _shouldMake = function(room) {
     let targetNum = _findTargetNum(room);
-    return targetNum >= 0 && Game.map.getRoomLinearDistance(room.name, targets[targetNum].source.room) <= 2;
+    return targetNum >= 0 && Game.map.getRoomLinearDistance(room.name, targets[targetNum].source.room) <= 1;
 }
 
 module.exports = {

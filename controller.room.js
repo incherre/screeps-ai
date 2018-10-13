@@ -57,7 +57,7 @@ var _controlRoom = function(room) {
     _controlTowers(room);
     _buildSomething(room);
     
-    if(room.controller.level <= 2 && !room.controller.safeMode && room.controller.safeModeAvailable > 0 && !room.controller.safeModeCooldown) {
+    if(room.controller.level <= 3 && !room.controller.safeMode && room.controller.safeModeAvailable > 0 && !room.controller.safeModeCooldown) {
         var enemies = _.filter(find.getHostileCreeps(room), (creep) => {return creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0  || creep.getActiveBodyparts(HEAL) > 0 || creep.getActiveBodyparts(WORK) > 0;});
         if(enemies.length > 0) {
             room.controller.activateSafeMode();

@@ -12,7 +12,7 @@ var find = require('manager.roomInfo');
 
 var _run = function(creep) {
     if(creep.memory.target != creep.room.name) {
-        creep.moveTo(new RoomPosition(25, 25, creep.memory.target), {ignoreRoads: true});
+        creep.moveTo(new RoomPosition(25, 25, creep.memory.target), {ignoreRoads: true, costCallback: find.avoidSourceKeepersCallback});
     }
     else {
         if(creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
@@ -72,7 +72,7 @@ var _make = function(spawn, energy_limit) {
 
 var _shouldMake = function(room) {
     var _shouldGo = function(roomName) {
-        if(Game.map.getRoomLinearDistance(roomName, room.name) > 2) {
+        if(Game.map.getRoomLinearDistance(roomName, room.name) > 1) {
             return false;
         }
 

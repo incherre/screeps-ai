@@ -55,7 +55,7 @@ var _run = function(creep) {
                 ret = creep.withdraw(target, RESOURCE_ENERGY);
             }
             if(ret == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target, {ignoreRoads: true});
+                creep.moveTo(target, {ignoreRoads: true, swampCost: 2});
             }
         }
     }
@@ -75,11 +75,11 @@ var _run = function(creep) {
                 creep.drop(resource);
             }
             else {
-                creep.moveTo(creep.room.controller, {ignoreRoads: true, range: controllerRange});
+                creep.moveTo(creep.room.controller, {range: controllerRange});
             }
         }
         else if(creep.transfer(target, resource) == ERR_NOT_IN_RANGE) {
-               creep.moveTo(target, {ignoreRoads: true});
+               creep.moveTo(target);
         }
     }
 }

@@ -6,7 +6,7 @@ A pioneer should attempt to build a spawn in a new room.
 // ***** Options *****
 var maxPioneerParts = 11; // the maximum number of parts a pioneer can have
 var maxPioneers = 4;
-var _target = "E3S4"; // set to undefined to turn off
+var _target = undefined; // set to undefined to turn off
 // ***** End *****
 
 var find = require('manager.roomInfo');
@@ -20,7 +20,7 @@ var _run = function(creep) {
 	}
 
     if(creep.room.name != creep.memory.target) {
-        creep.moveTo(new RoomPosition(25, 25, creep.memory.target));
+        creep.moveTo(new RoomPosition(25, 25, creep.memory.target), {costCallback: find.avoidSourceKeepersCallback});
     }
     else if(!creep.room.controller.my && creep.getActiveBodyparts(CLAIM) > 0) {
         if(creep.claimController(creep.room.controller) == ERR_NOT_IN_RANGE) {
@@ -93,7 +93,7 @@ var _shouldMake = function(room) {
         return false;
     }
     
-    if(Game.map.getRoomLinearDistance(room.name, _target) >= 5) {
+    if(Game.map.getRoomLinearDistance(room.name, _target) >= 4) {
         return false;
     }
     

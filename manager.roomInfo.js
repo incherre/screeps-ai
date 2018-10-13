@@ -335,6 +335,27 @@ var _getPortals = function(room) {
     return room.PORTALS;
 }
 
+var _avoidSourceKeepersCallback = function(roomName, costMatrix) {
+    if(Game.rooms.hasOwnProperty(roomName)) {
+        if(!Game.rooms[roomName].controller) {
+            var sourceKeepers = _.filter(_getHostileCreeps(Game.rooms[roomName]), (creep) => {return creep.owner.username == 'Source Keeper';});
+            for(let i in sourceKeepers) {
+                let x = sourceKeepers[i].pos.x;
+                let y = sourceKeepers[i].pos.y;
+                for(let dx = -3; dx <= 3; dx++) {
+                    if(x + dx >= 0 && x + dx < 50) {
+                        for(let dy = -3; dy <= 3; dy++) {
+                            if(y + dy >= 0 && y + dy < 50) {
+                                costMatrix.set(x + dx, y + dy, 254);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 module.exports = {
     getMyCreeps: _getMyCreeps,
     getHostileCreeps: _getHostileCreeps,
@@ -363,5 +384,6 @@ module.exports = {
     getPortals: _getPortals,
     getRole: _getRole,
     addRole: _addRole,
-    creepNames: _creepNames
+    creepNames: _creepNames,
+    avoidSourceKeepersCallback: _avoidSourceKeepersCallback
 };

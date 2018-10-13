@@ -17,7 +17,7 @@ var _run = function(creep) {
     }
     
     if(creep.memory.target != creep.room.name) {
-	    creep.moveTo(new RoomPosition(25, 25, creep.memory.target));
+	    creep.moveTo(new RoomPosition(25, 25, creep.memory.target), {costCallback: find.avoidSourceKeepersCallback});
 	}
     else {
         var enemy = creep.pos.findClosestByRange(find.getHostileCreeps(creep.room));
@@ -64,7 +64,7 @@ var _shouldMake = function(room) {
     if(!Memory.PROTECTOR_REQUESTS) {
         Memory.PROTECTOR_REQUESTS = [];
     }
-    return Memory.PROTECTOR_REQUESTS.length > 0 && Game.map.getRoomLinearDistance(room.name, Memory.PROTECTOR_REQUESTS[Memory.PROTECTOR_REQUESTS.length - 1]) <= 2;
+    return Memory.PROTECTOR_REQUESTS.length > 0 && Game.map.getRoomLinearDistance(room.name, Memory.PROTECTOR_REQUESTS[Memory.PROTECTOR_REQUESTS.length - 1]) <= 1;
 }
 
 module.exports = {
