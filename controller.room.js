@@ -18,6 +18,7 @@ var creepLimits = {
     protector: require('role.protector'),
     ldh: require('role.ldh'),
     reserver: require('role.reserver'),
+    pioneer: require('role.pioneer'),
     //claimer: require('role.claimer'),
     //warrior: require('role.warrior'), 
     //healer: require('role.healer')
@@ -55,6 +56,14 @@ var _controlRoom = function(room) {
     _spawnCreeps(room);
     _controlTowers(room);
     _buildSomething(room);
+    
+    if(room.controller.level <= 2 && !room.controller.safeMode && room.controller.safeModeAvailable > 0 && !room.controller.safeModeCooldown) {
+        var enemies = _.filter(find.getHostileCreeps(room), (creep) => {return creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0  || creep.getActiveBodyparts(HEAL) > 0 || creep.getActiveBodyparts(WORK) > 0;});
+        if(enemies.length > 0) {
+            room.controller.activateSafeMode();
+            Game.notify("Activated Safe Mode in new room " + room.name, 10);
+        }
+    }
 }
 
 // *** Spawning ***
@@ -63,7 +72,8 @@ var _spawnCreeps = function(room) {
     if(spawns.length == 0) { // Can't make things with no spawn!
         return;
     }
-    else if(find.getRole(room, 'handyman').length == 0 && (find.getRole(room, 'courier').length == 0 || find.getRole(room, 'harvester').length == 0)) { // Emergency spawning
+    else if(find.getRole(room, 'handyman').length == 0 && (find.getRole(room, 'courier').length == 0 || find.getRole(room, 'harvester').length == 0) && (creepLimits.pioneer.target != room.name || find.getRole(room, 'pioneer').length == 0)) { // Emergency spawning
+        console.log("Emergency spawning in room " + room.name);
         creepLimits.handyman.make(spawns[0], room.energyAvailable);
     }
     else { // regular spawning

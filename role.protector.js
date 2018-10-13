@@ -64,7 +64,7 @@ var _shouldMake = function(room) {
     if(!Memory.PROTECTOR_REQUESTS) {
         Memory.PROTECTOR_REQUESTS = [];
     }
-    return Memory.PROTECTOR_REQUESTS.length > 0;
+    return Memory.PROTECTOR_REQUESTS.length > 0 && Game.map.getRoomLinearDistance(room.name, Memory.PROTECTOR_REQUESTS[Memory.PROTECTOR_REQUESTS.length - 1]) <= 2;
 }
 
 module.exports = {

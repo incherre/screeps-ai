@@ -137,7 +137,8 @@ var _make = function(spawn, energy_limit) {
 }
 
 var _shouldMake = function(room) {
-    return _findTargetNum(room) >= 0;
+    let targetNum = _findTargetNum(room);
+    return targetNum >= 0 && Game.map.getRoomLinearDistance(room.name, targets[targetNum].source.room) <= 2;
 }
 
 module.exports = {

@@ -82,6 +82,9 @@ var _shouldMake = function(room) {
     if(room.controller.level <= 3) {
         target = room.controller.level;
     }
+    else if(room.controller.level == 8) {
+        target = Math.ceil(15 / maxUpgraderParts);
+    }
     else if(room.storage != undefined && room.storage.store[RESOURCE_ENERGY] > (room.storage.storeCapacity * upperCapacityConstant)) {
         target = 3;
     }

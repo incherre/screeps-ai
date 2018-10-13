@@ -70,24 +70,27 @@ var _make = function(spawn, energy_limit) {
     }
 }
 
-var _shouldGo = function(roomName) {
-    let room;
-    if(Game.rooms.hasOwnProperty(roomName)) {
-        room = Game.rooms[roomName];
-    }
-    else {
-        return false;
-    }
-    
-    if(room.controller.reservation) {
-        return room.controller.reservation.ticksToEnd < 4400;
-    }
-    else {
-        return true;
-    }
-}
-
 var _shouldMake = function(room) {
+    var _shouldGo = function(roomName) {
+        if(Game.map.getRoomLinearDistance(roomName, room.name) > 2) {
+            return false;
+        }
+
+        let _room;
+        if(Game.rooms.hasOwnProperty(roomName)) {
+            _room = Game.rooms[roomName];
+        }
+        else {
+            return false;
+        }
+        
+        if(_room.controller.reservation) {
+            return _room.controller.reservation.ticksToEnd < 4450;
+        }
+        else {
+            return true;
+        }
+    }
     return (!Memory.PROTECTOR_REQUESTS || Memory.PROTECTOR_REQUESTS.length == 0) && find.getRole(room, 'reserver').length < _.filter(targets, _shouldGo).length;
 }
 

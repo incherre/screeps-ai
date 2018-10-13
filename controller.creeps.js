@@ -12,6 +12,7 @@ var roles = {
     protector: require('role.protector'),
     ldh: require('role.ldh'),
     reserver: require('role.reserver'),
+    pioneer: require('role.pioneer'),
     //claimer: require('role.claimer'),
     //warrior: require('role.warrior'), 
     //healer: require('role.healer')
