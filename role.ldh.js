@@ -7,7 +7,7 @@ These creeps should harvest energy from adjacent rooms and bring it back to the 
 var maxLdhParts = 7;
 var targets = [
     {source: {room: "E1S6", id:"5bbcacfc9099fc012e6366d9"}, dropoff: {room: "E1S7", id:"5bbe54b11b8845779a1e79ea"}},
-    {source: {room: "E3S5", id:"5bbcad189099fc012e6369e3"}, dropoff: {room: "E3S4", id:"5bc2679ade4259326dc5cfbb"}}
+    {source: {room: "E3S5", id:"5bbcad189099fc012e6369e3"}, dropoff: {room: "E3S4", id:"5bc2a5132183d2326fc83ea7"}}
 ];
 // ***** End *****
 
@@ -78,31 +78,24 @@ var _run = function(creep) {
 
 var _findTargetNum = function(room) {
     var ldhs = find.getRole(room, 'ldh');
-    var reservers = find.getRole(room, 'reserver');
     var sourceCounts = {};
-    var sourceRooms = {};
+
     for(let i in targets) {
         sourceCounts[targets[i].source.id] = {count: 0, num: i, room: targets[i].source.room};
-        sourceRooms[targets[i].source.room] = 0;
     }
     
     for(let i in ldhs) {
         sourceCounts[ldhs[i].memory.source.id].count++;
     }
     
-    for(let i in reservers) {
-        if(sourceRooms.hasOwnProperty(reservers[i].memory.target)) {
-            sourceRooms[reservers[i].memory.target]++;
-        }
-    }
-    
     for(let i in sourceCounts) {
         let target = 1;
-        if(sourceRooms[sourceCounts[i].room] > 0) {
+        let roomName = sourceCounts[i].room;
+        if(Game.rooms.hasOwnProperty(roomName) && Game.rooms[roomName].controller.reservation) {
             target = 2;
         }
 
-        if(sourceCounts[i].count < target) {
+        if(sourceCounts[i].count < target && Game.map.getRoomLinearDistance(room.name, roomName) <= 1) {
             return sourceCounts[i].num;
         }
     }
@@ -140,8 +133,7 @@ var _make = function(spawn, energy_limit) {
 }
 
 var _shouldMake = function(room) {
-    let targetNum = _findTargetNum(room);
-    return targetNum >= 0 && Game.map.getRoomLinearDistance(room.name, targets[targetNum].source.room) <= 1;
+    return _findTargetNum(room) >= 0;
 }
 
 module.exports = {

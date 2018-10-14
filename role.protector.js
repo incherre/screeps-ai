@@ -5,7 +5,7 @@ Once a protector is in that room, it should fight any enemies that appear in the
 */
 
 // ***** Options *****
-var maxProtectorParts = 12;
+var maxProtectorParts = 8;
 // ***** End *****
 
 var find = require('manager.roomInfo');

@@ -5,7 +5,7 @@ A reserver should reserve rooms used for remote mining (via the ldh role) to inc
 
 // ***** Options *****
 var maxReserverParts = 2; // the maximum number of MOVE, and CLAIM parts a reserver can have
-var targets = ["E1S6"];
+var targets = ["E1S6", "E3S5"];
 // ***** End *****
 
 var find = require('manager.roomInfo');
@@ -29,12 +29,12 @@ var _findTargetNum = function(room) {
     }
     
     for(let i in reservers) {
-        counts[ldhs[i].memory.target].count++;
+        counts[reservers[i].memory.target].count++;
     }
     
-    for(let i in counts) {
-        if(counts[i].count <= 0) {
-            return counts[i].num;
+    for(let roomName in counts) {
+        if(counts[roomName].count <= 0 && Game.map.getRoomLinearDistance(roomName, room.name) <= 1) {
+            return counts[roomName].num;
         }
     }
     
@@ -42,6 +42,7 @@ var _findTargetNum = function(room) {
 }
 
 var _make = function(spawn, energy_limit) {
+    if(spawn.room.name == 'E3S4'){ console.log("trying to make a reserver"); }
     var numOfPart = Math.floor(energy_limit / 650);
     if(numOfPart > maxReserverParts){numOfPart = maxReserverParts;}
 
@@ -71,27 +72,7 @@ var _make = function(spawn, energy_limit) {
 }
 
 var _shouldMake = function(room) {
-    var _shouldGo = function(roomName) {
-        if(Game.map.getRoomLinearDistance(roomName, room.name) > 1) {
-            return false;
-        }
-
-        let _room;
-        if(Game.rooms.hasOwnProperty(roomName)) {
-            _room = Game.rooms[roomName];
-        }
-        else {
-            return false;
-        }
-        
-        if(_room.controller.reservation) {
-            return _room.controller.reservation.ticksToEnd < 4450;
-        }
-        else {
-            return true;
-        }
-    }
-    return (!Memory.PROTECTOR_REQUESTS || Memory.PROTECTOR_REQUESTS.length == 0) && find.getRole(room, 'reserver').length < _.filter(targets, _shouldGo).length;
+    return (!Memory.PROTECTOR_REQUESTS || Memory.PROTECTOR_REQUESTS.length == 0) && _findTargetNum(room) >= 0;
 }
 
 module.exports = {
