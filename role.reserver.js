@@ -42,7 +42,6 @@ var _findTargetNum = function(room) {
 }
 
 var _make = function(spawn, energy_limit) {
-    if(spawn.room.name == 'E3S4'){ console.log("trying to make a reserver"); }
     var numOfPart = Math.floor(energy_limit / 650);
     if(numOfPart > maxReserverParts){numOfPart = maxReserverParts;}
 
