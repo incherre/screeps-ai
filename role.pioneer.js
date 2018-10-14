@@ -89,6 +89,10 @@ var _make = function(spawn, energy_limit) {
 }
 
 var _shouldMake = function(room) {
+    if(!_target) {
+        return false;
+    }
+
     if(Game.rooms.hasOwnProperty(_target) && Game.rooms[_target].controller.my && Game.rooms[_target].controller.level >= 2) {
         return false;
     }
