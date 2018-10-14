@@ -37,7 +37,7 @@ var _run = function(creep) {
                 ground = true;
             }
             else if(find.getTombstoneMinerals(creep.room).length > 0) {
-                target = creep.pos.findClosestByRange(find.getGroundMinerals(creep.room));
+                target = creep.pos.findClosestByRange(find.getTombstoneMinerals(creep.room));
                 resource = _.filter(Object.keys(target.store), (resource) => {return resource != RESOURCE_ENERGY;})[0];
             }
         }
