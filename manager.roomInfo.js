@@ -230,6 +230,13 @@ var _getGroundMinerals = function(room) {
     return room.GROUND_MINERALS;
 }
 
+var _getTombstoneMinerals = function(room) {
+    if(!room.hasOwnProperty('TOMBSTONE_MINERALS')) {
+        room.TOMBSTONE_MINERALS = room.find(FIND_TOMBSTONES, {filter: (stone) => {return Object.keys(stone.store).length > 1;}})
+    }
+    return room.TOMBSTONE_MINERALS;
+}
+
 var _getContainerEnergy = function(room) {
     if(!room.hasOwnProperty('CONTAINER_ENERGY')) {
         room.CONTAINER_ENERGY = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_CONTAINER && structure.store[RESOURCE_ENERGY] > 0)});
@@ -371,6 +378,7 @@ module.exports = {
     getRepairable: _getRepairable,
     getGroundEnergy: _getGroundEnergy,
     getGroundMinerals: _getGroundMinerals,
+    getTombstoneMinerals: _getTombstoneMinerals,
     getContainerEnergy: _getContainerEnergy,
     getClosestStore: _getClosestStore,
     isOpen: _isOpen,

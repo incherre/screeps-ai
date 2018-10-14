@@ -26,23 +26,36 @@ var _run = function(creep) {
 	}
 
     if(creep.memory.working) {
-        var energy = _.filter(find.getGroundEnergy(creep.room), (resource) => {return !resource.pos.inRangeTo(creep.room.controller, controllerRange) && resource.amount > energyMin && (resource.amount >= resourceThreshold || creep.pos.inRangeTo(resource, resourceRange));});
+        var energy = [];
         var target = null;
         var ground = false;
-
-        if(energy.length > 0) {
+        var resource = RESOURCE_ENERGY;
+        
+        if(find.getHostileCreeps(creep.room).length == 0) { // avoid going near battles just to collect stuff
+            if(find.getGroundMinerals(creep.room).length > 0) {
+                target = creep.pos.findClosestByRange(find.getGroundMinerals(creep.room));
+                ground = true;
+            }
+            else if(find.getTombstoneMinerals(creep.room).length > 0) {
+                target = creep.pos.findClosestByRange(find.getGroundMinerals(creep.room));
+                resource = _.filter(Object.keys(target.store), (resource) => {return resource != RESOURCE_ENERGY;})[0];
+            }
+        }
+        
+        if(target == null) {
+            energy = _.filter(find.getGroundEnergy(creep.room), (resource) => {return !resource.pos.inRangeTo(creep.room.controller, controllerRange) && resource.amount > energyMin && (resource.amount >= resourceThreshold || creep.pos.inRangeTo(resource, resourceRange));});
+        }
+        
+        if(target == null && energy.length > 0) {
             target = creep.pos.findClosestByRange(energy);
             ground = true;
         }
-        else {
+        
+        if(target == null) {
             target = creep.pos.findClosestByRange(find.getContainerEnergy(creep.room), {filter: (container) => {return container.store[RESOURCE_ENERGY] >= resourceThreshold || creep.pos.inRangeTo(container, resourceRange);}});
         }
         
-        if(target == null && find.getGroundMinerals(creep.room).length > 0) {
-            target = creep.pos.findClosestByRange(find.getGroundMinerals(creep.room));
-            ground = true;
-        }
-        else if(target == null){
+        if(target == null) {
             target = creep.room.storage;
         }
 
@@ -52,7 +65,7 @@ var _run = function(creep) {
                 ret = creep.pickup(target);
             }
             else {
-                ret = creep.withdraw(target, RESOURCE_ENERGY);
+                ret = creep.withdraw(target, resource);
             }
             if(ret == ERR_NOT_IN_RANGE) {
                 creep.moveTo(target, {ignoreRoads: true, swampCost: 2});
