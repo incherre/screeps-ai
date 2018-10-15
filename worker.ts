@@ -1,24 +1,37 @@
-class Worker {
+import { IdleJob } from "./jobs/idleJob";
+import { Job } from "./jobs/job";
+import { jobTypes } from "./jobs/jobTypes"
+
+export class WorkerCreep {
     public creep: Creep;
     public job: Job;
 
-    constructor (creep: Creep, job: Job) {
+    constructor (creep: Creep) {
         this.creep = creep;
-        this.job = job;
+        this.job = jobTypes[creep.memory.jobType](creep.memory.jobInfo);
     }
 
     public work(): void {
         if(this.job.ttr <= 0) {
-            this.job.recalculateTarget();
+            if(!this.job.recalculateTarget(this.creep)) {
+                this.job = new IdleJob();
+            }
         }
 
         const creepPos = this.creep.pos;
         const targetPos = this.job.target;
-        if(creepPos.x === targetPos.x && creepPos.y === targetPos.y && creepPos.roomName === targetPos.roomName) {
+        if(targetPos && targetPos.isEqualTo(creepPos)) {
             this.job.do(this.creep);
         }
-        else {
-            this.creep.moveTo(new RoomPosition(targetPos.x, targetPos.y, targetPos.roomName));
+        else if(targetPos && this.creep.moveTo(targetPos, {reusePath: Math.max(this.job.ttr, 5)}) === OK) {
+            this.job.ttr--;
         }
+
+        this.save();
+    }
+
+    public save(): void {
+        this.creep.memory.jobType = this.job.getJobType();
+        this.creep.memory.jobInfo = this.job.getJobInfo();
     }
 }
