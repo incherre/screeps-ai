@@ -5,7 +5,7 @@ Once a waller is full, it should use the energy to repair walls and ramparts.
 */
 
 // ***** Options *****
-var maxWallerParts = 8;
+var maxWallerParts = 16;
 // ***** End *****
 
 var find = require('manager.roomInfo');
@@ -22,6 +22,7 @@ var _obstacles = function(roomName, costMatrix) {
 var _run = function(creep) {
     if(creep.memory.working && creep.carry.energy == 0) {
         creep.memory.working = false;
+        creep.memory.target = false;
         creep.say('gathering');
 	}
 	else if(!creep.memory.working && creep.carry.energy == creep.carryCapacity) {
@@ -30,19 +31,24 @@ var _run = function(creep) {
 	}
 
 	if(creep.memory.working) {
-        if(find.getRepairableWalls(creep.room).length > 0) { // should regular repair
+        if(!creep.memory.target && find.getRepairableWalls(creep.room).length > 0) { // should regular repair
             // repair
             var repair = find.getRepairableWalls(creep.room);
             var hitsMin = Math.min.apply(null, repair.map(function(structure){return structure.hits;}));
-            var target = creep.pos.findClosestByRange(repair, {filter: (structure) => {return structure.hits == hitsMin;}})
-                
-            if(creep.repair(target) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target, {costCallback: _obstacles});
+            var target = creep.pos.findClosestByRange(repair, {filter: (structure) => {return structure.hits == hitsMin;}});
+            if(target) {
+                creep.memory.target = target.id;
+            }
+        }
+
+        if(creep.memory.target) {
+            if(creep.repair(Game.getObjectById(creep.memory.target)) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(Game.getObjectById(creep.memory.target), {costCallback: _obstacles, maxRooms: 1});
 			}
         }
         else { // otherwise, upgrade
             if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(creep.room.controller);
+                creep.moveTo(creep.room.controller, {maxRooms: 1});
             }
         }
     }
@@ -50,13 +56,13 @@ var _run = function(creep) {
         var target = find.getClosestStore(creep);
         if(target != null) {
             if(creep.withdraw(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target, {costCallback: _obstacles});
+                creep.moveTo(target, {costCallback: _obstacles, maxRooms: 1});
             }
         }
         else {
             target = creep.pos.findClosestByRange(find.getGroundEnergy(creep.room));
             if(creep.pickup(target) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target, {costCallback: _obstacles});
+                creep.moveTo(target, {costCallback: _obstacles, maxRooms: 1});
             }
         }
     }
@@ -73,7 +79,7 @@ var _make = function(spawn, energy_limit) {
         body.push(MOVE);
     }
 
-    var mem = {role: 'waller', home: spawn.room.controller.id, long_range: false, working: false};
+    var mem = {role: 'waller', home: spawn.room.controller.id, long_range: false, working: false, target: false};
     var name = find.creepNames[Math.floor(Math.random() * find.creepNames.length)] + ' ' + spawn.name + Game.time;
     var retVal = spawn.spawnCreep(body, name, {memory: mem});
 

@@ -24,7 +24,7 @@ var _run = function(creep) {
 
 	if(creep.memory.working) {
         if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-            creep.moveTo(creep.room.controller);
+            creep.moveTo(creep.room.controller, {maxRooms: 1});
         }
     }
     else {
@@ -33,17 +33,17 @@ var _run = function(creep) {
 
         if(target1 != null && creep.room.controller.pos.inRangeTo(target1, 6)) {
             if(creep.pickup(target1) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target1);
+                creep.moveTo(target1, {maxRooms: 1});
             }
         }
         else if(target2 != null) {
             if(creep.withdraw(target2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target2);
+                creep.moveTo(target2, {maxRooms: 1});
             }
         }
         else if(target1 != null) {
             if(creep.pickup(target1) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target1);
+                creep.moveTo(target1, {maxRooms: 1});
             }
         }
     }

@@ -31,13 +31,13 @@ var _run = function(creep) {
             // build
             var target = creep.pos.findClosestByRange(find.getConstructionSites(creep.room));
             if(creep.build(target) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target);
+                creep.moveTo(target, {maxRooms: 1});
 			}
         }
         else {
             var source = creep.pos.findClosestByRange(find.getSources(creep.room), {filter: (source) => {return (source.energy > 0 && find.isOpen(source, creep))}});
             if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(source);
+                creep.moveTo(source, {maxRooms: 1});
             }
         }
     }
@@ -45,13 +45,13 @@ var _run = function(creep) {
         if(creep.memory.working) {
             var target = creep.pos.findClosestByRange(_.filter(find.getFillables(creep.room), (structure) => {return (structure.structureType != STRUCTURE_TOWER);}));
             if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target);
+                creep.moveTo(target, {maxRooms: 1});
             }
         }
         else {
             var source = creep.pos.findClosestByRange(find.getSources(creep.room), {filter: (source) => {return (source.energy > 0 && find.isOpen(source, creep))}});
             if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(source);
+                creep.moveTo(source, {maxRooms: 1});
             }
             if(source == null) { // TODO clean up!
                 var energy = _.filter(find.getGroundEnergy(creep.room), (resource) => {return resource.amount > energyMin && (resource.amount >= resourceThreshold || creep.pos.inRangeTo(resource, resourceRange));});
@@ -77,7 +77,7 @@ var _run = function(creep) {
                         ret = creep.withdraw(target, RESOURCE_ENERGY);
                     }
                     if(ret == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(target);
+                        creep.moveTo(target, {maxRooms: 1});
                     }
                 }
             }
@@ -92,14 +92,14 @@ var _run = function(creep) {
                 var target = creep.pos.findClosestByRange(repairs, {filter: (structure) => {return structure.hits == hitsMin;}})
                 
                 if(creep.repair(target) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(target);
+                    creep.moveTo(target, {maxRooms: 1});
 			    }
             }
             else if(find.getConstructionSites(creep.room).length > 0) { // should build
                 // build
                 var target = creep.pos.findClosestByRange(find.getConstructionSites(creep.room));
                 if(creep.build(target) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(target);
+                    creep.moveTo(target, {maxRooms: 1});
 			    }
             }
             else if(find.getRepairable(creep.room).length > 0) { // should regular repair
@@ -107,7 +107,7 @@ var _run = function(creep) {
                 var target = creep.pos.findClosestByRange(find.getRepairable(creep.room));
                 
                 if(creep.repair(target) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(target);
+                    creep.moveTo(target, {maxRooms: 1});
 			    }
             }
             else if(find.getRepairableWalls(creep.room).length > 0) { // should repair walls
@@ -117,12 +117,12 @@ var _run = function(creep) {
                 var target = creep.pos.findClosestByRange(repairs, {filter: (structure) => {return structure.hits == hitsMin;}})
                 
                 if(creep.repair(target) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(target);
+                    creep.moveTo(target, {maxRooms: 1});
 			    }
             }
             else { // otherwise, upgrade
                 if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(creep.room.controller);
+                    creep.moveTo(creep.room.controller, {maxRooms: 1});
                 }
             }
         }
@@ -130,13 +130,13 @@ var _run = function(creep) {
             var target = find.getClosestStore(creep);
             if(target != null) {
                 if(creep.withdraw(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(target);
+                    creep.moveTo(target, {maxRooms: 1});
                 }
             }
             else {
                 target = creep.pos.findClosestByRange(find.getGroundEnergy(creep.room));
                 if(creep.pickup(target) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(target);
+                    creep.moveTo(target, {maxRooms: 1});
                 }
             }
         }

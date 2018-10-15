@@ -17,13 +17,13 @@ var _run = function(creep) {
         // check for containers and move to them if they exist.
         var container = _findContainer(target);
         if(container != false) {
-            creep.moveTo(container);
+            creep.moveTo(container, {maxRooms: 1});
             return;
         }
     }
 
     if(creep.harvest(target) == ERR_NOT_IN_RANGE) {
-        creep.moveTo(target);
+        creep.moveTo(target, {maxRooms: 1});
     }
 }
 

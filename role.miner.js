@@ -15,7 +15,7 @@ var _run = function(creep) {
 	if((find.getMineral(creep.room) == undefined || find.getMineral(creep.room).mineralAmount == 0) && find.getSpawns(creep.room).length > 0 && _.sum(creep.carry) == 0) { // there is nothing for the miner to do until the mineral regenerates
 		var recSpawn = creep.pos.findClosestByRange(find.getSpawns(creep.room));
 		if(recSpawn.recycleCreep(creep) == ERR_NOT_IN_RANGE){
-			creep.moveTo(recSpawn);
+			creep.moveTo(recSpawn, {maxRooms: 1});
 		}
 	}
 	else if(stomachKeys.length > 1 || creep.carry[RESOURCE_ENERGY] > 0) { // the carry object always contains an "energy" property. If it has anything else, we want to drop that off.
@@ -23,14 +23,14 @@ var _run = function(creep) {
 		var target = creep.room.terminal; // this is the line to change to finish the TODO described in the header comment
 		var type = stomachKeys[stomachKeys.length - 1];
 		if(creep.transfer(target, type) == ERR_NOT_IN_RANGE) {
-			creep.moveTo(target);
+			creep.moveTo(target, {maxRooms: 1});
 		}
 	}
 	else if(find.getExtractors(creep.room).length > 0 && find.getExtractors(creep.room)[0].cooldown == 0) { // if there is nothing to deposit and we can, then we will mine.
 		var target = find.getMineral(creep.room);
 		var retVal = creep.harvest(target);
 		if(retVal == ERR_NOT_IN_RANGE) {
-			creep.moveTo(target);
+			creep.moveTo(target, {maxRooms: 1});
 		}
 		else if(retVal == OK) {
 			creep.say('mining');

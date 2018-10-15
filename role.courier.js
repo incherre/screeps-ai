@@ -5,10 +5,10 @@ Once a courier is full, it should take the energy to fillable structures.
 */
 
 // ***** Options *****
-var maxCourierParts = 12;
+var maxCourierParts = 18;
 var resourceThreshold = 100;
 var resourceRange = 1;
-var roadThresh = 90;
+var roadThresh = 30;
 var energyMin = 12;
 var controllerRange = 2;
 // ***** End *****
@@ -68,7 +68,7 @@ var _run = function(creep) {
                 ret = creep.withdraw(target, resource);
             }
             if(ret == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target, {ignoreRoads: true, swampCost: 2});
+                creep.moveTo(target, {ignoreRoads: true, swampCost: 2, maxRooms: 1});
             }
         }
     }
@@ -88,11 +88,11 @@ var _run = function(creep) {
                 creep.drop(resource);
             }
             else {
-                creep.moveTo(creep.room.controller, {range: controllerRange});
+                creep.moveTo(creep.room.controller, {range: controllerRange, maxRooms: 1});
             }
         }
         else if(creep.transfer(target, resource) == ERR_NOT_IN_RANGE) {
-               creep.moveTo(target);
+               creep.moveTo(target, {maxRooms: 1});
         }
     }
 }

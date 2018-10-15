@@ -33,7 +33,8 @@ var _findTargetNum = function(room) {
     }
     
     for(let roomName in counts) {
-        if(counts[roomName].count <= 0 && Game.map.getRoomLinearDistance(roomName, room.name) <= 1) {
+        if(counts[roomName].count <= 0 && Game.map.getRoomLinearDistance(roomName, room.name) <= 1 && Game.rooms.hasOwnProperty(roomName) &&
+            (!Game.rooms[roomName].controller.reservation || Game.rooms[roomName].controller.reservation.ticksToEnd < 4450)) {
             return counts[roomName].num;
         }
     }
