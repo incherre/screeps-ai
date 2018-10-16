@@ -14,7 +14,7 @@ export class IdleJob extends Job {
         return '';
     }
 
-    public do(): void {
+    public do(creep: Creep): void {
         return;
     }
 

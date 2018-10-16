@@ -1,6 +1,7 @@
 import { Colony } from "../colony";
 import { DropoffJob } from "../jobs/dropoffJob";
 import { HarvestJob } from "../jobs/harvestJob";
+import { UpgradeJob } from "../jobs/upgradeJob";
 import { EnergyContainer, GeneralContainer } from "../misc/typeChecking";
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest } from "../requests/spawnRequest";
@@ -20,7 +21,7 @@ export class HarvestManager extends Manager {
     }
 
     public manage(): void{
-        const hungryContainers: Structure[] = [];
+        const hungryContainers: Array<Structure | Creep> = [];
         for(const i in this.buildings) {
             const test = this.buildings[i] as any;
             if((test as EnergyContainer).energy !== undefined) {
@@ -37,10 +38,11 @@ export class HarvestManager extends Manager {
             }
         }
 
+        let upgraders: number = 0;
         const fullWorkers: WorkerCreep[] = [];
         const emptyWorkers: WorkerCreep[] = [];
         for(const i in this.workers) {
-            if(this.workers[i].job.getJobType() === 'idle') {
+            if(this.workers[i].job.getJobType() === 'idle') { // TODO(Daniel): replace 'idle' with something like IdleJob.name
                 const idleCreep = this.workers[i].creep;
                 if(idleCreep.carry.energy > 0) {
                     fullWorkers.push(this.workers[i]);
@@ -49,6 +51,20 @@ export class HarvestManager extends Manager {
                     emptyWorkers.push(this.workers[i]);
                 }
             }
+            else if(this.workers[i].job.getJobType() === 'upgrade') { // TODO(Daniel): replace 'upgrade' with something like UpgradeJob.name
+                upgraders++;
+                if(_.sum(this.workers[i].creep.carry) < 0.5 * this.workers[i].creep.carryCapacity) {
+                    hungryContainers.push(this.workers[i].creep);
+                }
+            }
+        }
+
+        const upgrader = fullWorkers.pop();
+        if(upgraders === 0 && upgrader && this.parent.capital.controller) {
+            upgrader.job = new UpgradeJob(this.parent.capital.controller);
+        }
+        else if(upgrader) {
+            fullWorkers.push(upgrader);
         }
 
         const sources: Source[] = this.parent.capital.find(FIND_SOURCES_ACTIVE);

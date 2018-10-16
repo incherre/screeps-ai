@@ -1,8 +1,8 @@
-import { EnergyContainer, GeneralContainer } from "../misc/typeChecking";
+import { CreepContainer, EnergyContainer, GeneralContainer } from "../misc/typeChecking";
 import { Job } from "./job";
 
 export class DropoffJob extends Job {
-    public container: Structure | null;
+    public container: Structure | Creep | null;
 
     public recalculateTarget(creep: Creep): boolean {
         if(this.container) {
@@ -30,6 +30,10 @@ export class DropoffJob extends Job {
             else if((test as GeneralContainer).store !== undefined) {
                 const asGeneral = test as GeneralContainer;
                 return creep.carry.energy > 0 && _.sum(asGeneral.store) < asGeneral.storeCapacity;
+            }
+            else if((test as CreepContainer).carry !== undefined) {
+                const asCreep = test as CreepContainer;
+                return creep.carry.energy > 0 && _.sum(asCreep.carry) < asCreep.carryCapacity;
             }
             else {
                 return false;
@@ -62,9 +66,9 @@ export class DropoffJob extends Job {
         }
     }
 
-    constructor (jobInfo: string | Structure) {
+    constructor (jobInfo: string | Structure | Creep) {
         super();
-        if(jobInfo instanceof Structure) {
+        if(jobInfo instanceof Structure || jobInfo instanceof Creep) {
             this.container = jobInfo;
         }
         else {
