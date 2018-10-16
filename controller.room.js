@@ -113,12 +113,19 @@ var _operateTower = function(tower){
     
     if(closestHostile) {
         tower.attack(closestHostile);
+        if(tower.energy < 0.25 * tower.energyCapacity) {
+            if(!Memory.PROTECTOR_REQUESTS) {
+                Memory.PROTECTOR_REQUESTS = [];
+            }
+            
+            if(Memory.PROTECTOR_REQUESTS.indexOf(tower.room.name) == -1) {
+                Memory.PROTECTOR_REQUESTS.unshift(tower.room.name);
+            }
+        }
         return;
     }
 
-    var closestHurt = tower.pos.findClosestByRange(find.getMyCreeps(tower.room), {filter: (creep) => {
-        return (creep.hits < creep.hitsMax);
-    }});
+    var closestHurt = tower.pos.findClosestByRange(find.getHurtCreeps(tower.room));
     if(closestHurt) {
         tower.heal(closestHurt);
         return;
