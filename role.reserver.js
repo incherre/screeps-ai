@@ -16,7 +16,7 @@ var _run = function(creep) {
     }
     else {
         if(creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-            creep.moveTo(creep.room.controller, {ignoreRoads: true});
+            creep.moveTo(creep.room.controller, {ignoreRoads: true, maxRooms: 3});
         }
     }
 }
@@ -34,7 +34,8 @@ var _findTargetNum = function(room) {
     
     for(let roomName in counts) {
         if(counts[roomName].count <= 0 && Game.map.getRoomLinearDistance(roomName, room.name) <= 1 && Game.rooms.hasOwnProperty(roomName) &&
-            (!Game.rooms[roomName].controller.reservation || Game.rooms[roomName].controller.reservation.ticksToEnd < 4450)) {
+            (!Game.rooms[roomName].controller.reservation || Game.rooms[roomName].controller.reservation.ticksToEnd < 4450) &&
+            (!Memory.PROTECTOR_REQUESTS || Memory.PROTECTOR_REQUESTS.indexOf(roomName) == -1)) {
             return counts[roomName].num;
         }
     }
@@ -72,7 +73,7 @@ var _make = function(spawn, energy_limit) {
 }
 
 var _shouldMake = function(room) {
-    return (!Memory.PROTECTOR_REQUESTS || Memory.PROTECTOR_REQUESTS.length == 0) && _findTargetNum(room) >= 0;
+    return _findTargetNum(room) >= 0;
 }
 
 module.exports = {

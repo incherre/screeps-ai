@@ -4,18 +4,27 @@ A healer should go to the room specified by healFlag and heal the friendly creep
 */
 
 // ***** Options *****
-var healFlag = 'heal';
 var maxHealerParts = 25;
 // ***** End *****
 
 var find = require('manager.roomInfo');
 
 var _run = function(creep) {
-    var targets = find.getHurtCreeps(creep.room);
+    if(creep.memory.notify && !creep.spawning) {
+        creep.memory.notify = false;
+        creep.notifyWhenAttacked(false);
+    }
 
-    if(targets.length > 0) {
-        var hitsMin = Math.min.apply(null, targets.map(function(thisCreep){return thisCreep.hits;}));
-        var target = creep.pos.findClosestByRange(targets, {filter: (thisCreep) => {return thisCreep.hits == hitsMin;}})
+    var targets = _.filter(find.getHurtCreeps(creep.room), (hurtCreep) => {return hurtCreep.name != creep.name;});
+
+    if(creep.room.name != creep.memory.target) {
+        creep.moveTo(new RoomPosition(25, 25, creep.memory.target), {costCallback: find.avoidSourceKeepersCallback});
+        if(creep.hits < creep.hitsMax) {
+            creep.heal(creep);
+        }
+    }
+    else if(targets.length > 0) {
+        var target = creep.pos.findClosestByRange(find.getHurtCreeps(creep.room))
 
         creep.moveTo(target);
         if(creep.pos.isNearTo(target)) {
@@ -25,16 +34,19 @@ var _run = function(creep) {
             creep.rangedHeal(target);
         }
     }
-    else if(Game.flags.hasOwnProperty(healFlag) && (creep.memory.long_range || Game.flags[healFlag].room == creep.room)) {
-        creep.moveTo(Game.flags[healFlag]);
+    else if(creep.hits < creep.hitsMax) {
+        creep.heal(creep);
+        let protector = creep.pos.findClosestByRange(find.getRole(creep.room, 'protector'));
+        if(protector) {
+            creep.moveTo(protector);
+        }
     }
     else {
-        creep.moveTo(creep.pos.findClosestByRange(find.getWarriors(creep.room)));
+        let protector = creep.pos.findClosestByRange(find.getRole(creep.room, 'protector'));
+        if(protector) {
+            creep.moveTo(protector);
+        }
     }
-}
-
-var _shouldHeal = function() {
-    return Game.flags.hasOwnProperty(healFlag);
 }
 
 var _make = function(spawn, energy_limit) {
@@ -49,7 +61,7 @@ var _make = function(spawn, energy_limit) {
         body.push(HEAL);
     }
 
-    var mem = {role: 'healer', home: spawn.room.controller.id, long_range: false};
+    var mem = {role: 'healer', home: spawn.room.controller.id, long_range: true, notify: true, target: Memory.HEALER_REQUESTS.pop()};
     var name = find.creepNames[Math.floor(Math.random() * find.creepNames.length)] + ' ' + spawn.name + Game.time;
     var retVal = spawn.spawnCreep(body, name, {memory: mem});
 
@@ -67,7 +79,10 @@ var _make = function(spawn, energy_limit) {
 }
 
 var _shouldMake = function(room) {
-    return find.getRole(room, 'healer').length < find.getHurtCreeps(room).length;
+    if(!Memory.HEALER_REQUESTS) {
+        Memory.HEALER_REQUESTS = [];
+    }
+    return Memory.HEALER_REQUESTS.length > 0 && Game.map.getRoomLinearDistance(room.name, Memory.HEALER_REQUESTS[Memory.HEALER_REQUESTS.length - 1]) <= 1;
 }
 
 module.exports = {

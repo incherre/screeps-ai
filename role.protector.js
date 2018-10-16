@@ -11,9 +11,12 @@ var maxProtectorParts = 8;
 var find = require('manager.roomInfo');
 
 var _run = function(creep) {
-    if(creep.memory.notify && !creep.spawning) {
-        creep.memory.notify = false;
+    if(creep.memory.canCall < 0 && !creep.spawning) {
+        creep.memory.canCall = 0;
         creep.notifyWhenAttacked(false);
+    }
+    else if(creep.memory.canCall > 0) {
+        creep.memory.canCall--;
     }
     
     if(creep.memory.target != creep.room.name) {
@@ -29,6 +32,14 @@ var _run = function(creep) {
             creep.moveTo(creep.room.controller);
         }
     }
+    
+    if(creep.hits < 0.5 * creep.hitsMax && creep.memory.canCall == 0) {
+        if(!Memory.HEALER_REQUESTS) {
+            Memory.HEALER_REQUESTS = [];
+        }
+        Memory.HEALER_REQUESTS.unshift(creep.room.name);
+        canCall = 150;
+    }
 }
 
 var _make = function(spawn, energy_limit) {
@@ -43,7 +54,7 @@ var _make = function(spawn, energy_limit) {
         body.push(ATTACK);
     }
 
-    var mem = {role: 'protector', home: spawn.room.controller.id, long_range: true, notify: true, target: Memory.PROTECTOR_REQUESTS.pop()};
+    var mem = {role: 'protector', home: spawn.room.controller.id, long_range: true, canCall: -1, target: Memory.PROTECTOR_REQUESTS.pop()};
     var name = find.creepNames[Math.floor(Math.random() * find.creepNames.length)] + ' ' + spawn.name + Game.time;
     var retVal = spawn.spawnCreep(body, name, {memory: mem});
 
@@ -64,7 +75,8 @@ var _shouldMake = function(room) {
     if(!Memory.PROTECTOR_REQUESTS) {
         Memory.PROTECTOR_REQUESTS = [];
     }
-    return Memory.PROTECTOR_REQUESTS.length > 0 && Game.map.getRoomLinearDistance(room.name, Memory.PROTECTOR_REQUESTS[Memory.PROTECTOR_REQUESTS.length - 1]) <= 1;
+    return Memory.PROTECTOR_REQUESTS.length > 0 && Game.map.getRoomLinearDistance(room.name, Memory.PROTECTOR_REQUESTS[Memory.PROTECTOR_REQUESTS.length - 1]) <= 1 &&
+        (!Memory.HEALER_REQUESTS || Memory.HEALER_REQUESTS.length == 0);
 }
 
 module.exports = {

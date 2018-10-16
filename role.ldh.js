@@ -95,7 +95,7 @@ var _findTargetNum = function(room) {
             target = 2;
         }
 
-        if(sourceCounts[i].count < target && Game.map.getRoomLinearDistance(room.name, roomName) <= 1) {
+        if(sourceCounts[i].count < target && Game.map.getRoomLinearDistance(room.name, roomName) <= 1 && (!Memory.PROTECTOR_REQUESTS || Memory.PROTECTOR_REQUESTS.indexOf(roomName) == -1)) {
             return sourceCounts[i].num;
         }
     }

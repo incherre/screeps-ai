@@ -10,12 +10,12 @@ var roles = {
     waller: require('role.waller'),
     miner: require('role.miner'),
     protector: require('role.protector'),
+    healer: require('role.healer'),
     ldh: require('role.ldh'),
     reserver: require('role.reserver'),
     pioneer: require('role.pioneer'),
     //claimer: require('role.claimer'),
     //warrior: require('role.warrior'), 
-    //healer: require('role.healer')
 }
 
 var _controlCreeps = function() {
