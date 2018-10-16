@@ -6,9 +6,9 @@ import { Job } from "./job";
 import { UpgradeJob } from "./upgradeJob";
 
 export const jobTypes: {[key: string]: (jobInfo: string) => Job} = {
-    'busy': (jobInfo: string) => new BusyJob(),
-    'dropoff':  (jobInfo: string) => new DropoffJob(jobInfo),
-    'harvest':  (jobInfo: string) => new HarvestJob(jobInfo),
-    'idle': (jobInfo: string) => new IdleJob(),
-    'upgrade': (jobInfo: string) => new UpgradeJob(jobInfo)
+    [BusyJob.type]: (jobInfo: string) => new BusyJob(),
+    [DropoffJob.type]: (jobInfo: string) => new DropoffJob(jobInfo),
+    [HarvestJob.type]: (jobInfo: string) => new HarvestJob(jobInfo),
+    [IdleJob.type]: (jobInfo: string) => new IdleJob(),
+    [UpgradeJob.type]: (jobInfo: string) => new UpgradeJob(jobInfo),
 };

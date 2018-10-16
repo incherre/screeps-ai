@@ -1,6 +1,8 @@
 import { Job } from "./job";
 
 export class UpgradeJob extends Job {
+    public static type: string = 'upgrade';
+
     public controller: StructureController | null;
     public static range: number = 3;
 
@@ -29,7 +31,7 @@ export class UpgradeJob extends Job {
     }
 
     public getJobType(): string {
-        return 'upgrade';
+        return UpgradeJob.type;
     }
 
     public getJobInfo(): string {

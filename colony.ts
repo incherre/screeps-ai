@@ -51,7 +51,7 @@ export class Colony {
 
         const creeps = capital.find(FIND_MY_CREEPS);
         for(const i in creeps) {
-            if(creeps[i].memory.managerType === HarvestManager.managerType) {
+            if(creeps[i].memory.managerType === HarvestManager.type) {
                 harvestManager.workers.push(new WorkerCreep(creeps[i]));
             }
         }

@@ -1,6 +1,7 @@
 import { Colony } from "../colony";
 import { DropoffJob } from "../jobs/dropoffJob";
 import { HarvestJob } from "../jobs/harvestJob";
+import { IdleJob } from "../jobs/idleJob";
 import { UpgradeJob } from "../jobs/upgradeJob";
 import { EnergyContainer, GeneralContainer } from "../misc/typeChecking";
 import { ScreepsRequest } from "../requests/request";
@@ -10,12 +11,12 @@ import { Manager } from "./manager";
 
 export class HarvestManager extends Manager {
     public static workerNumber = 3;
-    public static managerType = 'harvest';
+    public static type = 'harvest';
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
         for(let i = 0; i < (HarvestManager.workerNumber - this.workers.length); i++){
-            requests.push(new SpawnRequest(HarvestManager.managerType, 'worker'));
+            requests.push(new SpawnRequest(HarvestManager.type, 'worker'));
         }
         return requests;
     }
@@ -42,7 +43,7 @@ export class HarvestManager extends Manager {
         const fullWorkers: WorkerCreep[] = [];
         const emptyWorkers: WorkerCreep[] = [];
         for(const i in this.workers) {
-            if(this.workers[i].job.getJobType() === 'idle') { // TODO(Daniel): replace 'idle' with something like IdleJob.name
+            if(this.workers[i].job.getJobType() === IdleJob.type) {
                 const idleCreep = this.workers[i].creep;
                 if(idleCreep.carry.energy > 0) {
                     fullWorkers.push(this.workers[i]);
@@ -51,7 +52,7 @@ export class HarvestManager extends Manager {
                     emptyWorkers.push(this.workers[i]);
                 }
             }
-            else if(this.workers[i].job.getJobType() === 'upgrade') { // TODO(Daniel): replace 'upgrade' with something like UpgradeJob.name
+            else if(this.workers[i].job.getJobType() === UpgradeJob.type) {
                 upgraders++;
                 if(_.sum(this.workers[i].creep.carry) < 0.5 * this.workers[i].creep.carryCapacity) {
                     hungryContainers.push(this.workers[i].creep);

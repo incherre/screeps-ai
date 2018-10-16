@@ -2,6 +2,8 @@ import { CreepContainer, EnergyContainer, GeneralContainer } from "../misc/typeC
 import { Job } from "./job";
 
 export class DropoffJob extends Job {
+    public static type: string = 'dropoff';
+
     public container: Structure | Creep | null;
 
     public recalculateTarget(creep: Creep): boolean {
@@ -45,7 +47,7 @@ export class DropoffJob extends Job {
     }
 
     public getJobType(): string {
-        return 'dropoff';
+        return DropoffJob.type;
     }
 
     public getJobInfo(): string {

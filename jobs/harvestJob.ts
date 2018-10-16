@@ -1,6 +1,8 @@
 import { Job } from "./job";
 
 export class HarvestJob extends Job {
+    public static type: string = 'harvest';
+
     public source: Source | null;
 
     public recalculateTarget(creep: Creep): boolean {
@@ -28,7 +30,7 @@ export class HarvestJob extends Job {
     }
 
     public getJobType(): string {
-        return 'harvest';
+        return HarvestJob.type;
     }
 
     public getJobInfo(): string {

@@ -2,15 +2,15 @@ import { ScreepsRequest } from "./request";
 
 export class SpawnRequest extends ScreepsRequest {
     public requester: string;
-    public type: string;
+    public creepType: string;
 
     public getType(): string {
         return 'spawn';
     }
 
-    constructor (requester: string, type: string) {
+    constructor (requester: string, creepType: string) {
         super();
         this.requester = requester;
-        this.type = type;
+        this.creepType = creepType;
     }
 }
