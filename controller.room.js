@@ -56,7 +56,6 @@ var _controlEstablishedRooms = function() {
 var _controlRoom = function(room) {
     _spawnCreeps(room);
     _controlTowers(room);
-    _buildSomething(room);
     
     if(room.controller.level <= 3 && !room.controller.safeMode && room.controller.safeModeAvailable > 0 && !room.controller.safeModeCooldown) {
         var enemies = find.getHostileCreeps(room);
@@ -65,6 +64,9 @@ var _controlRoom = function(room) {
             Game.notify("Activated Safe Mode in new room " + room.name, 10);
         }
     }
+    
+    _buildSomething(room);
+    _controlLabs(room);
 }
 
 // *** Spawning ***
@@ -95,6 +97,78 @@ var _spawnSingleCreep = function(spawn, energy_limit) {
         }
     }
     return 0;
+}
+// *** End ***
+
+// *** Labs ***
+var _controlLabs = function(room) {
+    let labs = find.getLabs(room);
+    const MINERAL_EMPTY = 'none';
+
+    let minerals = {};
+    for(let i in labs) {
+        let mineralType;
+        if(labs[i].mineralType == null){
+            mineralType = MINERAL_EMPTY;
+        }
+        else {
+            mineralType = labs[i].mineralType;
+        }
+        
+        if(!minerals.hasOwnProperty(mineralType)) {
+            minerals[mineralType] = [];
+        }
+        
+        minerals[mineralType].push(labs[i]);
+    }
+    
+    let sourceO = null;
+    let sourceH = null;
+    let sinkOH = null;
+    
+    if(minerals.hasOwnProperty(RESOURCE_HYDROGEN)) {
+        for(let i in minerals[RESOURCE_HYDROGEN]) {
+            let lab = minerals[RESOURCE_HYDROGEN][i];
+            if(lab.mineralAmount > LAB_REACTION_AMOUNT) {
+                sourceH = lab;
+                break;
+            }
+        }
+    }
+    
+    if(sourceH && minerals.hasOwnProperty(RESOURCE_OXYGEN)) {
+        for(let i in minerals[RESOURCE_OXYGEN]) {
+            let lab = minerals[RESOURCE_OXYGEN][i];
+            if(lab.mineralAmount > LAB_REACTION_AMOUNT) {
+                sourceO = lab;
+                break;
+            }
+        }
+    }
+    
+    if(sourceO && minerals.hasOwnProperty(RESOURCE_HYDROXIDE)) {
+        for(let i in minerals[RESOURCE_HYDROXIDE]) {
+            let lab = minerals[RESOURCE_HYDROXIDE][i];
+            if(lab.mineralCapacity - lab.mineralAmount >= LAB_REACTION_AMOUNT && lab.cooldown == 0) {
+                sinkOH = lab;
+                break;
+            }
+        }
+    }
+    
+    if(sourceO && sinkOH == null && minerals.hasOwnProperty(MINERAL_EMPTY)) {
+        for(let i in minerals[MINERAL_EMPTY]) {
+            let lab = minerals[MINERAL_EMPTY][i];
+            if(lab.mineralCapacity - lab.mineralAmount >= LAB_REACTION_AMOUNT && lab.cooldown == 0) {
+                sinkOH = lab;
+                break;
+            }
+        }
+    }
+    
+    if(sourceH && sourceO && sinkOH) {
+        sinkOH.runReaction(sourceH, sourceO);
+    }
 }
 // *** End ***
 

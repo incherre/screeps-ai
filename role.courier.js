@@ -14,6 +14,23 @@ var controllerRange = 2;
 // ***** End *****
 
 var find = require('manager.roomInfo');
+const labTypes = [RESOURCE_OXYGEN, RESOURCE_HYDROGEN];
+
+var _getLabWith = function(room, resource) {
+    let labs = find.getLabs(room);
+    let backup = null;
+    
+    for(let i in labs) {
+        if(labs[i].mineralAmount == 0) {
+            backup = labs[i];
+        }
+        else if(labs[i].mineralType == resource) {
+            return labs[i];
+        }
+    }
+    
+    return backup;
+}
 
 var _run = function(creep) {
     if(!creep.memory.working && _.sum(creep.carry) == 0) {
@@ -55,6 +72,29 @@ var _run = function(creep) {
             target = creep.pos.findClosestByRange(find.getContainerEnergy(creep.room), {filter: (container) => {return container.store[RESOURCE_ENERGY] >= resourceThreshold || creep.pos.inRangeTo(container, resourceRange);}});
         }
         
+        if(target == null && find.getFillables(creep.room).length == 0) {
+            // move minerals around
+            if(creep.room.storage) {
+                for(let i in labTypes) {
+                    if(creep.room.storage.store.hasOwnProperty(labTypes[i])) {
+                        target = creep.room.storage;
+                        resource = labTypes[i];
+                        break;
+                    }
+                }
+            }
+            
+            if(target == null && creep.room.terminal) {
+                for(let i in labTypes) {
+                    if(creep.room.terminal.store.hasOwnProperty(labTypes[i])) {
+                        target = creep.room.terminal;
+                        resource = labTypes[i];
+                        break;
+                    }
+                }
+            }
+        }
+        
         if(target == null) {
             target = creep.room.storage;
         }
@@ -78,8 +118,18 @@ var _run = function(creep) {
             resource = _.filter(Object.keys(creep.carry), (resource) => {return resource != RESOURCE_ENERGY;})[0];
         }
 
-        var target = creep.pos.findClosestByRange(find.getFillables(creep.room));
-        if(target == null || resource != RESOURCE_ENERGY) {
+        var target = null;
+        if(resource == RESOURCE_ENERGY) {
+            target = creep.pos.findClosestByRange(find.getFillables(creep.room));
+        }
+        else if(labTypes.indexOf(resource) >= 0) {
+            target = _getLabWith(creep.room, resource);
+            if(target != null && target.mineralAmount == target.mineralCapacity) {
+                target = creep.room.terminal;
+            }
+        }
+        
+        if(target == null) {
             target = creep.room.storage;
         }
 

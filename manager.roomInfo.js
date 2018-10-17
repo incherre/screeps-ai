@@ -188,6 +188,13 @@ var _getTowers = function(room) {
     return room.TOWERS;
 }
 
+var _getLabs = function(room) {
+    if(!room.hasOwnProperty('LABS')) {
+        room.LABS = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_LAB && structure.my)});
+    }
+    return room.LABS;
+}
+
 var _getRoads = function(room) {
     if(!room.hasOwnProperty('ROADS')) {
         room.ROADS = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_ROAD)});
@@ -386,6 +393,7 @@ module.exports = {
     getAvailableSpawns: _getAvailableSpawns,
     getFillables: _getFillables,
     getExtensions: _getExtensions,
+    getLabs: _getLabs,
     getRoads: _getRoads,
     getConstructionSites: _getConstructionSites,
     getSources: _getSources,
