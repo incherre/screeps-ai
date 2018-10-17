@@ -7,8 +7,3 @@ export interface GeneralContainer {
     store: StoreDefinition;
     storeCapacity: number;
 }
-
-export interface CreepContainer {
-    carry: StoreDefinition;
-    carryCapacity: number;
-}

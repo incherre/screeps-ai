@@ -1,10 +1,10 @@
 import { EnergyContainer, GeneralContainer } from "../misc/typeChecking";
 import { Job } from "./job";
 
-export class DropoffJob extends Job {
-    public static type: string = 'dropoff';
+export class PickupJob extends Job {
+    public static type: string = 'pickup';
 
-    public container: Structure | Creep | null;
+    public container: Structure | Resource | null;
     public resourceType: ResourceConstant;
 
     public recalculateTarget(creep: Creep): boolean {
@@ -32,27 +32,25 @@ export class DropoffJob extends Job {
         }
 
         const test = this.container as any;
-        if(this.resourceType === RESOURCE_ENERGY && (test as EnergyContainer).energy !== undefined) {
-            // this container only accepts energy
+        if(this.container instanceof Resource) {
+            // make sure you can get there in time
+            return this.container.resourceType === this.resourceType && this.container.amount >= creep.pos.getRangeTo(this.container);
+        }
+        else if(this.resourceType === RESOURCE_ENERGY && (test as EnergyContainer).energy !== undefined) {
+            // this container only has energy
             const asEnergy = test as EnergyContainer;
-            return creep.carry.energy > 0 && asEnergy.energy < asEnergy.energyCapacity;
+            return asEnergy.energy > 0;
         }
         else if(this.resourceType !== RESOURCE_ENERGY && this.resourceType !== RESOURCE_POWER && (test as StructureLab).mineralAmount !== undefined){
-            // this container is a lab, and the creep is delivering a mineral
+            // this container is a lab, and the creep is taking a mineral
             const asLab = test as StructureLab;
-            const resourceAmount = creep.carry[this.resourceType];
-            return resourceAmount !== undefined && resourceAmount > 0 && (asLab.mineralType === null || asLab.mineralType === this.resourceType) && asLab.mineralAmount < asLab.mineralCapacity;
+            return (asLab.mineralType !== null && asLab.mineralType === this.resourceType) && asLab.mineralAmount > 0;
         }
         else if((test as GeneralContainer).store !== undefined) {
-            // this container accepts anything
+            // this container could have anything
             const asGeneral = test as GeneralContainer;
-            const resourceAmount = creep.carry[this.resourceType];
-            return resourceAmount !== undefined && resourceAmount > 0 && _.sum(asGeneral.store) < asGeneral.storeCapacity;
-        }
-        else if(this.container instanceof Creep) {
-            // this container is a creep
-            const resourceAmount = this.container.carry[this.resourceType];
-            return resourceAmount !== undefined && resourceAmount > 0 && _.sum(this.container.carry) < this.container.carryCapacity;
+            const resourceAmount = asGeneral.store[this.resourceType];
+            return resourceAmount !== undefined && resourceAmount > 0;
         }
         else {
             return false;
@@ -60,7 +58,7 @@ export class DropoffJob extends Job {
     }
 
     public getJobType(): string {
-        return DropoffJob.type;
+        return PickupJob.type;
     }
 
     public getJobInfo(): string {
@@ -76,14 +74,17 @@ export class DropoffJob extends Job {
     }
 
     public do(creep: Creep): void {
-        if(this.container) {
-            creep.transfer(this.container, this.resourceType);
+        if(this.container instanceof Resource) {
+            creep.pickup(this.container);
+        }
+        else if(this.container) {
+            creep.withdraw(this.container, this.resourceType);
         }
     }
 
-    constructor (jobInfo: string | Structure | Creep, resourceType: ResourceConstant = RESOURCE_ENERGY) {
+    constructor (jobInfo: string | Structure | Resource, resourceType: ResourceConstant = RESOURCE_ENERGY) {
         super();
-        if(jobInfo instanceof Structure || jobInfo instanceof Creep) {
+        if(jobInfo instanceof Structure || jobInfo instanceof Resource) {
             this.container = jobInfo;
             this.resourceType = resourceType;
         }
