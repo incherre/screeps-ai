@@ -5,11 +5,12 @@ import { SpawnRequest } from "../requests/spawnRequest";
 import { Manager } from "./manager";
 
 export class SpawnManager extends Manager {
+    public static type: string = 'spawn';
     public static spawnTypes: {[key: string]: (energyLimit: number) => BodyPartConstant[]} = {
         'carrier': (energyLimit: number) => {
             let soFar = 0;
             const body: BodyPartConstant[] = [];
-            while(soFar + 100 < energyLimit) {
+            while(soFar + 100 <= energyLimit) {
                 body.push(CARRY);
                 body.push(MOVE);
                 soFar += 100;
@@ -17,10 +18,21 @@ export class SpawnManager extends Manager {
             return body;
         },
 
+        'harvester': (energyLimit: number) => {
+            let soFar = 0;
+            const baseBody: BodyPartConstant[] = [MOVE, WORK, WORK, WORK];
+            const body: BodyPartConstant[] = [];
+            while(soFar + BODYPART_COST[baseBody[body.length % baseBody.length]] <= energyLimit) {
+                body.push(baseBody[body.length % baseBody.length]);
+                soFar += BODYPART_COST[baseBody[body.length % baseBody.length]];
+            }
+            return body;
+        },
+
         'worker': (energyLimit: number) => {
             let soFar = 0;
             const body: BodyPartConstant[] = [];
-            while(soFar + 200 < energyLimit) {
+            while(soFar + 200 <= energyLimit) {
                 body.push(WORK);
                 body.push(CARRY);
                 body.push(MOVE);
@@ -35,7 +47,7 @@ export class SpawnManager extends Manager {
     }
 
     public manage(): void {
-        const requests: ScreepsRequest[] = this.parent.requests.spawn;
+        const requests: ScreepsRequest[] = this.parent.requests[SpawnManager.type];
         if(!requests) { return; }
 
         let energy: number = this.parent.capital.energyAvailable;

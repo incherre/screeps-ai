@@ -70,7 +70,7 @@ export class UpgradeJob extends Job {
             }
         }
         
-        if(this.controller) {
+        if(this.controller && !this.target) {
             this.target = this.controller.pos;
         }
     }

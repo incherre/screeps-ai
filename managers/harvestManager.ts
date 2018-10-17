@@ -15,7 +15,7 @@ export class HarvestManager extends Manager {
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
-        for(let i = 0; i < (HarvestManager.workerNumber - this.workers.length); i++){
+        for(let i = this.workers.length; i < HarvestManager.workerNumber; i++){
             requests.push(new SpawnRequest(HarvestManager.type, 'worker'));
         }
         return requests;
@@ -48,7 +48,7 @@ export class HarvestManager extends Manager {
                 if(idleCreep.carry.energy > 0) {
                     fullWorkers.push(this.workers[i]);
                 }
-                else if(idleCreep.getActiveBodyparts(CARRY) > 0) {
+                else if(idleCreep.getActiveBodyparts(WORK) > 0) {
                     emptyWorkers.push(this.workers[i]);
                 }
             }

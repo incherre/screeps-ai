@@ -1,3 +1,4 @@
+import { SpawnManager } from "../managers/spawnManager";
 import { ScreepsRequest } from "./request";
 
 export class SpawnRequest extends ScreepsRequest {
@@ -5,7 +6,7 @@ export class SpawnRequest extends ScreepsRequest {
     public creepType: string;
 
     public getType(): string {
-        return 'spawn';
+        return SpawnManager.type;
     }
 
     constructor (requester: string, creepType: string) {

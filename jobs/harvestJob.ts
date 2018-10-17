@@ -6,27 +6,28 @@ export class HarvestJob extends Job {
     public source: Source | null;
 
     public recalculateTarget(creep: Creep): boolean {
-        if(this.source) {
-            if(creep.pos.getRangeTo(this.source) > 1) {
-                this.target = creep.pos.findClosestByRange(Job.getSpotsNear(this.source.pos));
-                if(!this.target) {
-                    this.target = this.source.pos;
-                }
-
-                const range = creep.pos.getRangeTo(this.target);
-                const halfDistance = Math.max(Math.ceil(range / 2), 5);
-                this.ttr = Math.min(range, halfDistance);
-            }
-            else {
-                this.ttr = 0;
-                this.target = creep.pos;
-            }
-
-            return _.sum(creep.carry) < creep.carryCapacity;
-        }
-        else {
+        if(!this.source) {
+            // if the source doesn't exist then we can't go there
             return false;
         }
+    
+        if(creep.pos.getRangeTo(this.source) > 1) {
+            // if the creep isn't in range of the source, find a spot to target
+            this.target = creep.pos.findClosestByRange(Job.getSpotsNear(this.source.pos));
+            if(!this.target) {
+                this.target = this.source.pos;
+            }
+
+            const range = creep.pos.getRangeTo(this.target);
+            const halfDistance = Math.max(Math.ceil(range / 2), 5);
+            this.ttr = Math.min(range, halfDistance);
+        }
+        else {
+            this.ttr = 0;
+            this.target = creep.pos;
+        }
+
+        return creep.getActiveBodyparts(CARRY) === 0 || _.sum(creep.carry) < creep.carryCapacity;
     }
 
     public getJobType(): string {
@@ -69,7 +70,7 @@ export class HarvestJob extends Job {
             }
         }
         
-        if(this.source) {
+        if(this.source && !this.target) {
             this.target = this.source.pos;
         }
     }

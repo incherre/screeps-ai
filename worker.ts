@@ -1,6 +1,6 @@
 import { IdleJob } from "./jobs/idleJob";
 import { Job } from "./jobs/job";
-import { jobTypes } from "./jobs/jobTypes"
+import { jobTypes } from "./manifest"
 
 export class WorkerCreep {
     public creep: Creep;
