@@ -24,12 +24,17 @@ var _run = function(creep) {
 	}
     else {
         var enemy = creep.pos.findClosestByRange(find.getHostileCreeps(creep.room));
+        
+        if(enemy == null) {
+            enemy = creep.pos.findClosestByRange(creep.room.find(FIND_HOSTILE_CREEPS));
+        }
+
         if(enemy != null) {
             creep.attack(enemy);
             creep.moveTo(enemy);
         }
         else {
-            creep.moveTo(creep.room.controller);
+            creep.moveTo(creep.room.controller, {range: 4});
         }
     }
     

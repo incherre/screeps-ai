@@ -59,7 +59,7 @@ var _controlRoom = function(room) {
     _buildSomething(room);
     
     if(room.controller.level <= 3 && !room.controller.safeMode && room.controller.safeModeAvailable > 0 && !room.controller.safeModeCooldown) {
-        var enemies = _.filter(find.getHostileCreeps(room), (creep) => {return creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0  || creep.getActiveBodyparts(HEAL) > 0 || creep.getActiveBodyparts(WORK) > 0;});
+        var enemies = find.getHostileCreeps(room);
         if(enemies.length > 0) {
             room.controller.activateSafeMode();
             Game.notify("Activated Safe Mode in new room " + room.name, 10);
@@ -107,9 +107,7 @@ var _controlTowers = function(room) {
 }
 
 var _operateTower = function(tower){
-    var closestHostile = tower.pos.findClosestByRange(find.getHostileCreeps(tower.room), {filter: (creep) => {
-        return creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0  || creep.getActiveBodyparts(HEAL) > 0 || creep.getActiveBodyparts(WORK) > 0;
-    }});
+    var closestHostile = tower.pos.findClosestByRange(find.getHostileCreeps(tower.room));
     
     if(closestHostile) {
         tower.attack(closestHostile);
@@ -137,10 +135,9 @@ var _operateTower = function(tower){
         return;
     }
     
-    closestHostile = tower.pos.findClosestByRange(find.getHostileCreeps(tower.room));
+    closestHostile = tower.pos.findClosestByRange(tower.room.find(FIND_HOSTILE_CREEPS));
     if(closestHostile) {
         tower.attack(closestHostile);
-        return;
     }
 }
 // *** End ***

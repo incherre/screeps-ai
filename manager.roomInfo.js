@@ -17,7 +17,20 @@ var _getHurtCreeps = function(room) {
 
 var _getHostileCreeps = function(room) {
     if(!room.hasOwnProperty('HOSTILE_CREEPS')) {      
-        room.HOSTILE_CREEPS = room.find(FIND_HOSTILE_CREEPS);
+        room.HOSTILE_CREEPS = room.find(FIND_HOSTILE_CREEPS, {filter: (creep) => {return creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(WORK) > 0;}});
+
+        let potentialHealTargets = room.find(FIND_HOSTILE_CREEPS, {filter: (creep) => {
+            for(let i in creep.body) {
+                if(creep.body[i].type == ATTACK || creep.body[i].type == RANGED_ATTACK || creep.body[i].type == WORK) {
+                    return true;
+                }
+            }
+            return false;
+        }});
+
+        if(potentialHealTargets.length > 0) {
+            room.HOSTILE_CREEPS = room.HOSTILE_CREEPS.concat(room.find(FIND_HOSTILE_CREEPS, {filter: (creep) => {return creep.getActiveBodyparts(HEAL) > 0;}}));
+        }
     }
     return room.HOSTILE_CREEPS;
 }
@@ -149,7 +162,8 @@ var _getFillables = function(room) {
         });
         if(room.FILLABLES.length == 0) {
             room.FILLABLES = _.filter(_getStructures(room), (structure) => {
-                return (structure.structureType == STRUCTURE_LINK && (structure.energyCapacity - structure.energy) > 1 && structure.my);
+                return (structure.structureType == STRUCTURE_LINK && (structure.energyCapacity - structure.energy) > 1 && structure.my) ||
+                       (structure.structureType == STRUCTURE_LAB && structure.energy < structure.energyCapacity && structure.my);
             });
             
             if(room.terminal != undefined && room.terminal.store[RESOURCE_ENERGY] < room.terminal.storeCapacity / 15) {
