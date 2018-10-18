@@ -15,11 +15,11 @@ var find = require('manager.roomInfo');
 var _run = function(creep) {
     if(creep.memory.working && creep.carry.energy == 0) {
         creep.memory.working = false;
-        creep.say('gathering');
+        creep.room.visual.text("🔍", creep.pos);
 	}
 	else if(!creep.memory.working && creep.carry.energy == creep.carryCapacity) {
 	    creep.memory.working = true;
-	    creep.say('upgrading');
+	    creep.room.visual.text("✨", creep.pos);
 	}
 
 	if(creep.memory.working) {

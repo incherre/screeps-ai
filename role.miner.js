@@ -19,7 +19,7 @@ var _run = function(creep) {
 		}
 	}
 	else if(stomachKeys.length > 1 || creep.carry[RESOURCE_ENERGY] > 0) { // the carry object always contains an "energy" property. If it has anything else, we want to drop that off.
-		creep.say('depositing');
+		creep.room.visual.text("💰", creep.pos);
 		var target = creep.room.terminal; // this is the line to change to finish the TODO described in the header comment
 		var type = stomachKeys[stomachKeys.length - 1];
 		if(creep.transfer(target, type) == ERR_NOT_IN_RANGE) {
@@ -33,14 +33,14 @@ var _run = function(creep) {
 			creep.moveTo(target, {maxRooms: 1});
 		}
 		else if(retVal == OK) {
-			creep.say('mining');
+			creep.room.visual.text("⛏️", creep.pos);
 		}
 	}
 	else if(find.getExtractors(creep.room).length > 0 && find.getExtractors(creep.room)[0].cooldown > 1 &&
 			find.getCreepLink(creep) != undefined && find.getCreepLink(creep).energy > 0 &&
 			creep.room.terminal != undefined && creep.room.terminal.store[RESOURCE_ENERGY] < creep.room.terminal.storeCapacity / 15) { // if there is energy near us, grab it
 		creep.withdraw(find.getCreepLink(creep), RESOURCE_ENERGY);
-		creep.say('gathering');
+		creep.room.visual.text("🔍", creep.pos);
 	}
 }
 

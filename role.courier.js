@@ -35,11 +35,11 @@ var _getLabWith = function(room, resource) {
 var _run = function(creep) {
     if(!creep.memory.working && _.sum(creep.carry) == 0) {
         creep.memory.working = true;
-        creep.say('gathering');
+        creep.room.visual.text("🔍", creep.pos);
 	}
 	else if(creep.memory.working && _.sum(creep.carry) == creep.carryCapacity) {
 	    creep.memory.working = false;
-	    creep.say('depositing');
+	    creep.room.visual.text("🔋", creep.pos);
 	}
 
     if(creep.memory.working) {
