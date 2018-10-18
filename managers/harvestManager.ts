@@ -36,7 +36,7 @@ export class HarvestManager extends Manager {
         return requests;
     }
 
-    public manage(): void{
+    public manage(): void {
         const unpairedSources: Set<string> = new Set<string>();
         const sources: Source[] = this.parent.capital.find(FIND_SOURCES);
 
@@ -47,7 +47,7 @@ export class HarvestManager extends Manager {
         const idleWorkers: WorkerCreep[] = [];
     
         for(const i in this.workers) {
-            if(this.workers[i].job.getJobType() === IdleJob.type) {
+            if(this.workers[i].job instanceof IdleJob) {
                 idleWorkers.push(this.workers[i]);
             }
             else if(this.workers[i].job instanceof HarvestJob && (this.workers[i].job as HarvestJob).source) {
