@@ -2,6 +2,7 @@ import { Colony } from "../colony";
 import { DropoffJob } from "../jobs/dropoffJob";
 import { IdleJob } from "../jobs/idleJob";
 import { PickupJob } from "../jobs/pickupJob";
+import { EnergyContainer, GeneralContainer } from "../misc/typeChecking";
 import { ScreepsRequest } from "../requests/request";
 import { ResourceRequest } from "../requests/resourceRequest";
 import { SpawnRequest } from "../requests/spawnRequest";
@@ -18,7 +19,8 @@ export class TransportManager extends Manager {
             requests.push(new SpawnRequest(TransportManager.type, 'carrier'));
         }
         for(const i in this.workers) {
-            if(this.workers[i].creep.ticksToLive && this.workers[i].creep.ticksToLive < 50) {
+            const ttl = this.workers[i].creep.ticksToLive;
+            if(ttl && ttl < 50) {
                 requests.push(new SpawnRequest(TransportManager.type, 'carrier'));
             }
         }
@@ -26,8 +28,11 @@ export class TransportManager extends Manager {
     }
 
     public manage(): void {
-        const requests: ScreepsRequest[] = this.parent.requests[TransportManager.type];
-        const hungryContainers: Map<string, Set<ResourceConstant>> = new Map<string, Set<ResourceConstant>>();
+        // TODO(Daniel): add tombstones, differentiate pickup and dropoff requests
+        const requests: ScreepsRequest[] = this.parent.requests[ResourceRequest.type];
+        const hungryContainers: Map<ResourceConstant, Set<string>> = new Map<ResourceConstant, Set<string>>();
+        hungryContainers.set(RESOURCE_ENERGY, new Set<string>());
+        const fullContainers: Set<string> = new Set<string>();
         const resourcesGettingGot: Set<ResourceConstant> = new Set<ResourceConstant>();
 
         const idleEmpty: WorkerCreep[] = [];
@@ -39,14 +44,41 @@ export class TransportManager extends Manager {
         for(const i in requests) {
             if(requests[i] instanceof ResourceRequest) {
                 const asRR = requests[i] as ResourceRequest;
-                if(!hungryContainers.has(asRR.container.id)){
-                    hungryContainers.set(asRR.container.id, new Set<ResourceConstant>());
+                if(!hungryContainers.has(asRR.resourceType)){
+                    hungryContainers.set(asRR.resourceType, new Set<string>());
                 }
                 
-                const resourceSet = hungryContainers.get(asRR.container.id);
+                const resourceSet = hungryContainers.get(asRR.resourceType);
                 if(resourceSet) {
-                    resourceSet.add(asRR.resourceType);
+                    resourceSet.add(asRR.container.id);
                 }
+            }
+        }
+
+        for(const i in this.buildings) {
+            const test = this.buildings[i] as any;
+            if((test as EnergyContainer).energy !== undefined && (test as EnergyContainer).energy < (test as EnergyContainer).energyCapacity) {
+                const energySet = hungryContainers.get(RESOURCE_ENERGY);
+                if(energySet) {
+                    energySet.add(this.buildings[i].id);
+                }
+            }
+            else if((test as GeneralContainer).store !== undefined && (test as GeneralContainer).store.energy > 0) { // make this handle minerals somehow
+                fullContainers.add(this.buildings[i].id);
+            }
+        }
+
+        const tombstones: Tombstone[] = this.parent.capital.find(FIND_TOMBSTONES);
+        for(const i in tombstones) {
+            if(tombstones[i].store.energy > 0) { // make this handle minerals somehow
+                fullContainers.add(tombstones[i].id);
+            }
+        }
+
+        const droppedResources: Resource[] = this.parent.capital.find(FIND_DROPPED_RESOURCES);
+        for(const i in droppedResources) {
+            if(droppedResources[i].resourceType === RESOURCE_ENERGY) {  // make this handle minerals somehow
+                fullContainers.add(droppedResources[i].id);
             }
         }
 
@@ -91,22 +123,146 @@ export class TransportManager extends Manager {
             }
             else if(this.workers[i].job instanceof PickupJob) {
                 // the resource is being gotten
-                resourcesGettingGot.add((this.workers[i].job as DropoffJob).resourceType);
+                const container =  (this.workers[i].job as PickupJob).container
+                if(container) {
+                    resourcesGettingGot.add((this.workers[i].job as PickupJob).resourceType);
+                    fullContainers.delete(container.id);
+                }
             }
             else if(this.workers[i].job instanceof DropoffJob) {
                 // it's delivering it
-                const deliveryId = (this.workers[i].job as DropoffJob).container.id;
+                const container = (this.workers[i].job as DropoffJob).container;
                 const resourceType = (this.workers[i].job as DropoffJob).resourceType;
-                const resourceSet = hungryContainers.get(deliveryId);
+                const resourceSet = hungryContainers.get(resourceType);
                 
-                if(resourceSet) {
-                    resourceSet.delete(resourceType);
+                if(resourceSet && container) {
+                    resourceSet.delete(container.id);
+                    if(resourceSet.size === 0) {
+                        hungryContainers.delete(resourceType);
+                    }
                 }
             }
         }
 
         // now actually assign creeps to do the things that need to be done
-        // TODO(Daniel): figure out where energy needs to come from, send idle creeps to dropoff/pickup resources
+        while(idleEmpty.length > 0 && fullContainers.size > 0) {
+            // pair idle and empty workers with containers that need emptying
+            const worker = idleEmpty.pop();
+            const containerId = fullContainers.values().next().value;
+            const container = Game.getObjectById(containerId);
+            fullContainers.delete(containerId);
+            if(worker && (container instanceof Structure || container instanceof Resource || container instanceof Tombstone)) {
+                worker.job = new PickupJob(container);
+            }
+        }
+
+        const energyFull =  idleFull.get(RESOURCE_ENERGY);
+        const energyHungry = hungryContainers.get(RESOURCE_ENERGY);
+        if(energyFull && energyHungry) {
+            while(energyFull.length > 0 && energyHungry.size > 0) {
+                // pair idle and full workers with containers that need energy
+                const worker = energyFull.pop();
+                const containerId = energyHungry.values().next().value;
+                const container = Game.getObjectById(containerId);
+                energyHungry.delete(containerId);
+                if(worker && (container instanceof Structure || container instanceof Creep)) {
+                    worker.job = new DropoffJob(container);
+                }
+            }
+        }
+
+        if(energyHungry) {
+            while(idlePartFull.length > 0 && energyHungry.size > 0) {
+                // pair idle and partially full workers with containers that need energy
+                const worker = idlePartFull.pop();
+                const containerId = energyHungry.values().next().value;
+                const container = Game.getObjectById(containerId);
+                energyHungry.delete(containerId);
+                if(worker && (container instanceof Structure || container instanceof Creep)) {
+                    worker.job = new DropoffJob(container);
+                }
+            }
+            
+            if(energyHungry.size > 0 && !resourcesGettingGot.has(RESOURCE_ENERGY) && idleEmpty.length > 0 && this.parent.capital.storage !== undefined && this.parent.capital.storage.store.energy > 0){
+                // if there are still containers that need energy, and there are no workers going to pick up energy, and we have a store of it, and spare idle workers,
+                // then send someone to pick some up
+                const worker = idleEmpty.pop()
+                if(worker) {
+                    worker.job = new PickupJob(this.parent.capital.storage);
+                }
+            }
+        }
+
+        if(energyFull) {
+            while(energyFull.length > 0 && this.parent.capital.storage !== undefined) {
+                // if there are full workers that have nowhere to go, drop off their stuff at storage
+                const worker = energyFull.pop();
+                if(worker) {
+                    console.log('assigning to storage at ' + Game.time);
+                    worker.job = new DropoffJob(this.parent.capital.storage);
+                }
+            }
+        }
+
+        idleFull.delete(RESOURCE_ENERGY);
+        hungryContainers.delete(RESOURCE_ENERGY);
+
+        for(const [resource, readyWorkers] of idleFull.entries()) {
+            const containerSet = hungryContainers.get(resource);
+            if(containerSet) {
+                // pair workers carrying minerals with the containers that require that mineral
+                while(readyWorkers.length > 0 && containerSet.size > 0) {
+                    const worker = readyWorkers.pop();
+                    const containerId = containerSet.values().next().value;
+                    const container = Game.getObjectById(containerId);
+                    containerSet.delete(containerId);
+                    if(worker && (container instanceof Structure || container instanceof Creep)) {
+                        worker.job = new DropoffJob(container, resource);
+                    }
+                }
+
+                // if we ran out of workers, assign one (if available) to go pick up something
+                if(containerSet.size > 0 && !resourcesGettingGot.has(resource) && this.parent.capital.storage !== undefined && this.parent.capital.storage.store[resource] !== undefined){
+                    let worker;
+                    if(idleEmpty.length > 0) {
+                        worker = idleEmpty.pop();
+                    }
+                    else if(idlePartFull.length > 0) {
+                        worker = idlePartFull.pop();
+                    }
+
+                    if(worker) {
+                        worker.job = new PickupJob(this.parent.capital.storage, resource);
+                        resourcesGettingGot.add(resource);
+                    }
+                }
+            }
+
+            if(this.parent.capital.storage !== undefined) {
+                // if there are more workers with a resource than things that require it, drop that resource off
+                while(readyWorkers.length > 0) {
+                    const worker = readyWorkers.pop();
+                    if(worker) {
+                        worker.job = new DropoffJob(this.parent.capital.storage, resource);
+                    }
+                }
+            }
+        }
+
+        while(idlePartFull.length > 0 && fullContainers.size > 0) {
+            // pair remaining idle and partially full workers with containers that need emptying
+            const worker = idlePartFull.pop();
+            const containerId = fullContainers.values().next().value;
+            const container = Game.getObjectById(containerId);
+            fullContainers.delete(containerId);
+            if(worker && (container instanceof Structure || container instanceof Resource || container instanceof Tombstone)) {
+                worker.job = new PickupJob(container);
+            }
+        }
+
+        for(const i in this.workers) {
+            this.workers[i].work();
+        }
     }
 
     constructor (parent: Colony) {

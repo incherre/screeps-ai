@@ -1,12 +1,12 @@
-import { TransportManager } from "../managers/transportManager";
 import { ScreepsRequest } from "./request";
 
 export class ResourceRequest extends ScreepsRequest {
+    public static type = 'dropoff'
     public resourceType: ResourceConstant;
     public container: Structure | Creep;
 
     public getType(): string {
-        return TransportManager.type;
+        return ResourceRequest.type;
     }
 
     constructor (requester: string, resourceType: ResourceConstant, container: Structure | Creep) {

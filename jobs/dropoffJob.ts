@@ -90,8 +90,8 @@ export class DropoffJob extends Job {
         else {
             const fields = jobInfo.split(',');
             this.container = Game.getObjectById(fields[0]);
-            this.ttr = Number(fields[1]);
-            this.resourceType = fields[2] as ResourceConstant;
+            this.resourceType = fields[1] as ResourceConstant;
+            this.ttr = Number(fields[2]);
             const x = Number(fields[3]);
             const y = Number(fields[4]);
             const roomName = fields[5];

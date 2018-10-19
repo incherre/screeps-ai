@@ -1,11 +1,11 @@
-import { SpawnManager } from "../managers/spawnManager";
 import { ScreepsRequest } from "./request";
 
 export class SpawnRequest extends ScreepsRequest {
+    public static type = 'spawn';
     public creepType: string;
 
     public getType(): string {
-        return SpawnManager.type;
+        return SpawnRequest.type;
     }
 
     constructor (requester: string, creepType: string) {

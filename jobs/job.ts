@@ -34,7 +34,8 @@ export abstract class Job {
                         }
                         else if(objects[y][x][i].type === 'structure') {
                             const structure = objects[y][x][i].structure;
-                            if(structure && structure.structureType in OBSTACLE_OBJECT_TYPES){
+                            if(structure && OBSTACLE_OBJECT_TYPES.indexOf(structure.structureType as "wall") >= 0){
+                                // TODO:(Daniel) figure out if the above being necessary is actually a bug in typed-screeps, or if I'm doing something wrong
                                 blocked = true;
                                 break;
                             }

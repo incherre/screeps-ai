@@ -26,7 +26,13 @@ export class SpawnManager extends Manager {
                 body.push(baseBody[body.length % baseBody.length]);
                 soFar += BODYPART_COST[baseBody[body.length % baseBody.length]];
             }
-            return body;
+
+            if(body.length < 3) {
+                return [];
+            }
+            else {
+                return body;
+            }
         },
 
         'worker': (energyLimit: number) => {
@@ -47,7 +53,7 @@ export class SpawnManager extends Manager {
     }
 
     public manage(): void {
-        const requests: ScreepsRequest[] = this.parent.requests[SpawnManager.type];
+        const requests: ScreepsRequest[] = this.parent.requests[SpawnRequest.type];
         if(!requests) { return; }
 
         let energy: number = this.parent.capital.energyAvailable;

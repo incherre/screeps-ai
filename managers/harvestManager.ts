@@ -12,9 +12,9 @@ export class HarvestManager extends Manager {
     private static creepNearDeath(creep: Creep): boolean {
         const walkTime = 4;
         const maxRoomDistance = 50;
-        if(creep.ticksToLive < (walkTime * maxRoomDistance)) {
+        if(creep.ticksToLive && creep.ticksToLive < (walkTime * maxRoomDistance)) {
             const nearestSpawn  = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
-            if(creep.ticksToLive <= creep.pos.getRangeTo(nearestSpawn)) {
+            if(nearestSpawn && creep.ticksToLive <= creep.pos.getRangeTo(nearestSpawn)) {
                 return true;
             }
         }
@@ -50,18 +50,21 @@ export class HarvestManager extends Manager {
             if(this.workers[i].job instanceof IdleJob) {
                 idleWorkers.push(this.workers[i]);
             }
-            else if(this.workers[i].job instanceof HarvestJob && (this.workers[i].job as HarvestJob).source) {
-                const sourceId = (this.workers[i].job as HarvestJob).source.id;
-                if(!HarvestManager.creepNearDeath(this.workers[i].creep)) {
-                    unpairedSources.delete(sourceId);
+            else if(this.workers[i].job instanceof HarvestJob) {
+                const source = (this.workers[i].job as HarvestJob).source;
+                if(!HarvestManager.creepNearDeath(this.workers[i].creep) && source) {
+                    unpairedSources.delete(source.id);
                 }
             }
         }
 
-        for(const sourceId in unpairedSources) {
+        for(const sourceId of unpairedSources.values()) {
             if(idleWorkers.length > 0) {
                 const worker = idleWorkers.pop();
-                worker.job =  new HarvestJob(Game.getObjectById(sourceId));
+                const source = Game.getObjectById(sourceId);
+                if(worker && source instanceof Source) {
+                    worker.job =  new HarvestJob(source);
+                }
             }
             else {
                 break;
