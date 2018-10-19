@@ -16,7 +16,7 @@ var _run = function(creep) {
     }
     else {
         if(creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-            creep.moveTo(creep.room.controller, {ignoreRoads: true, maxRooms: 3});
+            creep.moveTo(creep.room.controller, {maxRooms: 3});
         }
     }
 }

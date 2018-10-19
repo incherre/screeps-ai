@@ -5,7 +5,7 @@ Once a courier is full, it should take the energy to fillable structures.
 */
 
 // ***** Options *****
-var maxCourierParts = 18;
+var maxCourierParts = 14;
 var resourceThreshold = 100;
 var resourceRange = 1;
 var roadThresh = 30;
@@ -87,9 +87,12 @@ var _run = function(creep) {
             if(target == null && creep.room.terminal) {
                 for(let i in labTypes) {
                     if(creep.room.terminal.store.hasOwnProperty(labTypes[i])) {
-                        target = creep.room.terminal;
-                        resource = labTypes[i];
-                        break;
+                        let lab = _getLabWith(creep.room, labTypes[i]);
+                        if(lab != null && lab.mineralAmount < lab.mineralCapacity) {
+                            target = creep.room.terminal;
+                            resource = labTypes[i];
+                            break;
+                        }
                     }
                 }
             }

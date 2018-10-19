@@ -25,7 +25,7 @@ var _getTerminals = function() {
     if(!Game.hasOwnProperty('TERMINALS')) {
          Game.TERMINALS = [];
          for(let i in Game.rooms) {
-             if(Game.rooms[i].terminal != undefined && Game.rooms[i].terminal.my) {
+             if(Game.rooms[i].terminal != undefined && Game.rooms[i].terminal.my && Game.rooms[i].terminal.cooldown == 0) {
                 Game.TERMINALS.push(Game.rooms[i].terminal);
              }
          }
