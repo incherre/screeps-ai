@@ -33,7 +33,17 @@ export class Colony {
     constructor (capital: Room) {
         this.capital = capital;
 
-        this.farms = []; // TODO(Daniel): check neighboring rooms to see if they are being used
+        this.farms = []; // TODO(Daniel): somehow make sure that the rooms aren't already someone else's
+        const exits = Game.map.describeExits(capital.name);
+        if(exits) {
+            // exits will be undefined in the simulation room
+            for(const roomName of Object.values(exits)) {
+                if(roomName && Game.rooms[roomName]) {
+                    this.farms.push(Game.rooms[roomName]);
+                }
+            }
+        }
+
         this.managers = [];
         this.requests = {}; // TODO(Daniel): find any requests from last tick that haven't expired
 

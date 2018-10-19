@@ -1,3 +1,4 @@
+import { getSpotsNear } from "../misc/helperFunctions";
 import { EnergyContainer, GeneralContainer } from "../misc/typeChecking";
 import { Job } from "./job";
 
@@ -15,7 +16,7 @@ export class PickupJob extends Job {
     
         if(!creep.pos.isNearTo(this.container)) {
             // if the creep isn't in range of the container, find a spot to target
-            this.target = creep.pos.findClosestByRange(Job.getSpotsNear(this.container.pos));
+            this.target = creep.pos.findClosestByRange(getSpotsNear(this.container.pos));
 
             if(!this.target) {
                 this.target = this.container.pos;

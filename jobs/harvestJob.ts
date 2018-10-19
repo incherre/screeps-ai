@@ -1,3 +1,4 @@
+import { getSpotsNear } from "../misc/helperFunctions";
 import { Job } from "./job";
 
 export class HarvestJob extends Job {
@@ -13,7 +14,7 @@ export class HarvestJob extends Job {
     
         if(creep.pos.getRangeTo(this.source) > 1) {
             // if the creep isn't in range of the source, find a spot to target
-            this.target = creep.pos.findClosestByRange(Job.getSpotsNear(this.source.pos));
+            this.target = creep.pos.findClosestByRange(getSpotsNear(this.source.pos));
             if(!this.target) {
                 this.target = this.source.pos;
             }

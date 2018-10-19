@@ -1,5 +1,6 @@
 import { Colony } from "../colony";
 import { BusyJob } from "../jobs/busyJob";
+import { shuffle } from "../misc/helperFunctions";
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest } from "../requests/spawnRequest";
 import { Manager } from "./manager";
@@ -55,6 +56,7 @@ export class SpawnManager extends Manager {
     public manage(): void {
         const requests: ScreepsRequest[] = this.parent.requests[SpawnRequest.type];
         if(!requests) { return; }
+        shuffle(requests);
 
         let energy: number = this.parent.capital.energyAvailable;
         for(const i in this.buildings) {

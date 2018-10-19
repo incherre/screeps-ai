@@ -2,6 +2,7 @@ import { Colony } from "../colony";
 import { DropoffJob } from "../jobs/dropoffJob";
 import { IdleJob } from "../jobs/idleJob";
 import { PickupJob } from "../jobs/pickupJob";
+import { shuffle } from "../misc/helperFunctions";
 import { EnergyContainer, GeneralContainer } from "../misc/typeChecking";
 import { ScreepsRequest } from "../requests/request";
 import { ResourceRequest } from "../requests/resourceRequest";
@@ -14,7 +15,7 @@ export class TransportManager extends Manager {
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
-        const transportNumber = 3;
+        const transportNumber = this.parent.capital.find(FIND_SOURCES).length + 2;
         for(let i = this.workers.length; i < transportNumber; i++){
             requests.push(new SpawnRequest(TransportManager.type, 'carrier'));
         }
@@ -41,6 +42,7 @@ export class TransportManager extends Manager {
         idleFull.set(RESOURCE_ENERGY, []);
 
         // calculate all the things that need to get stuff, and what sort of activities are in progress
+        shuffle(requests);
         for(const i in requests) {
             if(requests[i] instanceof ResourceRequest) {
                 const asRR = requests[i] as ResourceRequest;
@@ -69,6 +71,7 @@ export class TransportManager extends Manager {
         }
 
         const tombstones: Tombstone[] = this.parent.capital.find(FIND_TOMBSTONES);
+        shuffle(tombstones);
         for(const i in tombstones) {
             if(tombstones[i].store.energy > 0) { // make this handle minerals somehow
                 fullContainers.add(tombstones[i].id);
@@ -76,6 +79,7 @@ export class TransportManager extends Manager {
         }
 
         const droppedResources: Resource[] = this.parent.capital.find(FIND_DROPPED_RESOURCES);
+        shuffle(droppedResources);
         for(const i in droppedResources) {
             if(droppedResources[i].resourceType === RESOURCE_ENERGY) {  // make this handle minerals somehow
                 fullContainers.add(droppedResources[i].id);
@@ -145,6 +149,9 @@ export class TransportManager extends Manager {
         }
 
         // now actually assign creeps to do the things that need to be done
+        shuffle(idleEmpty);
+        shuffle(idlePartFull);
+
         while(idleEmpty.length > 0 && fullContainers.size > 0) {
             // pair idle and empty workers with containers that need emptying
             const worker = idleEmpty.pop();
@@ -158,6 +165,10 @@ export class TransportManager extends Manager {
 
         const energyFull =  idleFull.get(RESOURCE_ENERGY);
         const energyHungry = hungryContainers.get(RESOURCE_ENERGY);
+        if(energyFull) {
+            shuffle(energyFull);
+        }
+
         if(energyFull && energyHungry) {
             while(energyFull.length > 0 && energyHungry.size > 0) {
                 // pair idle and full workers with containers that need energy
@@ -208,6 +219,7 @@ export class TransportManager extends Manager {
         hungryContainers.delete(RESOURCE_ENERGY);
 
         for(const [resource, readyWorkers] of idleFull.entries()) {
+            shuffle(readyWorkers);
             const containerSet = hungryContainers.get(resource);
             if(containerSet) {
                 // pair workers carrying minerals with the containers that require that mineral

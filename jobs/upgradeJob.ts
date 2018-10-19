@@ -1,3 +1,4 @@
+import { getSpotsNear } from "../misc/helperFunctions";
 import { Job } from "./job";
 
 export class UpgradeJob extends Job {
@@ -9,7 +10,7 @@ export class UpgradeJob extends Job {
     public recalculateTarget(creep: Creep): boolean {
         if(this.controller) {
             if(creep.pos.getRangeTo(this.controller) > UpgradeJob.range) {
-                this.target = creep.pos.findClosestByRange(Job.getSpotsNear(this.controller.pos, UpgradeJob.range));
+                this.target = creep.pos.findClosestByRange(getSpotsNear(this.controller.pos, UpgradeJob.range));
                 if(!this.target) {
                     this.target = this.controller.pos;
                 }
