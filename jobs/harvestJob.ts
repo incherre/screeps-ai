@@ -58,7 +58,7 @@ export class HarvestJob extends Job {
         if(jobInfo instanceof Source) {
             this.source = jobInfo;
         }
-        else {
+        else if (jobInfo !== '') {
             const fields = jobInfo.split(',');
             this.source = Game.getObjectById(fields[0]);
             this.ttr = Number(fields[1]);
@@ -69,6 +69,9 @@ export class HarvestJob extends Job {
                 const roomName = fields[4];
                 this.target = new RoomPosition(x, y, roomName);
             }
+        }
+        else {
+            this.source = null;
         }
         
         if(this.source && !this.target) {

@@ -1,12 +1,12 @@
 import { ScreepsRequest } from "./request";
 
-export class ResourceRequest extends ScreepsRequest {
+export class DropoffRequest extends ScreepsRequest {
     public static type = 'dropoff'
     public resourceType: ResourceConstant;
     public container: Structure | Creep;
 
     public getType(): string {
-        return ResourceRequest.type;
+        return DropoffRequest.type;
     }
 
     constructor (requester: string, resourceType: ResourceConstant, container: Structure | Creep) {

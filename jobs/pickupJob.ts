@@ -90,7 +90,7 @@ export class PickupJob extends Job {
             this.container = jobInfo;
             this.resourceType = resourceType;
         }
-        else {
+        else if (jobInfo !== '') {
             const fields = jobInfo.split(',');
             this.container = Game.getObjectById(fields[0]);
             this.resourceType = fields[1] as ResourceConstant;
@@ -102,6 +102,10 @@ export class PickupJob extends Job {
             if(x >= 0 && y >= 0) {
                 this.target = new RoomPosition(x, y, roomName);
             }
+        }
+        else {
+            this.container = null;
+            this.resourceType = resourceType;
         }
         
         if(this.container && !this.target) {

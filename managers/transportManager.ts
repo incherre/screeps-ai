@@ -4,8 +4,9 @@ import { IdleJob } from "../jobs/idleJob";
 import { PickupJob } from "../jobs/pickupJob";
 import { shuffle } from "../misc/helperFunctions";
 import { EnergyContainer, GeneralContainer } from "../misc/typeChecking";
+import { DropoffRequest } from "../requests/dropoffRequest";
+import { PickupRequest } from "../requests/pickupRequest";
 import { ScreepsRequest } from "../requests/request";
-import { ResourceRequest } from "../requests/resourceRequest";
 import { SpawnRequest } from "../requests/spawnRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
@@ -29,11 +30,11 @@ export class TransportManager extends Manager {
     }
 
     public manage(): void {
-        // TODO(Daniel): add tombstones, differentiate pickup and dropoff requests
-        const requests: ScreepsRequest[] = this.parent.requests[ResourceRequest.type];
+        const dropoffRequests: ScreepsRequest[] = this.parent.requests[DropoffRequest.type];
+        const pickupRequests: ScreepsRequest[] = this.parent.requests[PickupRequest.type];
         const hungryContainers: Map<ResourceConstant, Set<string>> = new Map<ResourceConstant, Set<string>>();
         hungryContainers.set(RESOURCE_ENERGY, new Set<string>());
-        const fullContainers: Set<string> = new Set<string>();
+        const fullContainers: Set<{id: string, type: ResourceConstant}> = new Set<{id: string, type: ResourceConstant}>();
         const resourcesGettingGot: Set<ResourceConstant> = new Set<ResourceConstant>();
 
         const idleEmpty: WorkerCreep[] = [];
@@ -42,17 +43,17 @@ export class TransportManager extends Manager {
         idleFull.set(RESOURCE_ENERGY, []);
 
         // calculate all the things that need to get stuff, and what sort of activities are in progress
-        shuffle(requests);
-        for(const i in requests) {
-            if(requests[i] instanceof ResourceRequest) {
-                const asRR = requests[i] as ResourceRequest;
-                if(!hungryContainers.has(asRR.resourceType)){
-                    hungryContainers.set(asRR.resourceType, new Set<string>());
+        shuffle(dropoffRequests);
+        for(const i in dropoffRequests) {
+            if(dropoffRequests[i] instanceof DropoffRequest) {
+                const asDR = dropoffRequests[i] as DropoffRequest;
+                if(!hungryContainers.has(asDR.resourceType)){
+                    hungryContainers.set(asDR.resourceType, new Set<string>());
                 }
                 
-                const resourceSet = hungryContainers.get(asRR.resourceType);
+                const resourceSet = hungryContainers.get(asDR.resourceType);
                 if(resourceSet) {
-                    resourceSet.add(asRR.container.id);
+                    resourceSet.add(asDR.container.id);
                 }
             }
         }
@@ -65,25 +66,43 @@ export class TransportManager extends Manager {
                     energySet.add(this.buildings[i].id);
                 }
             }
-            else if((test as GeneralContainer).store !== undefined && (test as GeneralContainer).store.energy > 0) { // make this handle minerals somehow
-                fullContainers.add(this.buildings[i].id);
+            else if((test as GeneralContainer).store !== undefined && _.sum((test as GeneralContainer).store) > 0) {
+                const resources = Object.keys((test as GeneralContainer).store);
+                for(const j in resources) {
+                    const resourceAmount = (test as GeneralContainer).store[resources[j] as ResourceConstant];
+                    if(resourceAmount && resourceAmount > 0) {
+                        fullContainers.add({id: this.buildings[i].id, type: resources[j] as ResourceConstant});
+                    }
+                }
+            }
+        }
+
+        shuffle(pickupRequests);
+        for(const i in pickupRequests) {
+            if(pickupRequests[i] instanceof PickupRequest) {
+                const asPR = pickupRequests[i] as PickupRequest;
+                fullContainers.add({id: asPR.container.id, type: asPR.resourceType});
             }
         }
 
         const tombstones: Tombstone[] = this.parent.capital.find(FIND_TOMBSTONES);
         shuffle(tombstones);
         for(const i in tombstones) {
-            if(tombstones[i].store.energy > 0) { // make this handle minerals somehow
-                fullContainers.add(tombstones[i].id);
+            if(_.sum(tombstones[i].store) > 0) {
+                const resources = Object.keys(tombstones[i].store);
+                for(const j in resources) {
+                    const resourceAmount = tombstones[i].store[resources[j] as ResourceConstant];
+                    if(resourceAmount && resourceAmount > 0) {
+                        fullContainers.add({id: tombstones[i].id, type: resources[j] as ResourceConstant});
+                    }
+                }
             }
         }
 
         const droppedResources: Resource[] = this.parent.capital.find(FIND_DROPPED_RESOURCES);
         shuffle(droppedResources);
         for(const i in droppedResources) {
-            if(droppedResources[i].resourceType === RESOURCE_ENERGY) {  // make this handle minerals somehow
-                fullContainers.add(droppedResources[i].id);
-            }
+            fullContainers.add({id: droppedResources[i].id, type: droppedResources[i].resourceType});
         }
 
         for(const i in this.workers) {
@@ -127,10 +146,11 @@ export class TransportManager extends Manager {
             }
             else if(this.workers[i].job instanceof PickupJob) {
                 // the resource is being gotten
-                const container =  (this.workers[i].job as PickupJob).container
+                const container =  (this.workers[i].job as PickupJob).container;
+                const resourceType = (this.workers[i].job as PickupJob).resourceType;
                 if(container) {
-                    resourcesGettingGot.add((this.workers[i].job as PickupJob).resourceType);
-                    fullContainers.delete(container.id);
+                    resourcesGettingGot.add(resourceType);
+                    fullContainers.delete({id: container.id, type: resourceType});
                 }
             }
             else if(this.workers[i].job instanceof DropoffJob) {
@@ -155,11 +175,11 @@ export class TransportManager extends Manager {
         while(idleEmpty.length > 0 && fullContainers.size > 0) {
             // pair idle and empty workers with containers that need emptying
             const worker = idleEmpty.pop();
-            const containerId = fullContainers.values().next().value;
-            const container = Game.getObjectById(containerId);
-            fullContainers.delete(containerId);
+            const containerInfo = fullContainers.values().next().value;
+            const container = Game.getObjectById(containerInfo.id);
+            fullContainers.delete(containerInfo);
             if(worker && (container instanceof Structure || container instanceof Resource || container instanceof Tombstone)) {
-                worker.job = new PickupJob(container);
+                worker.job = new PickupJob(container, containerInfo.type);
             }
         }
 
@@ -264,11 +284,11 @@ export class TransportManager extends Manager {
         while(idlePartFull.length > 0 && fullContainers.size > 0) {
             // pair remaining idle and partially full workers with containers that need emptying
             const worker = idlePartFull.pop();
-            const containerId = fullContainers.values().next().value;
-            const container = Game.getObjectById(containerId);
-            fullContainers.delete(containerId);
+            const containerInfo = fullContainers.values().next().value;
+            const container = Game.getObjectById(containerInfo.id);
+            fullContainers.delete(containerInfo);
             if(worker && (container instanceof Structure || container instanceof Resource || container instanceof Tombstone)) {
-                worker.job = new PickupJob(container);
+                worker.job = new PickupJob(container, containerInfo.type);
             }
         }
 

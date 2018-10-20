@@ -58,7 +58,7 @@ export class UpgradeJob extends Job {
         if(jobInfo instanceof StructureController) {
             this.controller = jobInfo;
         }
-        else {
+        else if (jobInfo !== '') {
             const fields = jobInfo.split(',');
             this.controller = Game.getObjectById(fields[0]);
             this.ttr = Number(fields[1]);
@@ -69,6 +69,9 @@ export class UpgradeJob extends Job {
                 const roomName = fields[4];
                 this.target = new RoomPosition(x, y, roomName);
             }
+        }
+        else {
+            this.controller = null;
         }
         
         if(this.controller && !this.target) {
