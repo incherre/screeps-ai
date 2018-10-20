@@ -10,7 +10,7 @@ var _getMyCreeps = function(room) {
 
 var _getHurtCreeps = function(room) {
     if(!room.hasOwnProperty('HURT_CREEPS')) {
-        room.HURT_CREEPS = _.filter(_getMyCreeps(room), (creep) => {return creep.hits < creep.hitsMax;});
+        room.HURT_CREEPS = room.find(FIND_MY_CREEPS, {filter: (creep) => {return creep.hits < creep.hitsMax;}});
     }
     return room.HURT_CREEPS;
 }
@@ -92,7 +92,7 @@ var _getRole = function(room, role) {
     _populateRoles();
     
     var roomCode;
-    if(role != 'all' && _creepFilter[role].roomSpecific) {
+    if(role == 'all' || _creepFilter[role].roomSpecific) {
         roomCode = room.controller.id;
     }
     else {

@@ -13,6 +13,24 @@ Directions for use:
 var creepControl = require('controller.creeps');
 var roomControl = require('controller.room');
 var trading = require('controller.market');
+var find = require('manager.roomInfo');
+
+// copied from courier, just as a temporary measure
+var _getLabWith = function(room, resource) {
+    let labs = find.getLabs(room);
+    let backup = null;
+    
+    for(let i in labs) {
+        if(labs[i].mineralAmount == 0) {
+            backup = labs[i];
+        }
+        else if(labs[i].mineralType == resource) {
+            return labs[i];
+        }
+    }
+    
+    return backup;
+}
 
 module.exports.loop = function () {
     creepControl.controlCreeps();
@@ -20,5 +38,25 @@ module.exports.loop = function () {
 
     if(trading.shouldTrade()) {
         trading.trade();
+    }
+  
+    if(Game.time % 7 == 0) {
+        var resource = RESOURCE_OXYGEN;
+        var room1 = Game.rooms['E3S4'];
+        var room2 = Game.rooms['E1S7'];
+        var lab = _getLabWith(room2, resource);
+    
+        if(room1.terminal != undefined && room2.terminal != undefined && lab != null && room1.terminal.store[resource] != undefined && room1.terminal.cooldown == 0) {
+            var amountInRoom = lab.mineralAmount;
+            if(room2.terminal.store[resource] != undefined) {
+                amountInRoom += room2.terminal.store[resource];
+            }
+
+            var amount = Math.min(lab.mineralCapacity - amountInRoom, room1.terminal.store[resource]);
+            
+            if(amount > 500) {
+                room1.terminal.send(resource, amount, room2.name);
+            }
+        }
     }
 }
