@@ -3,6 +3,7 @@ import { BusyJob } from "../jobs/busyJob";
 import { shuffle } from "../misc/helperFunctions";
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest } from "../requests/spawnRequest";
+import { HarvestManager } from "./harvestManager";
 import { Manager } from "./manager";
 
 export class SpawnManager extends Manager {
@@ -55,12 +56,32 @@ export class SpawnManager extends Manager {
 
     public manage(): void {
         const requests: ScreepsRequest[] = this.parent.requests[SpawnRequest.type];
-        if(!requests) { return; }
+        let emergency = this.parent.capital.find(FIND_MY_CREEPS).length === 0;
+
+        if(!requests && !emergency) { return; }
         shuffle(requests);
 
         let energy: number = this.parent.capital.energyAvailable;
         for(const i in this.buildings) {
-            if(this.buildings[i].structureType === STRUCTURE_SPAWN && requests.length > 0) {
+            if(this.buildings[i].structureType === STRUCTURE_SPAWN && emergency) {
+                const spawn = this.buildings[i] as StructureSpawn;
+                const memory = {jobType: BusyJob.type, jobInfo: '', colonyRoom: this.parent.capital.name, managerType: HarvestManager.type};
+                const body = SpawnManager.spawnTypes.harvester(energy);
+                const name = spawn.name + '-' + Game.time;
+
+                const status = spawn.spawnCreep(body, name, {'memory': memory});
+                if(status === OK) {
+                    for(const j in body) {
+                        energy -= BODYPART_COST[body[j]];
+                    }
+
+                    emergency = false;
+                }
+                else {
+                    break;
+                }
+            }
+            else if(this.buildings[i].structureType === STRUCTURE_SPAWN && requests.length > 0) {
                 const request = requests.pop() as SpawnRequest;
                 const spawn = this.buildings[i] as StructureSpawn;
                 const memory = {jobType: BusyJob.type, jobInfo: '', colonyRoom: this.parent.capital.name, managerType: request.requester};
