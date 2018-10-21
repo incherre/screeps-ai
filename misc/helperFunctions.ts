@@ -1,7 +1,7 @@
 export function shuffle(a: any[]): void {
     let j: number;
     let item: any;
-    for(let i = shuffle.length - 1; i > 0; i--) {
+    for(let i = a.length - 1; i > 0; i--) {
         j = Math.floor(Math.random() * (i + 1));
         item = a[j];
         a[j] = a[i];

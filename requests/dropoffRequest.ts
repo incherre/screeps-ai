@@ -9,7 +9,7 @@ export class DropoffRequest extends ScreepsRequest {
         return DropoffRequest.type;
     }
 
-    constructor (requester: string, resourceType: ResourceConstant, container: Structure | Creep) {
+    constructor (requester: string, container: Structure | Creep, resourceType: ResourceConstant = RESOURCE_ENERGY) {
         super();
         this.requester = requester;
         this.resourceType = resourceType;

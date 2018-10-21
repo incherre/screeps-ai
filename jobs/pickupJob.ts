@@ -78,9 +78,11 @@ export class PickupJob extends Job {
     public do(creep: Creep): void {
         if(this.container instanceof Resource) {
             creep.pickup(this.container);
+            this.container = null;
         }
         else if(this.container) {
             creep.withdraw(this.container, this.resourceType);
+            this.container = null;
         }
     }
 

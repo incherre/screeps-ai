@@ -2,6 +2,7 @@ import { HarvestManager } from "./managers/harvestManager";
 import { Manager } from "./managers/manager";
 import { SpawnManager } from "./managers/spawnManager";
 import { TransportManager } from "./managers/transportManager";
+import { UpgradeManager } from "./managers/upgradeManager";
 import { Ownable } from "./misc/typeChecking";
 import { ScreepsRequest } from "./requests/request";
 import { WorkerCreep } from "./worker";
@@ -50,6 +51,7 @@ export class Colony {
         const harvestManager = new HarvestManager(this);
         const spawnManager = new SpawnManager(this);
         const transportManager = new TransportManager(this);
+        const upgradeManager = new UpgradeManager(this);
 
         const structures = capital.find(FIND_STRUCTURES, {filter: (structure: any) => (structure as Ownable).my === undefined || (structure as Ownable).my});
         for(const i in structures) {
@@ -70,10 +72,14 @@ export class Colony {
             else if(creeps[i].memory.managerType === TransportManager.type) {
                 transportManager.workers.push(new WorkerCreep(creeps[i]));
             }
+            else if(creeps[i].memory.managerType === UpgradeManager.type) {
+                upgradeManager.workers.push(new WorkerCreep(creeps[i]));
+            }
         }
 
         this.managers.push(harvestManager);
         this.managers.push(spawnManager);
         this.managers.push(transportManager);
+        this.managers.push(upgradeManager);
     }
 }

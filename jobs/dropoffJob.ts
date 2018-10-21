@@ -52,7 +52,7 @@ export class DropoffJob extends Job {
         }
         else if(this.container instanceof Creep) {
             // this container is a creep
-            const resourceAmount = this.container.carry[this.resourceType];
+            const resourceAmount = creep.carry[this.resourceType];
             return resourceAmount !== undefined && resourceAmount > 0 && _.sum(this.container.carry) < this.container.carryCapacity;
         }
         else {
@@ -79,6 +79,7 @@ export class DropoffJob extends Job {
     public do(creep: Creep): void {
         if(this.container) {
             creep.transfer(this.container, this.resourceType);
+            this.container = null;
         }
     }
 

@@ -24,9 +24,11 @@ export const jobTypes: {[key: string]: (jobInfo: string) => Job} = {
 import { HarvestManager } from "./managers/harvestManager";
 import { SpawnManager } from "./managers/spawnManager";
 import { TransportManager } from "./managers/transportManager";
+import { UpgradeManager } from "./managers/upgradeManager";
 
 export const managerTypes: {[key: string]: (parent: Colony) => Manager} = {
     [HarvestManager.type]: (parent: Colony) => new HarvestManager(parent),
     [SpawnManager.type]: (parent: Colony) => new SpawnManager(parent),
     [TransportManager.type]: (parent: Colony) => new TransportManager(parent),
+    [UpgradeManager.type]: (parent: Colony) => new UpgradeManager(parent),
 };

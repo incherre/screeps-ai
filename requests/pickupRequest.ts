@@ -9,7 +9,7 @@ export class PickupRequest extends ScreepsRequest {
         return PickupRequest.type;
     }
 
-    constructor (requester: string, resourceType: ResourceConstant, container: Structure) {
+    constructor (requester: string, container: Structure, resourceType: ResourceConstant = RESOURCE_ENERGY) {
         super();
         this.requester = requester;
         this.resourceType = resourceType;
