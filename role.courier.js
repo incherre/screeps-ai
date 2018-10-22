@@ -101,7 +101,8 @@ var _run = function(creep) {
             if(target == null) {
                 let labs = find.getLabs(creep.room);
                 for(let i in labs) {
-                    if(labs[i].mineralAmount > 0 && labProducts.indexOf(labs[i].mineralType) >= 0) {
+                    if(labs[i].mineralAmount > 0 && labProducts.indexOf(labs[i].mineralType) >= 0 && creep.room.terminal && 
+                    (!creep.room.terminal.store.hasOwnProperty(labs[i].mineralType) || creep.room.terminal.store[labs[i].mineralType] < 3000)) {
                         target = labs[i];
                         resource = labs[i].mineralType;
                         break;
@@ -110,7 +111,7 @@ var _run = function(creep) {
             }
         }
         
-        if(target == null) {
+        if(target == null && find.getFillables(creep.room).length > 0) {
             target = creep.room.storage;
         }
 
