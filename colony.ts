@@ -1,3 +1,4 @@
+import { ConstructionManager } from "./managers/constructionManager";
 import { HarvestManager } from "./managers/harvestManager";
 import { Manager } from "./managers/manager";
 import { SpawnManager } from "./managers/spawnManager";
@@ -52,6 +53,7 @@ export class Colony {
         const spawnManager = new SpawnManager(this);
         const transportManager = new TransportManager(this);
         const upgradeManager = new UpgradeManager(this);
+        const constructionManager = new ConstructionManager(this);
 
         const structures = capital.find(FIND_STRUCTURES, {filter: (structure: any) => (structure as Ownable).my === undefined || (structure as Ownable).my});
         for(const i in structures) {
@@ -59,7 +61,7 @@ export class Colony {
                 spawnManager.buildings.push(structures[i]);
                 transportManager.buildings.push(structures[i]);
             }
-            else if(structures[i].structureType === STRUCTURE_EXTENSION || structures[i].structureType === STRUCTURE_CONTAINER) {
+            else if(structures[i].structureType in [STRUCTURE_EXTENSION, STRUCTURE_CONTAINER, STRUCTURE_TOWER]) {
                 transportManager.buildings.push(structures[i]);
             }
         }
@@ -75,11 +77,15 @@ export class Colony {
             else if(creeps[i].memory.managerType === UpgradeManager.type) {
                 upgradeManager.workers.push(new WorkerCreep(creeps[i]));
             }
+            else if(creeps[i].memory.managerType === ConstructionManager.type) {
+                constructionManager.workers.push(new WorkerCreep(creeps[i]));
+            }
         }
 
         this.managers.push(harvestManager);
         this.managers.push(spawnManager);
         this.managers.push(transportManager);
         this.managers.push(upgradeManager);
+        this.managers.push(constructionManager);
     }
 }

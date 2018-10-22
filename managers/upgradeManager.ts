@@ -8,6 +8,7 @@ import { Manager } from "./manager";
 
 export class UpgradeManager extends Manager {
     public static type = 'upgrade';
+    public static refillRatio = 0.5;
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
@@ -20,7 +21,7 @@ export class UpgradeManager extends Manager {
             if(ttl && ttl < 50) {
                 requests.push(new SpawnRequest(UpgradeManager.type, 'worker'));
             }
-            else if(this.workers[i].creep.carry.energy < this.workers[i].creep.carryCapacity) {
+            else if(this.workers[i].creep.carry.energy < UpgradeManager.refillRatio * this.workers[i].creep.carryCapacity) {
                 requests.push(new DropoffRequest(UpgradeManager.type, this.workers[i].creep));
             }
         }

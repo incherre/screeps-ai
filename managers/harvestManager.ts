@@ -63,7 +63,7 @@ export class HarvestManager extends Manager {
                 const worker = idleWorkers.pop();
                 const source = Game.getObjectById(sourceId);
                 if(worker && source instanceof Source) {
-                    worker.job =  new HarvestJob(source);
+                    worker.job = new HarvestJob(source);
                 }
             }
             else {

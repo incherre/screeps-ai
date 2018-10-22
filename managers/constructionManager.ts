@@ -1,5 +1,97 @@
-const bunkerTemplate = {
-    STRUCTURE_SPAWN: [{dx: -2, dy: 0}, {dx: 0, dy: -2}, {dx: 2, dy: 0}],
+import { Colony } from "../colony";
+import { ConstructJob } from "../jobs/constructJob";
+import { IdleJob } from "../jobs/idleJob";
+import { DropoffRequest } from "../requests/dropoffRequest";
+import { ScreepsRequest } from "../requests/request";
+import { SpawnRequest } from "../requests/spawnRequest";
+import { WorkerCreep } from "../worker";
+import { Manager } from "./manager";
+
+export class ConstructionManager extends Manager {
+    public static type = 'construction';
+    public static refillRatio = 0.5;
+
+    public generateRequests(): ScreepsRequest[] {
+        const requests: ScreepsRequest[] = [];
+        const constructNumber = Math.min(this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES).length, 3);
+        for(let i = this.workers.length; i < constructNumber; i++){
+            requests.push(new SpawnRequest(ConstructionManager.type, 'worker'));
+        }
+        for(const i in this.workers) {
+            const ttl = this.workers[i].creep.ticksToLive;
+            if(ttl && ttl < 50) {
+                requests.push(new SpawnRequest(ConstructionManager.type, 'worker'));
+            }
+            else if(this.workers[i].creep.carry.energy < ConstructionManager.refillRatio * this.workers[i].creep.carryCapacity) {
+                requests.push(new DropoffRequest(ConstructionManager.type, this.workers[i].creep));
+            }
+        }
+        return requests;
+    }
+
+    public manage(): void {
+        // TODO: add automatic placing of construction sites
+        const unpairedSites: Set<string> = new Set<string>();
+        const sites: ConstructionSite[] = this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES);
+
+        for(const i in sites) {
+            unpairedSites.add(sites[i].id);
+        }
+
+        const idleWorkers: WorkerCreep[] = [];
+    
+        for(const i in this.workers) {
+            if(this.workers[i].job instanceof IdleJob) {
+                idleWorkers.push(this.workers[i]);
+            }
+            else if(this.workers[i].job instanceof ConstructJob) {
+                const site = (this.workers[i].job as ConstructJob).site;
+                const ttl = this.workers[i].creep.ticksToLive;
+                if(ttl && ttl >= 50 && site) {
+                    unpairedSites.delete(site.id);
+                }
+            }
+        }
+
+        for(const siteId of unpairedSites.values()) {
+            if(idleWorkers.length > 0) {
+                const worker = idleWorkers.pop();
+                const site = Game.getObjectById(siteId);
+                if(worker && site instanceof ConstructionSite) {
+                    worker.job = new ConstructJob(site);
+                }
+            }
+            else {
+                break;
+            }
+        }
+
+        for(let i = 0; i < this.workers.length; i++) {
+            if(this.workers[i].job instanceof IdleJob && sites.length > 0) {
+                this.workers[i].job = new ConstructJob(sites[i % sites.length]);
+            }
+            this.workers[i].work();
+        }
+    }
+
+    constructor (parent: Colony) {
+        super(parent);
+    }
+}
+
+const buildOrder: StructureConstant[] = [
+    STRUCTURE_SPAWN,
+    STRUCTURE_EXTENSION,
+    STRUCTURE_TOWER,
+    STRUCTURE_STORAGE,
+    STRUCTURE_LINK,
+    STRUCTURE_TERMINAL,
+    STRUCTURE_POWER_SPAWN,
+    STRUCTURE_ROAD,
+    STRUCTURE_RAMPART
+]
+
+const bunkerTemplate: {[key: string]: Array<{dx: number, dy: number}>} = {
     STRUCTURE_EXTENSION: [
         {dx: -3, dy: 2}, {dx: -3, dy: 1}, {dx: -3, dy: -1}, {dx: -3, dy: -2}, {dx: -2, dy: -3}, {dx: -1, dy: -3},
         {dx: 1, dy: -3}, {dx: 2, dy: -3}, {dx: 3, dy: -2}, {dx: 3, dy: -1}, {dx: 3, dy: 1}, {dx: 3, dy: 2},
@@ -12,11 +104,17 @@ const bunkerTemplate = {
         {dx: 5, dy: -2}, {dx: 5, dy: 0}, {dx: 5, dy: 2}, {dx: 5, dy: 3}, {dx: 5, dy: 4}, {dx: 4, dy: 5},
         {dx: 3, dy: 5}, {dx: 2, dy: 5}, {dx: 0, dy: 5}, {dx: -2, dy: 5}, {dx: -3, dy: 5}, {dx: -4, dy: 5}
     ],
-    STRUCTURE_TOWER: [{dx: -2, dy: 1}, {dx: -2, dy: -1}, {dx: -1, dy: -1}, {dx: 1, dy: -2}, {dx: 2, dy: -1}, {dx: -2, dy: 1}],
-    STRUCTURE_CONTAINER: [{dx: 0, dy: 0}],
     STRUCTURE_LINK: [{dx: -1, dy: 2}],
-    STRUCTURE_TERMINAL: [{dx: 1, dy: 2}],
     STRUCTURE_POWER_SPAWN: [{dx: 0, dy: 2}],
+    STRUCTURE_RAMPART: [
+        {dx: 0, dy: 0}, {dx: -1, dy: 0}, {dx: -1, dy: -1}, {dx: 0, dy: -1}, {dx: 1, dy: -1}, {dx: 1, dy: 0},
+        {dx: 1, dy: 1}, {dx: 0, dy: 1}, {dx: -1, dy: 1}, {dx: -2, dy: 2}, {dx: -2, dy: 1}, {dx: -2, dy: 0},
+        {dx: -2, dy: -1}, {dx: -2, dy: -2}, {dx: -1, dy: -2}, {dx: 0, dy: -2}, {dx: 1, dy: -2}, {dx: 2, dy: -2},
+        {dx: 2, dy: -1}, {dx: 2, dy: 0}, {dx: 2, dy: 1}, {dx: 2, dy: 2}, {dx: 1, dy: 2}, {dx: 0, dy: 2},
+        {dx: -1, dy: 2}, {dx: -1, dy: 3}, {dx: -2, dy: 3}, {dx: -3, dy: 2}, {dx: -3, dy: 1}, {dx: -3, dy: -1},
+        {dx: -3, dy: -2}, {dx: -2, dy: -3}, {dx: -1, dy: -3}, {dx: 1, dy: -3}, {dx: 2, dy: -3}, {dx: 3, dy: -2},
+        {dx: 3, dy: -1}, {dx: 3, dy: 1}, {dx: 3, dy: 2}, {dx: 2, dy: 3}, {dx: 1, dy: 3}
+    ],
     STRUCTURE_ROAD: [
         {dx: -1, dy: 0}, {dx: -1, dy: -1}, {dx: 0, dy: -1}, {dx: 1, dy: -1}, {dx: 1, dy: 0}, {dx: 1, dy: 1},
         {dx: 0, dy: 1}, {dx: -1, dy: 1}, {dx: -2, dy: 2}, {dx: -2, dy: -2}, {dx: 2, dy: -2}, {dx: 2, dy: 2},
@@ -27,18 +125,13 @@ const bunkerTemplate = {
         {dx: 5, dy: 5}, {dx: 1, dy: 5}, {dx: -1, dy: 5}, {dx: -5, dy: 5}, {dx: -5, dy: 1}, {dx: -5, dy: -1},
         {dx: -5, dy: -5}, {dx: -1, dy: -5}, {dx: 1, dy: -5}, {dx: 5, dy: -5}, {dx: 5, dy: -1}, {dx: 5, dy: 1}
     ],
-    STRUCTURE_RAMPART: [
-        {dx: 0, dy: 0}, {dx: -1, dy: 0}, {dx: -1, dy: -1}, {dx: 0, dy: -1}, {dx: 1, dy: -1}, {dx: 1, dy: 0},
-        {dx: 1, dy: 1}, {dx: 0, dy: 1}, {dx: -1, dy: 1}, {dx: -2, dy: 2}, {dx: -2, dy: 1}, {dx: -2, dy: 0},
-        {dx: -2, dy: -1}, {dx: -2, dy: -2}, {dx: -1, dy: -2}, {dx: 0, dy: -2}, {dx: 1, dy: -2}, {dx: 2, dy: -2},
-        {dx: 2, dy: -1}, {dx: 2, dy: 0}, {dx: 2, dy: 1}, {dx: 2, dy: 2}, {dx: 1, dy: 2}, {dx: 0, dy: 2},
-        {dx: -1, dy: 2}, {dx: -1, dy: 3}, {dx: -2, dy: 3}, {dx: -3, dy: 2}, {dx: -3, dy: 1}, {dx: -3, dy: -1},
-        {dx: -3, dy: -2}, {dx: -2, dy: -3}, {dx: -1, dy: -3}, {dx: 1, dy: -3}, {dx: 2, dy: -3}, {dx: 3, dy: -2},
-        {dx: 3, dy: -1}, {dx: 3, dy: 1}, {dx: 3, dy: 2}, {dx: 2, dy: 3}, {dx: 1, dy: 3}
-    ]
+    STRUCTURE_SPAWN: [{dx: -2, dy: 0}, {dx: 0, dy: -2}, {dx: 2, dy: 0}],
+    STRUCTURE_STORAGE: [{dx: 0, dy: 0}],
+    STRUCTURE_TERMINAL: [{dx: 1, dy: 2}],
+    STRUCTURE_TOWER: [{dx: -2, dy: 1}, {dx: -2, dy: -1}, {dx: -1, dy: -1}, {dx: 1, dy: -2}, {dx: 2, dy: -1}, {dx: -2, dy: 1}]
 };
 
-function _calculateOptimalPosition (room: Room, minWallDist: number, controllerWeight: number, exitWeight: number, sourceWeight: number): {x: number, y: number} {
+function calculateOptimalPosition (room: Room, minWallDist: number, controllerWeight: number, exitWeight: number, sourceWeight: number): {x: number, y: number} {
     // Warning, can take between 5 and 30 cpu, usually around 12. Run rarely.
     // For placing the center of a bunker one might use: calculateOptimalPosition(room, 5, 0.5, -1, 1);
 
@@ -169,7 +262,7 @@ function _calculateOptimalPosition (room: Room, minWallDist: number, controllerW
     for(let x = 0; x < 50; x++) {
         for(let y = 0; y < 50; y++) {
             if(myMap[x][y].wallDist >= minWallDist) {
-                const score = (controllerWeight * (myMap[x][y].controllerDist * myMap[x][y].controllerDist)) + (exitWeight * myMap[x][y].exitDist) + (sourceWeight * _.sum(_.map(myMap[x][y].sourceDist, (dist) => {return (1 / sources.length) * (dist * dist);})));
+                const score = (controllerWeight * (myMap[x][y].controllerDist * myMap[x][y].controllerDist)) + (exitWeight * myMap[x][y].exitDist) + (sourceWeight * _.sum(_.map(myMap[x][y].sourceDist, (dist) => (1 / sources.length) * (dist * dist))));
                 if(score < minScore || minPos.x < 0) {
                     minScore = score;
                     minPos.x = x;
@@ -181,5 +274,3 @@ function _calculateOptimalPosition (room: Room, minWallDist: number, controllerW
     
     return minPos;
 }
-
-export const calculateOptimalPosition = _calculateOptimalPosition;

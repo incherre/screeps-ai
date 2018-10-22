@@ -1,18 +1,19 @@
 import { getSpotsNear } from "../misc/helperFunctions";
 import { Job } from "./job";
 
-export class UpgradeJob extends Job {
-    public static type: string = 'upgrade';
 
-    public controller: StructureController | null;
+export class ConstructJob extends Job {
+    public static type: string = 'construct';
+
+    public site: ConstructionSite | null;
     public static range: number = 3;
 
     public recalculateTarget(creep: Creep): boolean {
-        if(this.controller) {
-            if(creep.pos.getRangeTo(this.controller) > UpgradeJob.range) {
-                this.target = creep.pos.findClosestByRange(getSpotsNear(this.controller.pos, UpgradeJob.range));
+        if(this.site) {
+            if(creep.pos.getRangeTo(this.site) > ConstructJob.range) {
+                this.target = creep.pos.findClosestByRange(getSpotsNear(this.site.pos, ConstructJob.range));
                 if(!this.target) {
-                    this.target = this.controller.pos;
+                    this.target = this.site.pos;
                 }
 
                 const range = creep.pos.getRangeTo(this.target);
@@ -32,15 +33,15 @@ export class UpgradeJob extends Job {
     }
 
     public getJobType(): string {
-        return UpgradeJob.type;
+        return ConstructJob.type;
     }
 
     public getJobInfo(): string {
-        if(this.controller && this.target) {
-            return [this.controller.id, this.ttr, this.target.x, this.target.y, this.target.roomName].join();
+        if(this.site && this.target) {
+            return [this.site.id, this.ttr, this.target.x, this.target.y, this.target.roomName].join();
         }
-        else if(this.controller) {
-            return [this.controller.id, this.ttr, -1, -1, 'none'].join();
+        else if(this.site) {
+            return [this.site.id, this.ttr, -1, -1, 'none'].join();
         }
         else {
             return '';
@@ -48,19 +49,19 @@ export class UpgradeJob extends Job {
     }
 
     public do(creep: Creep): void {
-        if(this.controller && creep.carry.energy > 0) {
-            creep.upgradeController(this.controller);
+        if(this.site && creep.carry.energy > 0) {
+            creep.build(this.site);
         }
     }
 
-    constructor (jobInfo: string | StructureController) {
+    constructor (jobInfo: string | ConstructionSite) {
         super();
-        if(jobInfo instanceof StructureController) {
-            this.controller = jobInfo;
+        if(jobInfo instanceof ConstructionSite) {
+            this.site = jobInfo;
         }
         else if (jobInfo !== '') {
             const fields = jobInfo.split(',');
-            this.controller = Game.getObjectById(fields[0]);
+            this.site = Game.getObjectById(fields[0]);
             this.ttr = Number(fields[1]);
 
             if(Number(fields[2]) >= 0) {
@@ -71,11 +72,11 @@ export class UpgradeJob extends Job {
             }
         }
         else {
-            this.controller = null;
+            this.site = null;
         }
         
-        if(this.controller && !this.target) {
-            this.target = this.controller.pos;
+        if(this.site && !this.target) {
+            this.target = this.site.pos;
         }
     }
 }
