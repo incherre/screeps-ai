@@ -13,18 +13,22 @@ export class UpgradeManager extends Manager {
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
         const upgradeNumber = 2;
-        for(let i = this.workers.length; i < upgradeNumber; i++){
+        let actualNumber = this.workers.length;
+
+        for(const worker of this.workers) {
+            const ttl = worker.creep.ticksToLive;
+            if(ttl && ttl < 50) {
+                actualNumber--;
+            }
+            else if(worker.creep.carry.energy < UpgradeManager.refillRatio * worker.creep.carryCapacity) {
+                requests.push(new DropoffRequest(UpgradeManager.type, worker.creep));
+            }
+        }
+
+        for(let i = actualNumber; i < upgradeNumber; i++){
             requests.push(new SpawnRequest(UpgradeManager.type, 'worker'));
         }
-        for(const i in this.workers) {
-            const ttl = this.workers[i].creep.ticksToLive;
-            if(ttl && ttl < 50) {
-                requests.push(new SpawnRequest(UpgradeManager.type, 'worker'));
-            }
-            else if(this.workers[i].creep.carry.energy < UpgradeManager.refillRatio * this.workers[i].creep.carryCapacity) {
-                requests.push(new DropoffRequest(UpgradeManager.type, this.workers[i].creep));
-            }
-        }
+
         return requests;
     }
 

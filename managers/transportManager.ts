@@ -17,15 +17,19 @@ export class TransportManager extends Manager {
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
         const transportNumber = this.parent.capital.find(FIND_SOURCES).length + 1;
-        for(let i = this.workers.length; i < transportNumber; i++){
-            requests.push(new SpawnRequest(TransportManager.type, 'carrier'));
-        }
-        for(const i in this.workers) {
-            const ttl = this.workers[i].creep.ticksToLive;
+        let actualNumber = this.workers.length;
+
+        for(const worker of this.workers) {
+            const ttl = worker.creep.ticksToLive;
             if(ttl && ttl < 50) {
-                requests.push(new SpawnRequest(TransportManager.type, 'carrier'));
+                actualNumber--;
             }
         }
+
+        for(let i = actualNumber; i < transportNumber; i++){
+            requests.push(new SpawnRequest(TransportManager.type, 'carrier'));
+        }
+
         return requests;
     }
 

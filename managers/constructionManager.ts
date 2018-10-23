@@ -16,18 +16,22 @@ export class ConstructionManager extends Manager {
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
         const constructNumber = Math.min(this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES).length, 3);
-        for(let i = this.workers.length; i < constructNumber; i++){
-            requests.push(new SpawnRequest(ConstructionManager.type, 'worker'));
-        }
+        let actualNumber = this.workers.length;
+
         for(const worker of this.workers) {
             const ttl = worker.creep.ticksToLive;
             if(ttl && ttl < 50) {
-                requests.push(new SpawnRequest(ConstructionManager.type, 'worker'));
+                actualNumber--;
             }
             else if(worker.creep.carry.energy < ConstructionManager.refillRatio * worker.creep.carryCapacity) {
                 requests.push(new DropoffRequest(ConstructionManager.type, worker.creep));
             }
         }
+
+        for(let i = actualNumber; i < constructNumber; i++){
+            requests.push(new SpawnRequest(ConstructionManager.type, 'worker'));
+        }
+
         return requests;
     }
 

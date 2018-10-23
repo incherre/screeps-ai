@@ -25,14 +25,18 @@ export class HarvestManager extends Manager {
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
         const harvestNumber = this.parent.capital.find(FIND_SOURCES).length;
-        for(let i = this.workers.length; i < harvestNumber; i++){
-            requests.push(new SpawnRequest(HarvestManager.type, 'harvester'));
-        }
-        for(const i in this.workers) {
-            if(HarvestManager.creepNearDeath(this.workers[i].creep)) {
-                requests.push(new SpawnRequest(HarvestManager.type, 'harvester'));
+        let actualNumber = this.workers.length;
+
+        for(const worker of this.workers) {
+            if(HarvestManager.creepNearDeath(worker.creep)) {
+                actualNumber--;
             }
         }
+
+        for(let i = actualNumber; i < harvestNumber; i++){
+            requests.push(new SpawnRequest(HarvestManager.type, 'harvester'));
+        }
+
         return requests;
     }
 
