@@ -9,7 +9,9 @@ import { Manager } from "./manager";
 
 export class ConstructionManager extends Manager {
     public static type = 'construction';
+    public static siteFrequency = 50; // 101;
     public static refillRatio = 0.5;
+    public static targetSites = 3;
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
@@ -17,36 +19,80 @@ export class ConstructionManager extends Manager {
         for(let i = this.workers.length; i < constructNumber; i++){
             requests.push(new SpawnRequest(ConstructionManager.type, 'worker'));
         }
-        for(const i in this.workers) {
-            const ttl = this.workers[i].creep.ticksToLive;
+        for(const worker of this.workers) {
+            const ttl = worker.creep.ticksToLive;
             if(ttl && ttl < 50) {
                 requests.push(new SpawnRequest(ConstructionManager.type, 'worker'));
             }
-            else if(this.workers[i].creep.carry.energy < ConstructionManager.refillRatio * this.workers[i].creep.carryCapacity) {
-                requests.push(new DropoffRequest(ConstructionManager.type, this.workers[i].creep));
+            else if(worker.creep.carry.energy < ConstructionManager.refillRatio * worker.creep.carryCapacity) {
+                requests.push(new DropoffRequest(ConstructionManager.type, worker.creep));
             }
         }
         return requests;
     }
 
+    public placeSites(): void {
+        let seed: {x: number, y: number} = {x: -1, y: -1};
+        if(this.parent.capital.memory.seedX && this.parent.capital.memory.seedY) {
+            seed.x = this.parent.capital.memory.seedX;
+            seed.y = this.parent.capital.memory.seedY;
+        }
+        else {
+            seed = calculateOptimalPosition(this.parent.capital, 5, 0.5, -1, 1);
+            this.parent.capital.memory.seedX = seed.x;
+            this.parent.capital.memory.seedY = seed.y;
+        }
+
+        let sites = this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES).length;
+        for(const structure of buildOrder) {
+            if(this.parent.capital.controller && CONTROLLER_STRUCTURES[structure][this.parent.capital.controller.level] > 0 &&
+                (!(structure in [STRUCTURE_CONTAINER, STRUCTURE_ROAD, STRUCTURE_WALL, STRUCTURE_RAMPART]) || this.parent.capital.controller.level >= 3)) {
+
+                for(const seedRelativePosition of bunkerTemplate[structure]) {
+                    const trueX = seed.x + seedRelativePosition.dx;
+                    const trueY = seed.y + seedRelativePosition.dy;
+                    const retVal = this.parent.capital.createConstructionSite(trueX, trueY, structure);
+
+                    if(retVal === OK) {
+                        sites++;
+
+                        if(sites >= ConstructionManager.targetSites) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if(sites >= ConstructionManager.targetSites) {
+                break;
+            }
+        }
+
+        // TODO(Daniel): Add arbitrary roads, containers, extractor, walls, etc.
+        // TODO(Daniel): Make the bunker layout a little less brittle
+    }
+
     public manage(): void {
-        // TODO: add automatic placing of construction sites
+        if(Game.time % ConstructionManager.siteFrequency === 0) {
+            this.placeSites()
+        }
+
         const unpairedSites: Set<string> = new Set<string>();
         const sites: ConstructionSite[] = this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES);
 
-        for(const i in sites) {
-            unpairedSites.add(sites[i].id);
+        for(const site of sites) {
+            unpairedSites.add(site.id);
         }
 
         const idleWorkers: WorkerCreep[] = [];
     
-        for(const i in this.workers) {
-            if(this.workers[i].job instanceof IdleJob) {
-                idleWorkers.push(this.workers[i]);
+        for(const worker of this.workers) {
+            if(worker.job instanceof IdleJob) {
+                idleWorkers.push(worker);
             }
-            else if(this.workers[i].job instanceof ConstructJob) {
-                const site = (this.workers[i].job as ConstructJob).site;
-                const ttl = this.workers[i].creep.ticksToLive;
+            else if(worker.job instanceof ConstructJob) {
+                const site = (worker.job as ConstructJob).site;
+                const ttl = worker.creep.ticksToLive;
                 if(ttl && ttl >= 50 && site) {
                     unpairedSites.delete(site.id);
                 }
@@ -79,7 +125,7 @@ export class ConstructionManager extends Manager {
     }
 }
 
-const buildOrder: StructureConstant[] = [
+const buildOrder: BuildableStructureConstant[] = [
     STRUCTURE_SPAWN,
     STRUCTURE_EXTENSION,
     STRUCTURE_TOWER,
@@ -92,7 +138,7 @@ const buildOrder: StructureConstant[] = [
 ]
 
 const bunkerTemplate: {[key: string]: Array<{dx: number, dy: number}>} = {
-    STRUCTURE_EXTENSION: [
+    [STRUCTURE_EXTENSION]: [
         {dx: -3, dy: 2}, {dx: -3, dy: 1}, {dx: -3, dy: -1}, {dx: -3, dy: -2}, {dx: -2, dy: -3}, {dx: -1, dy: -3},
         {dx: 1, dy: -3}, {dx: 2, dy: -3}, {dx: 3, dy: -2}, {dx: 3, dy: -1}, {dx: 3, dy: 1}, {dx: 3, dy: 2},
         {dx: 2, dy: 3}, {dx: 1, dy: 3}, {dx: -1, dy: 3}, {dx: -2, dy: 3}, {dx: -4, dy: 3}, {dx: -4, dy: 1},
@@ -104,9 +150,9 @@ const bunkerTemplate: {[key: string]: Array<{dx: number, dy: number}>} = {
         {dx: 5, dy: -2}, {dx: 5, dy: 0}, {dx: 5, dy: 2}, {dx: 5, dy: 3}, {dx: 5, dy: 4}, {dx: 4, dy: 5},
         {dx: 3, dy: 5}, {dx: 2, dy: 5}, {dx: 0, dy: 5}, {dx: -2, dy: 5}, {dx: -3, dy: 5}, {dx: -4, dy: 5}
     ],
-    STRUCTURE_LINK: [{dx: -1, dy: 2}],
-    STRUCTURE_POWER_SPAWN: [{dx: 0, dy: 2}],
-    STRUCTURE_RAMPART: [
+    [STRUCTURE_LINK]: [{dx: -1, dy: 2}],
+    [STRUCTURE_POWER_SPAWN]: [{dx: 0, dy: 2}],
+    [STRUCTURE_RAMPART]: [
         {dx: 0, dy: 0}, {dx: -1, dy: 0}, {dx: -1, dy: -1}, {dx: 0, dy: -1}, {dx: 1, dy: -1}, {dx: 1, dy: 0},
         {dx: 1, dy: 1}, {dx: 0, dy: 1}, {dx: -1, dy: 1}, {dx: -2, dy: 2}, {dx: -2, dy: 1}, {dx: -2, dy: 0},
         {dx: -2, dy: -1}, {dx: -2, dy: -2}, {dx: -1, dy: -2}, {dx: 0, dy: -2}, {dx: 1, dy: -2}, {dx: 2, dy: -2},
@@ -115,7 +161,7 @@ const bunkerTemplate: {[key: string]: Array<{dx: number, dy: number}>} = {
         {dx: -3, dy: -2}, {dx: -2, dy: -3}, {dx: -1, dy: -3}, {dx: 1, dy: -3}, {dx: 2, dy: -3}, {dx: 3, dy: -2},
         {dx: 3, dy: -1}, {dx: 3, dy: 1}, {dx: 3, dy: 2}, {dx: 2, dy: 3}, {dx: 1, dy: 3}
     ],
-    STRUCTURE_ROAD: [
+    [STRUCTURE_ROAD]: [
         {dx: -1, dy: 0}, {dx: -1, dy: -1}, {dx: 0, dy: -1}, {dx: 1, dy: -1}, {dx: 1, dy: 0}, {dx: 1, dy: 1},
         {dx: 0, dy: 1}, {dx: -1, dy: 1}, {dx: -2, dy: 2}, {dx: -2, dy: -2}, {dx: 2, dy: -2}, {dx: 2, dy: 2},
         {dx: 0, dy: 3}, {dx: -3, dy: 3}, {dx: -3, dy: 0}, {dx: -3, dy: -3}, {dx: 0, dy: -3}, {dx: 3, dy: -3},
@@ -125,10 +171,10 @@ const bunkerTemplate: {[key: string]: Array<{dx: number, dy: number}>} = {
         {dx: 5, dy: 5}, {dx: 1, dy: 5}, {dx: -1, dy: 5}, {dx: -5, dy: 5}, {dx: -5, dy: 1}, {dx: -5, dy: -1},
         {dx: -5, dy: -5}, {dx: -1, dy: -5}, {dx: 1, dy: -5}, {dx: 5, dy: -5}, {dx: 5, dy: -1}, {dx: 5, dy: 1}
     ],
-    STRUCTURE_SPAWN: [{dx: -2, dy: 0}, {dx: 0, dy: -2}, {dx: 2, dy: 0}],
-    STRUCTURE_STORAGE: [{dx: 0, dy: 0}],
-    STRUCTURE_TERMINAL: [{dx: 1, dy: 2}],
-    STRUCTURE_TOWER: [{dx: -2, dy: 1}, {dx: -2, dy: -1}, {dx: -1, dy: -1}, {dx: 1, dy: -2}, {dx: 2, dy: -1}, {dx: -2, dy: 1}]
+    [STRUCTURE_SPAWN]: [{dx: -2, dy: 0}, {dx: 0, dy: -2}, {dx: 2, dy: 0}],
+    [STRUCTURE_STORAGE]: [{dx: 0, dy: 0}],
+    [STRUCTURE_TERMINAL]: [{dx: 1, dy: 2}],
+    [STRUCTURE_TOWER]: [{dx: -2, dy: 1}, {dx: -2, dy: -1}, {dx: -1, dy: -1}, {dx: 1, dy: -2}, {dx: 2, dy: -1}, {dx: -2, dy: 1}]
 };
 
 function calculateOptimalPosition (room: Room, minWallDist: number, controllerWeight: number, exitWeight: number, sourceWeight: number): {x: number, y: number} {

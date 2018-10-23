@@ -6,9 +6,9 @@ interface CreepMemory {
 }
 
 interface RoomMemory {
-  parent: string;
-  seedX: number;
-  seedY: number;
+  parent: string | null;
+  seedX: number | null;
+  seedY: number | null;
 }
 
 interface Memory {
