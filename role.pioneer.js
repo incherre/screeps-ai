@@ -6,7 +6,7 @@ A pioneer should attempt to build a spawn in a new room.
 // ***** Options *****
 var maxPioneerParts = 11; // the maximum number of parts a pioneer can have
 var maxPioneers = 4;
-var _target = undefined; // set to undefined to turn off
+var _target = 'E7S3'; // set to undefined to turn off
 // ***** End *****
 
 var find = require('manager.roomInfo');
@@ -97,7 +97,7 @@ var _shouldMake = function(room) {
         return false;
     }
     
-    if(Game.map.getRoomLinearDistance(room.name, _target) >= 4) {
+    if(Game.map.getRoomLinearDistance(room.name, _target) > 4) {
         return false;
     }
     

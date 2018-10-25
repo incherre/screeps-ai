@@ -23,9 +23,8 @@ var _run = function(creep) {
 	}
 
 	if(creep.memory.working) {
-        if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-            creep.moveTo(creep.room.controller, {maxRooms: 1});
-        }
+        creep.upgradeController(creep.room.controller);
+        creep.moveTo(creep.room.controller, {maxRooms: 1});
     }
     else {
         var target1 = creep.pos.findClosestByRange(find.getGroundEnergy(creep.room));

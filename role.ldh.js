@@ -4,10 +4,12 @@ These creeps should harvest energy from adjacent rooms and bring it back to the 
 */
 
 // ***** Options *****
-var maxLdhParts = 7;
+var maxLdhParts = 9;
 var targets = [
     {source: {room: "E1S6", id:"5bbcacfc9099fc012e6366d9"}, dropoff: {room: "E1S7", id:"5bbe54b11b8845779a1e79ea"}},
-    {source: {room: "E3S5", id:"5bbcad189099fc012e6369e3"}, dropoff: {room: "E3S4", id:"5bc2a5132183d2326fc83ea7"}}
+    {source: {room: "E3S5", id:"5bbcad189099fc012e6369e3"}, dropoff: {room: "E3S4", id:"5bc2a5132183d2326fc83ea7"}},
+    {source: {room: "E6S3", id:"5bbcad469099fc012e637031"}, dropoff: {room: "E7S3", id:"5bd09c0f5d1113251e695fec"}},
+    {source: {room: "E6S3", id:"5bbcad469099fc012e63702f"}, dropoff: {room: "E7S3", id:"5bd09c0f5d1113251e695fec"}}
 ];
 // ***** End *****
 
@@ -55,11 +57,21 @@ var _run = function(creep) {
 	            creep.moveTo(new RoomPosition(25, 25, creep.memory.dropoff.room), {costCallback: find.avoidSourceKeepersCallback});
 	        }
 	    }
-	    else if(creep.transfer(Game.getObjectById(creep.memory.dropoff.id), RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-	        creep.moveTo(Game.getObjectById(creep.memory.dropoff.id));
-	    }
-	    else if(creep.transfer(Game.getObjectById(creep.memory.dropoff.id), RESOURCE_ENERGY) == ERR_FULL) {
-	        creep.drop(RESOURCE_ENERGY);
+	    else {
+	        var target = Game.getObjectById(creep.memory.dropoff.id);
+	        
+	        if(_.sum(target.store) == target.storeCapacity) {
+    	        target = creep.room.storage;
+    	    }
+    	    
+    	    var success = creep.transfer(target, RESOURCE_ENERGY);
+    	    
+    	    if(success == ERR_NOT_IN_RANGE) {
+    	        creep.moveTo(target);
+    	    }
+    	    else if(success == ERR_FULL) {
+    	        creep.drop(RESOURCE_ENERGY);
+    	    }
 	    }
 	}
 	
