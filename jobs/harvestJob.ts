@@ -11,10 +11,19 @@ export class HarvestJob extends Job {
             // if the source doesn't exist then we can't go there
             return false;
         }
+
+        const containers = this.source.pos.findInRange(FIND_STRUCTURES, 1, {filter: (struct) => struct.structureType === STRUCTURE_CONTAINER});
     
-        if(creep.pos.getRangeTo(this.source) > 1) {
-            // if the creep isn't in range of the source, find a spot to target
-            this.target = creep.pos.findClosestByRange(getSpotsNear(this.source.pos));
+        if(creep.pos.getRangeTo(this.source) > 1 || (containers.length > 0 && containers[0].pos !== creep.pos)) {
+            // if the creep isn't in range of the source (or isn't on it's container), find a spot to target
+            if(containers.length > 0) {
+                this.target = containers[0].pos;
+            }
+
+            if(!this.target) {
+                this.target = creep.pos.findClosestByRange(getSpotsNear(this.source.pos));
+            }
+
             if(!this.target) {
                 this.target = this.source.pos;
             }
