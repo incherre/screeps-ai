@@ -9,7 +9,7 @@ import { Manager } from "./manager";
 
 export class ConstructionManager extends Manager {
     public static type = 'construction';
-    public static siteFrequency = 50; // 101;
+    public static siteFrequency = 50; // 101; // this is currently set low for testing
     public static refillRatio = 0.5;
     public static targetSites = 3;
 
@@ -28,7 +28,7 @@ export class ConstructionManager extends Manager {
             }
         }
 
-        for(let i = actualNumber; i < constructNumber; i++){
+        for(let i = actualNumber; i < constructNumber; i++) {
             requests.push(new SpawnRequest(ConstructionManager.type, 'worker'));
         }
 
@@ -36,6 +36,7 @@ export class ConstructionManager extends Manager {
     }
 
     public placeSites(): void {
+        // first, find the bunker seed, if it exists. generate it and save it if it does not
         let seed: {x: number, y: number} = {x: -1, y: -1};
         if(this.parent.capital.memory.seedX && this.parent.capital.memory.seedY) {
             seed.x = this.parent.capital.memory.seedX;
@@ -47,9 +48,20 @@ export class ConstructionManager extends Manager {
             this.parent.capital.memory.seedY = seed.y;
         }
 
+        let controllerLevel: number;
+        if(this.parent.capital.controller) {
+            controllerLevel = this.parent.capital.controller.level;
+        }
+        else {
+            controllerLevel = 0;
+        }
+
+        // build the bunker
         let sites = this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES).length;
-        for(const structure of buildOrder) {
-            if(this.parent.capital.controller && CONTROLLER_STRUCTURES[structure][this.parent.capital.controller.level] > 0 &&
+        for(const buildingInfo of buildOrder) {
+            const structure = buildingInfo.type;
+            const level = buildingInfo.level;
+            if(controllerLevel >= level && this.parent.capital.controller && CONTROLLER_STRUCTURES[structure][this.parent.capital.controller.level] > 0 &&
                 (!(structure in [STRUCTURE_CONTAINER, STRUCTURE_ROAD, STRUCTURE_WALL, STRUCTURE_RAMPART]) || this.parent.capital.controller.level >= 3)) {
 
                 for(const seedRelativePosition of bunkerTemplate[structure]) {
@@ -72,7 +84,44 @@ export class ConstructionManager extends Manager {
             }
         }
 
-        // TODO(Daniel): Add arbitrary roads, containers, extractor, walls, etc.
+        // place containers
+        if(sites < ConstructionManager.targetSites && controllerLevel >= 3) {
+            const sources = this.parent.capital.find(FIND_SOURCES);
+            for(const source of sources) {
+                if(sites >= ConstructionManager.targetSites) {
+                    break;
+                }
+
+                const containerCount = source.pos.findInRange(FIND_STRUCTURES, 1, {filter: (struct) => struct.structureType === STRUCTURE_CONTAINER}).length;
+                if(containerCount === 0) {
+                    let retVal;
+                    for(let dx = -1; dx <= 1; dx++) {
+                        for(let dy = -1; dy <= 1; dy++) {
+                            retVal = this.parent.capital.createConstructionSite(source.pos.x + dx, source.pos.y + dy, STRUCTURE_CONTAINER);
+
+                            if(retVal === OK) {
+                                sites++;
+                                break;
+                            }
+                        }
+
+                        if(retVal === OK) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // place extractor
+        if(sites < ConstructionManager.targetSites && controllerLevel >= 6) {
+            const mineral = this.parent.capital.find(FIND_MINERALS);
+            if(mineral.length > 0) {
+                mineral[0].pos.createConstructionSite(STRUCTURE_EXTRACTOR);
+            }
+        }
+
+        // TODO(Daniel): Add arbitrary roads, walls, labs, observer, etc.
         // TODO(Daniel): Make the bunker layout a little less brittle
     }
 
@@ -129,16 +178,16 @@ export class ConstructionManager extends Manager {
     }
 }
 
-const buildOrder: BuildableStructureConstant[] = [
-    STRUCTURE_SPAWN,
-    STRUCTURE_EXTENSION,
-    STRUCTURE_TOWER,
-    STRUCTURE_STORAGE,
-    STRUCTURE_LINK,
-    STRUCTURE_TERMINAL,
-    STRUCTURE_POWER_SPAWN,
-    STRUCTURE_ROAD,
-    STRUCTURE_RAMPART
+const buildOrder: Array<{type: BuildableStructureConstant, level: number}> = [
+    {type: STRUCTURE_SPAWN, level: 1},
+    {type: STRUCTURE_EXTENSION, level: 2},
+    {type: STRUCTURE_TOWER, level: 3},
+    {type: STRUCTURE_STORAGE, level: 4},
+    {type: STRUCTURE_LINK, level: 5},
+    {type: STRUCTURE_TERMINAL, level: 6},
+    {type: STRUCTURE_POWER_SPAWN, level: 8},
+    {type: STRUCTURE_ROAD, level: 4},
+    {type: STRUCTURE_RAMPART, level: 4},
 ]
 
 const bunkerTemplate: {[key: string]: Array<{dx: number, dy: number}>} = {
@@ -205,6 +254,9 @@ function calculateOptimalPosition (room: Room, minWallDist: number, controllerWe
             if((x === 0 || y === 0 || x === 49 || y === 49) && terrain.get(x, y) === 0) {
                 tempTerrain.exitDist = 0;
                 exitQueue.unshift({'x': x, 'y': y});
+
+                tempTerrain.wallDist = 0;
+                wallQueue.unshift({'x': x, 'y': y});
             }
 
             if(terrain.get(x, y) === TERRAIN_MASK_WALL) {
