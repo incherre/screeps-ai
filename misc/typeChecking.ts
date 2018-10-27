@@ -7,7 +7,3 @@ export interface GeneralContainer {
     store: StoreDefinition;
     storeCapacity: number;
 }
-
-export interface Ownable {
-    my: boolean;
-}

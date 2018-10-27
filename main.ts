@@ -13,8 +13,13 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
   if(Object.keys(Game.rooms).length > 0){
     const testRoom = Game.rooms[Object.keys(Game.rooms)[0]];
+    const testRoomCreeps: Creep[] = [];
 
-    const testColony = new Colony(testRoom);
+    for(const creepName in Game.creeps) {
+      testRoomCreeps.push(Game.creeps[creepName]);
+    }
+
+    const testColony = new Colony(testRoom, testRoomCreeps);
     testColony.run();
   }
 });
