@@ -26,7 +26,7 @@ export class TransportManager extends Manager {
             }
         }
 
-        for(let i = actualNumber; i < transportNumber; i++){
+        for(let i = actualNumber; i < transportNumber; i++) {
             requests.push(new SpawnRequest(TransportManager.type, 'carrier'));
         }
 
@@ -47,6 +47,35 @@ export class TransportManager extends Manager {
         idleFull.set(RESOURCE_ENERGY, []);
 
         // calculate all the things that need to get stuff, and what sort of activities are in progress
+        // first, deal with buildings
+        for(const i in this.buildings) {
+            const test = this.buildings[i] as any;
+            if((test as EnergyContainer).energy !== undefined && (test as EnergyContainer).energy < (test as EnergyContainer).energyCapacity) {
+                // this building needs filling
+                const energySet = hungryContainers.get(RESOURCE_ENERGY);
+                if(energySet) {
+                    energySet.add(this.buildings[i].id);
+                }
+            }
+            else if((test as GeneralContainer).store !== undefined && _.sum((test as GeneralContainer).store) > 0) {
+                // this building needs emptying
+                const resources = Object.keys((test as GeneralContainer).store);
+                for(const j in resources) {
+                    const resourceAmount = (test as GeneralContainer).store[resources[j] as ResourceConstant];
+                    if(resourceAmount && resourceAmount > 0) {
+                        if(!fullContainers.has(resources[j] as ResourceConstant)) {
+                            fullContainers.set(resources[j] as ResourceConstant, new Set<string>());
+                        }
+                        const resourceSet = fullContainers.get(resources[j] as ResourceConstant);
+                        if(resourceSet) {
+                            resourceSet.add(this.buildings[i].id);
+                        }
+                    }
+                }
+            }
+        }
+
+        // second, deal with other managers requesting stuff
         if(dropoffRequests) {
             shuffle(dropoffRequests);
             for(const i in dropoffRequests) {
@@ -64,31 +93,7 @@ export class TransportManager extends Manager {
             }
         }
 
-        for(const i in this.buildings) {
-            const test = this.buildings[i] as any;
-            if((test as EnergyContainer).energy !== undefined && (test as EnergyContainer).energy < (test as EnergyContainer).energyCapacity) {
-                const energySet = hungryContainers.get(RESOURCE_ENERGY);
-                if(energySet) {
-                    energySet.add(this.buildings[i].id);
-                }
-            }
-            else if((test as GeneralContainer).store !== undefined && _.sum((test as GeneralContainer).store) > 0) {
-                const resources = Object.keys((test as GeneralContainer).store);
-                for(const j in resources) {
-                    const resourceAmount = (test as GeneralContainer).store[resources[j] as ResourceConstant];
-                    if(resourceAmount && resourceAmount > 0) {
-                        if(!fullContainers.has(resources[j] as ResourceConstant)) {
-                            fullContainers.set(resources[j] as ResourceConstant, new Set<string>());
-                        }
-                        const resourceSet = fullContainers.get(resources[j] as ResourceConstant);
-                        if(resourceSet) {
-                            resourceSet.add(this.buildings[i].id);
-                        }
-                    }
-                }
-            }
-        }
-
+        // third, deal with other managers giving stuff
         if(pickupRequests) {
             shuffle(pickupRequests);
             for(const i in pickupRequests) {
@@ -105,6 +110,20 @@ export class TransportManager extends Manager {
             }
         }
 
+        // fourth, deal with resources on the ground
+        const droppedResources: Resource[] = this.parent.capital.find(FIND_DROPPED_RESOURCES);
+        shuffle(droppedResources);
+        for(const i in droppedResources) {
+            if(!fullContainers.has(droppedResources[i].resourceType)) {
+                fullContainers.set(droppedResources[i].resourceType as ResourceConstant, new Set<string>());
+            }
+            const resourceSet = fullContainers.get(droppedResources[i].resourceType as ResourceConstant);
+            if(resourceSet) {
+                resourceSet.add(droppedResources[i].id);
+            }
+        }
+
+        // fifth, deal with tombstones with resources in
         const tombstones: Tombstone[] = this.parent.capital.find(FIND_TOMBSTONES);
         shuffle(tombstones);
         for(const i in tombstones) {
@@ -125,18 +144,7 @@ export class TransportManager extends Manager {
             }
         }
 
-        const droppedResources: Resource[] = this.parent.capital.find(FIND_DROPPED_RESOURCES);
-        shuffle(droppedResources);
-        for(const i in droppedResources) {
-            if(!fullContainers.has(droppedResources[i].resourceType)) {
-                fullContainers.set(droppedResources[i].resourceType as ResourceConstant, new Set<string>());
-            }
-            const resourceSet = fullContainers.get(droppedResources[i].resourceType as ResourceConstant);
-            if(resourceSet) {
-                resourceSet.add(droppedResources[i].id);
-            }
-        }
-
+        // use the information about creeps to find creeps in need of work, and remove some requests
         for(const i in this.workers) {
             if(this.workers[i].job instanceof IdleJob) {
                 const idleCreep = this.workers[i].creep;
