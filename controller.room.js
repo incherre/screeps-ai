@@ -27,7 +27,8 @@ var creepLimits = {
 //* For the official server: (remove one slash to disable)
 var linkPairs = [
     {link1_id: '5bc03a90eeb4b90a618557c5', link2_id: '5bc03cd6c02fde0a5b926e1e'},
-    {link1_id: '5bc58fe60956ad24cdead381', link2_id: '5bc5920666205024dfb33ece'}
+    {link1_id: '5bc58fe60956ad24cdead381', link2_id: '5bc5920666205024dfb33ece'},
+    {link1_id: '5bd322ff5dafd63c259d0bf2', link2_id: '5bd32472f339b225424e7bf5'}
 ];
 //*/
 /* For my server: (add one slash to enable)

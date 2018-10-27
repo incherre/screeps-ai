@@ -5,7 +5,7 @@ A reserver should reserve rooms used for remote mining (via the ldh role) to inc
 
 // ***** Options *****
 var maxReserverParts = 2; // the maximum number of MOVE, and CLAIM parts a reserver can have
-var targets = ["E1S6", "E3S5"];
+var targets = ["E1S6", "E3S5", "E6S3"];
 // ***** End *****
 
 var find = require('manager.roomInfo');

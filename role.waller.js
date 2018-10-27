@@ -5,7 +5,7 @@ Once a waller is full, it should use the energy to repair walls and ramparts.
 */
 
 // ***** Options *****
-var maxWallerParts = 16;
+var maxWallerParts = 14;
 // ***** End *****
 
 var find = require('manager.roomInfo');
