@@ -93,7 +93,8 @@ export class ConstructionManager extends Manager {
                 }
 
                 const containerCount = source.pos.findInRange(FIND_STRUCTURES, 1, {filter: (struct) => struct.structureType === STRUCTURE_CONTAINER}).length;
-                if(containerCount === 0) {
+                const inProgress = source.pos.findInRange(FIND_MY_CONSTRUCTION_SITES, 1, {filter: (site) => site.structureType === STRUCTURE_CONTAINER}).length;
+                if(containerCount === 0 && inProgress === 0) {
                     let retVal;
                     for(let dx = -1; dx <= 1; dx++) {
                         for(let dy = -1; dy <= 1; dy++) {
