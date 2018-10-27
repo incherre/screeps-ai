@@ -13,8 +13,12 @@ export function getSpotsNear(position: RoomPosition, range:number = 1): RoomPosi
     if(Game.rooms[position.roomName]) {
         const room = Game.rooms[position.roomName];
         const potentialTargets: RoomPosition[] = [];
+        const minY = Math.max(position.y - range, 1);
+        const minX = Math.max(position.x - range, 1);
+        const maxY = Math.min(position.y + range, 48);
+        const maxX = Math.min(position.x + range, 48);
 
-        const objects = room.lookAtArea(position.y - range, position.x - range, position.y + range, position.x + range, false);
+        const objects = room.lookAtArea(minY, minX, maxY, maxX, false);
         for(const y in objects) {
             for(const x in objects[y]) {
                 let blocked = false;
