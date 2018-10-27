@@ -61,12 +61,12 @@ export class Colony {
                 spawnManager.buildings.push(structures[i]);
                 transportManager.buildings.push(structures[i]);
             }
-            else if(structures[i].structureType in [STRUCTURE_EXTENSION, STRUCTURE_CONTAINER, STRUCTURE_TOWER]) {
+            else if(structures[i].structureType === STRUCTURE_EXTENSION || structures[i].structureType === STRUCTURE_CONTAINER || structures[i].structureType === STRUCTURE_TOWER) {
                 transportManager.buildings.push(structures[i]);
             }
         }
 
-        const creeps = capital.find(FIND_MY_CREEPS);
+        const creeps = Game.creeps; // Only works for one room.
         for(const i in creeps) {
             if(creeps[i].memory.managerType === HarvestManager.type) {
                 harvestManager.workers.push(new WorkerCreep(creeps[i]));
