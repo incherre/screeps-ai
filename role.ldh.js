@@ -90,8 +90,10 @@ var _run = function(creep) {
                 Memory.PROTECTOR_REQUESTS = [];
             }
             
-            Memory.PROTECTOR_REQUESTS.unshift(creep.memory.source.room);
-            creep.memory.canCall = 150;
+            if(Memory.PROTECTOR_REQUESTS.indexOf(creep.memory.source.room) == -1) {
+                Memory.PROTECTOR_REQUESTS.unshift(creep.memory.source.room);
+                creep.memory.canCall = 150;
+            }
 	    }
 	}
 }
