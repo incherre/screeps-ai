@@ -24,6 +24,7 @@ export const jobTypes: {[key: string]: (jobInfo: string) => Job} = {
 
 // -----Managers-----
 import { ConstructionManager } from "./managers/constructionManager";
+import { DefenseManager } from "./managers/defenseManager";
 import { HarvestManager } from "./managers/harvestManager";
 import { SpawnManager } from "./managers/spawnManager";
 import { TransportManager } from "./managers/transportManager";
@@ -31,6 +32,7 @@ import { UpgradeManager } from "./managers/upgradeManager";
 
 export const managerTypes: {[key: string]: (parent: Colony) => Manager} = {
     [ConstructionManager.type]: (parent: Colony) => new ConstructionManager(parent),
+    [DefenseManager.type]: (parent: Colony) => new DefenseManager(parent),
     [HarvestManager.type]: (parent: Colony) => new HarvestManager(parent),
     [SpawnManager.type]: (parent: Colony) => new SpawnManager(parent),
     [TransportManager.type]: (parent: Colony) => new TransportManager(parent),
@@ -41,5 +43,5 @@ export const buildingOwnership: {[key: string]: string[]} = {
     [STRUCTURE_SPAWN]: [SpawnManager.type, TransportManager.type],
     [STRUCTURE_EXTENSION]: [TransportManager.type],
     [STRUCTURE_CONTAINER]: [TransportManager.type],
-    [STRUCTURE_TOWER]: [TransportManager.type],
+    [STRUCTURE_TOWER]: [TransportManager.type, DefenseManager.type],
 };

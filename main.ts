@@ -11,15 +11,33 @@ export const loop = ErrorMapper.wrapLoop(() => {
     }
   }
 
-  if(Object.keys(Game.rooms).length > 0){
-    const testRoom = Game.rooms[Object.keys(Game.rooms)[0]];
-    const testRoomCreeps: Creep[] = [];
-
-    for(const creepName in Game.creeps) {
-      testRoomCreeps.push(Game.creeps[creepName]);
+  const creepMap: Map<string, Creep[]> = new Map<string, Creep[]>();
+  for(const roomName in Game.rooms) {
+    const room = Game.rooms[roomName];
+    if(room.controller && room.controller.my) {
+      creepMap.set(roomName, []);
     }
+  }
 
-    const testColony = new Colony(testRoom, testRoomCreeps);
-    testColony.run();
+  for(const creepName in Game.creeps) {
+    const creep = Game.creeps[creepName];
+    const list = creepMap.get(creep.memory.colonyRoom);
+    if(list !== undefined) {
+      list.push(creep);
+    }
+    // What to do if creep doesn't have a home?
+  }
+
+  const colonies: Colony[] = [];
+  for(const roomName of creepMap.keys()) {
+    const room = Game.rooms[roomName];
+    const creeps = creepMap.get(roomName);
+    if(room && creeps) {
+      colonies.push(new Colony(room, creeps));
+    }
+  }
+
+  for(const colony of colonies) {
+    colony.run();
   }
 });
