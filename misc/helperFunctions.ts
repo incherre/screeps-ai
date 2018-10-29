@@ -9,6 +9,68 @@ export function shuffle(a: any[]): void {
     }
 }
 
+export function getOwnName(): string {
+    if(Memory.username) {
+        return Memory.username;
+    }
+    else {
+        const struct = _.find(Game.structures);
+        if(struct && (struct as OwnedStructure).my) {
+            Memory.username = (struct as OwnedStructure).owner.username;
+            return Memory.username;
+        }
+        else {
+            return '';
+        }
+    }
+}
+
+export function getAdjacentRooms(roomName: string): string[] {
+    const roomNames: string[] = [];
+    const exits = Game.map.describeExits(roomName);
+    if(exits) {
+        // exits will be undefined in the simulation room
+        for(const exitRoomName of Object.values(exits)) {
+            if(exitRoomName) {
+                roomNames.push(exitRoomName);
+            }
+        }
+    }
+    return roomNames;
+}
+
+export function addRoomInfo(room: Room): void {
+    if(!Memory.seenRooms) {
+        Memory.seenRooms = {};
+    }
+
+    const info: {owner: string | null, level: number, lastObserved: number} = {owner: null, level: 0, lastObserved: Game.time};
+
+    if(room.controller) {
+        info.level = room.controller.level;
+
+        if(room.controller.owner) {
+            info.owner = room.controller.owner.username;
+        }
+        else if(room.controller.reservation) {
+            info.owner = room.controller.reservation.username;
+        }
+    }
+    else if(room.find(FIND_STRUCTURES, {filter: (struct) => struct.structureType === STRUCTURE_KEEPER_LAIR}).length > 0) {
+        info.owner = 'Source Keeper';
+    }
+
+    Memory.seenRooms[room.name] = info;
+}
+
+export function getRoomInfo(roomName: string): {owner: string | null, level: number, lastObserved: number} | undefined {
+    if(!Memory.seenRooms) {
+        Memory.seenRooms = {};
+    }
+
+    return Memory.seenRooms[roomName];
+}
+
 export function getSpotsNear(position: RoomPosition, range:number = 1): RoomPosition[] {
     if(Game.rooms[position.roomName]) {
         const room = Game.rooms[position.roomName];

@@ -36,6 +36,10 @@ export class SpawnManager extends Manager {
                 return body;
             }
         },
+        
+        'scout': (energyLimit: number) => {
+            return [TOUGH, MOVE, MOVE];
+        },
 
         'worker': (energyLimit: number) => {
             let soFar = 0;

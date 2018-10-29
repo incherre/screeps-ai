@@ -1,11 +1,12 @@
 import { Manager } from "./managers/manager";
 import { buildingOwnership, managerTypes } from "./manifest";
+import { getAdjacentRooms } from "./misc/helperFunctions";
 import { ScreepsRequest } from "./requests/request";
 import { WorkerCreep } from "./worker";
 
 export class Colony {
     public capital: Room;
-    public farms: Room[];
+    public farms: string[];
     public managers: {[key: string]: Manager};
     public requests: {[key: string]: ScreepsRequest[]};
 
@@ -32,14 +33,10 @@ export class Colony {
         this.managers = {};
         this.requests = {};
 
-        this.farms = []; // TODO(Daniel): somehow make sure that the rooms aren't already someone else's
-        const exits = Game.map.describeExits(capital.name);
-        if(exits) {
-            // exits will be undefined in the simulation room
-            for(const roomName of Object.values(exits)) {
-                if(roomName && Game.rooms[roomName]) {
-                    this.farms.push(Game.rooms[roomName]);
-                }
+        this.farms = [];
+        for(const roomName of getAdjacentRooms(capital.name)) {
+            if(Memory.rooms[roomName] && Memory.rooms[roomName].parent === capital.name) {
+                this.farms.push(roomName);
             }
         }
 

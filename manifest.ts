@@ -11,6 +11,7 @@ import { HarvestJob } from "./jobs/harvestJob";
 import { IdleJob } from "./jobs/idleJob";
 import { PickupJob } from "./jobs/pickupJob";
 import { RepairJob } from "./jobs/repairJob";
+import { ScoutJob } from "./jobs/scoutJob";
 import { UpgradeJob } from "./jobs/upgradeJob";
 
 export const jobTypes: {[key: string]: (jobInfo: string) => Job} = {
@@ -21,12 +22,14 @@ export const jobTypes: {[key: string]: (jobInfo: string) => Job} = {
     [IdleJob.type]: (jobInfo: string) => new IdleJob(),
     [PickupJob.type]: (jobInfo: string) => new PickupJob(jobInfo),
     [RepairJob.type]: (jobInfo: string) => new RepairJob(jobInfo),
+    [ScoutJob.type]: (jobInfo: string) => new ScoutJob(jobInfo),
     [UpgradeJob.type]: (jobInfo: string) => new UpgradeJob(jobInfo),
 };
 
 // -----Managers-----
 import { ConstructionManager } from "./managers/constructionManager";
 import { DefenseManager } from "./managers/defenseManager";
+import { ExplorationManager } from "./managers/explorationManager";
 import { HarvestManager } from "./managers/harvestManager";
 import { RepairManager } from "./managers/repairManager";
 import { SpawnManager } from "./managers/spawnManager";
@@ -36,6 +39,7 @@ import { UpgradeManager } from "./managers/upgradeManager";
 export const managerTypes: {[key: string]: (parent: Colony) => Manager} = {
     [ConstructionManager.type]: (parent: Colony) => new ConstructionManager(parent),
     [DefenseManager.type]: (parent: Colony) => new DefenseManager(parent),
+    [ExplorationManager.type]: (parent: Colony) => new ExplorationManager(parent),
     [HarvestManager.type]: (parent: Colony) => new HarvestManager(parent),
     [RepairManager.type]: (parent: Colony) => new RepairManager(parent),
     [SpawnManager.type]: (parent: Colony) => new SpawnManager(parent),
@@ -48,4 +52,5 @@ export const buildingOwnership: {[key: string]: string[]} = {
     [STRUCTURE_EXTENSION]: [TransportManager.type],
     [STRUCTURE_CONTAINER]: [TransportManager.type],
     [STRUCTURE_TOWER]: [TransportManager.type, DefenseManager.type, RepairManager.type],
+    [STRUCTURE_OBSERVER]: [ExplorationManager.type],
 };

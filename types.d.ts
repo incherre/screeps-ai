@@ -12,8 +12,8 @@ interface RoomMemory {
 }
 
 interface Memory {
-  uuid: number;
-  log: any;
+  seenRooms: {[key: string]: {owner: string | null, level: number, lastObserved: number}} | null;
+  username: string | null;
 }
 
 declare namespace NodeJS {
