@@ -98,9 +98,8 @@ var _run = function(creep) {
             else if(find.getConstructionSites(creep.room).length > 0) { // should build
                 // build
                 var target = creep.pos.findClosestByRange(find.getConstructionSites(creep.room));
-                if(creep.build(target) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(target, {maxRooms: 1});
-			    }
+                creep.build(target);
+                creep.moveTo(target, {maxRooms: 1, range: 1});
             }
             else if(find.getRepairable(creep.room).length > 0) { // should regular repair
                 // repair
