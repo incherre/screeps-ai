@@ -38,12 +38,12 @@ var _run = function(creep) {
         }
     }
     
-    if(creep.hits < 0.5 * creep.hitsMax && creep.memory.canCall == 0) {
+    if(creep.hits < (0.5 * creep.hitsMax) && creep.memory.canCall == 0) {
         if(!Memory.HEALER_REQUESTS) {
             Memory.HEALER_REQUESTS = [];
         }
         Memory.HEALER_REQUESTS.unshift(creep.room.name);
-        canCall = 150;
+        creep.memory.canCall = 150;
     }
 }
 
