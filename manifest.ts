@@ -10,6 +10,7 @@ import { DropoffJob } from "./jobs/dropoffJob";
 import { HarvestJob } from "./jobs/harvestJob";
 import { IdleJob } from "./jobs/idleJob";
 import { PickupJob } from "./jobs/pickupJob";
+import { RepairJob } from "./jobs/repairJob";
 import { UpgradeJob } from "./jobs/upgradeJob";
 
 export const jobTypes: {[key: string]: (jobInfo: string) => Job} = {
@@ -19,6 +20,7 @@ export const jobTypes: {[key: string]: (jobInfo: string) => Job} = {
     [HarvestJob.type]: (jobInfo: string) => new HarvestJob(jobInfo),
     [IdleJob.type]: (jobInfo: string) => new IdleJob(),
     [PickupJob.type]: (jobInfo: string) => new PickupJob(jobInfo),
+    [RepairJob.type]: (jobInfo: string) => new RepairJob(jobInfo),
     [UpgradeJob.type]: (jobInfo: string) => new UpgradeJob(jobInfo),
 };
 
@@ -26,6 +28,7 @@ export const jobTypes: {[key: string]: (jobInfo: string) => Job} = {
 import { ConstructionManager } from "./managers/constructionManager";
 import { DefenseManager } from "./managers/defenseManager";
 import { HarvestManager } from "./managers/harvestManager";
+import { RepairManager } from "./managers/repairManager";
 import { SpawnManager } from "./managers/spawnManager";
 import { TransportManager } from "./managers/transportManager";
 import { UpgradeManager } from "./managers/upgradeManager";
@@ -34,6 +37,7 @@ export const managerTypes: {[key: string]: (parent: Colony) => Manager} = {
     [ConstructionManager.type]: (parent: Colony) => new ConstructionManager(parent),
     [DefenseManager.type]: (parent: Colony) => new DefenseManager(parent),
     [HarvestManager.type]: (parent: Colony) => new HarvestManager(parent),
+    [RepairManager.type]: (parent: Colony) => new RepairManager(parent),
     [SpawnManager.type]: (parent: Colony) => new SpawnManager(parent),
     [TransportManager.type]: (parent: Colony) => new TransportManager(parent),
     [UpgradeManager.type]: (parent: Colony) => new UpgradeManager(parent),
@@ -43,5 +47,5 @@ export const buildingOwnership: {[key: string]: string[]} = {
     [STRUCTURE_SPAWN]: [SpawnManager.type, TransportManager.type],
     [STRUCTURE_EXTENSION]: [TransportManager.type],
     [STRUCTURE_CONTAINER]: [TransportManager.type],
-    [STRUCTURE_TOWER]: [TransportManager.type, DefenseManager.type],
+    [STRUCTURE_TOWER]: [TransportManager.type, DefenseManager.type, RepairManager.type],
 };
