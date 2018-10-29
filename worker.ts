@@ -14,7 +14,7 @@ export class WorkerCreep {
     public work(): void {
         if(this.job.ttr === Infinity) {
             // this can happen when the target is in another room
-            this.job.ttr = 25; // 25 is the distance from the center of a room to an exit
+            this.job.ttr = 5; // 5 is an arbitrary low number
         }
 
         if(this.job.ttr <= 0) {
