@@ -9,12 +9,18 @@ import { Manager } from "./manager";
 export class HarvestManager extends Manager {
     public static type = 'harvest';
 
-    private static creepNearDeath(creep: Creep): boolean {
-        const walkTime = 4;
-        const maxRoomDistance = 50;
-        if(creep.ticksToLive && creep.ticksToLive < (walkTime * maxRoomDistance)) {
+    private creepNearDeath(creep: Creep): boolean {
+        const ticksPerStep = Math.ceil(creep.body.length / (creep.getActiveBodyparts(MOVE) * 2));
+        const spawnTime = CREEP_SPAWN_TIME * creep.body.length;
+        const walkDistanceEstimate = (Game.map.getRoomLinearDistance(creep.pos.roomName, this.parent.capital.name) + 0.5) * 50;
+        const walkTime = ticksPerStep * walkDistanceEstimate;
+
+        if(creep.ticksToLive && creep.ticksToLive < (spawnTime + walkTime)) {
             const nearestSpawn  = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
-            if(nearestSpawn && creep.ticksToLive <= creep.pos.getRangeTo(nearestSpawn)) {
+            if(nearestSpawn && creep.ticksToLive <= (spawnTime + (creep.pos.getRangeTo(nearestSpawn) * ticksPerStep))) {
+                return true;
+            }
+            else if(!nearestSpawn) {
                 return true;
             }
         }
@@ -24,11 +30,23 @@ export class HarvestManager extends Manager {
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
-        const harvestNumber = this.parent.capital.find(FIND_SOURCES).length;
+
+        let harvestNumber = this.parent.capital.find(FIND_SOURCES).length;
+
+        if(this.parent.capital.storage) {
+            for(const roomName of this.parent.farms) {
+                if(Game.rooms[roomName]) {
+                    harvestNumber += Game.rooms[roomName].find(FIND_SOURCES).length;
+                }
+                else {
+                    // TODO(Daniel): Request visibility from exploration manager
+                }
+            }
+        }
         let actualNumber = this.workers.length;
 
         for(const worker of this.workers) {
-            if(HarvestManager.creepNearDeath(worker.creep)) {
+            if(this.creepNearDeath(worker.creep)) {
                 actualNumber--;
             }
         }
@@ -43,9 +61,19 @@ export class HarvestManager extends Manager {
     public manage(): void {
         const unpairedSources: Set<string> = new Set<string>();
         const sources: Source[] = this.parent.capital.find(FIND_SOURCES);
+        for(const source of sources) {
+            unpairedSources.add(source.id);
+        }
 
-        for(const i in sources) {
-            unpairedSources.add(sources[i].id);
+        if(this.parent.capital.storage) {
+            for(const roomName of this.parent.farms) {
+                if(Game.rooms[roomName]) {
+                    const roomSources  = Game.rooms[roomName].find(FIND_SOURCES);
+                    for(const source of roomSources) {
+                        unpairedSources.add(source.id);
+                    }
+                }
+            }
         }
 
         const idleWorkers: WorkerCreep[] = [];
@@ -55,9 +83,9 @@ export class HarvestManager extends Manager {
                 idleWorkers.push(this.workers[i]);
             }
             else if(this.workers[i].job instanceof HarvestJob) {
-                const source = (this.workers[i].job as HarvestJob).source;
-                if(!HarvestManager.creepNearDeath(this.workers[i].creep) && source) {
-                    unpairedSources.delete(source.id);
+                const sourceId = (this.workers[i].job as HarvestJob).sourceId;
+                if(!this.creepNearDeath(this.workers[i].creep) && sourceId) {
+                    unpairedSources.delete(sourceId);
                 }
             }
         }
