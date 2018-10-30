@@ -4,28 +4,51 @@ import { Job } from "./job";
 
 export class RepairJob extends Job {
     public static type: string = 'repair';
-
-    public repairable: Structure | null;
     public static range: number = 3;
 
+    public repairable: Structure | null;
+    public repairableId: string | null;
+    public repairableRoomName: string | null;
+
     public recalculateTarget(creep: Creep): boolean {
-        if(this.repairable) {
-            if(creep.pos.getRangeTo(this.repairable) > RepairJob.range) {
+        if(this.repairableId && this.repairableRoomName) {
+            if(this.repairableRoomName === creep.pos.roomName && this.repairable && creep.pos.getRangeTo(this.repairable) > RepairJob.range) {
                 this.target = creep.pos.findClosestByRange(getSpotsNear(this.repairable.pos, RepairJob.range));
                 if(!this.target) {
                     this.target = this.repairable.pos;
                 }
+            }
+            else if(this.repairableRoomName !== creep.pos.roomName) {
+                // find a path to the desired room
+                const exitConstant = creep.room.findExitTo(this.repairableRoomName);
+    
+                if(exitConstant === ERR_NO_PATH || exitConstant === ERR_INVALID_ARGS) {
+                    return false;
+                }
+    
+                this.target = creep.pos.findClosestByRange(exitConstant);
+            }
+            else {
+                this.target = creep.pos;
+            }
 
+            if(!this.target) {
+                this.target = new RoomPosition(25, 25, this.repairableRoomName);
+                this.ttr = 25;
+            }
+            else {
                 const range = creep.pos.getRangeTo(this.target);
                 const halfDistance = Math.max(Math.ceil(range / 2), 5);
                 this.ttr = Math.min(range, halfDistance);
             }
-            else {
-                this.ttr = 0;
-                this.target = creep.pos;
-            }
 
-            return creep.getActiveBodyparts(WORK) > 0 && creep.getActiveBodyparts(CARRY) > 0 && this.repairable.hits < this.repairable.hitsMax && creep.carry.energy > 0;
+            if(this.repairable) {
+                return creep.getActiveBodyparts(WORK) > 0 && creep.getActiveBodyparts(CARRY) > 0 && this.repairable.hits < this.repairable.hitsMax &&
+                (creep.pos.getRangeTo(this.repairable) > RepairJob.range || creep.carry.energy > 0);
+            }
+            else {
+                return creep.getActiveBodyparts(WORK) > 0 && creep.getActiveBodyparts(CARRY) > 0;
+            }
         }
         else {
             return false;
@@ -37,15 +60,23 @@ export class RepairJob extends Job {
     }
 
     public getJobInfo(): string {
-        if(this.repairable && this.target) {
-            return [this.repairable.id, this.ttr, this.target.x, this.target.y, this.target.roomName].join();
-        }
-        else if(this.repairable) {
-            return [this.repairable.id, this.ttr, -1, -1, 'none'].join();
+        let vals: any[];
+
+        if(this.repairableId && this.repairableRoomName) {
+            vals = [this.repairableId, this.repairableRoomName, this.ttr];
         }
         else {
             return '';
         }
+
+        if(this.target) {
+            vals = vals.concat([this.target.x, this.target.y, this.target.roomName]);
+        }
+        else {
+            vals = vals.concat([-1, -1, 'none']);
+        }
+
+        return vals.join();
     }
 
     public do(creep: Creep): void {
@@ -58,21 +89,27 @@ export class RepairJob extends Job {
         super();
         if(jobInfo instanceof Structure) {
             this.repairable = jobInfo;
+            this.repairableId = jobInfo.id;
+            this.repairableRoomName = jobInfo.room.name;
         }
         else if (jobInfo !== '') {
             const fields = jobInfo.split(',');
-            this.repairable = Game.getObjectById(fields[0]);
-            this.ttr = Number(fields[1]);
+            this.repairableId = fields[0];
+            this.repairable = Game.getObjectById(this.repairableId);
+            this.repairableRoomName = fields[1];
+            this.ttr = Number(fields[2]);
 
-            if(Number(fields[2]) >= 0) {
-                const x = Number(fields[2]);
-                const y = Number(fields[3]);
-                const roomName = fields[4];
+            if(Number(fields[3]) >= 0) {
+                const x = Number(fields[3]);
+                const y = Number(fields[4]);
+                const roomName = fields[5];
                 this.target = new RoomPosition(x, y, roomName);
             }
         }
         else {
             this.repairable = null;
+            this.repairableId = null;
+            this.repairableRoomName = null;
         }
         
         if(this.repairable && !this.target) {
