@@ -10,19 +10,34 @@ export class ConstructJob extends Job {
 
     public recalculateTarget(creep: Creep): boolean {
         if(this.site) {
-            if(creep.pos.getRangeTo(this.site) > ConstructJob.range) {
+            if(this.site.pos.roomName === creep.pos.roomName && creep.pos.getRangeTo(this.site) > ConstructJob.range) {
                 this.target = creep.pos.findClosestByRange(getSpotsNear(this.site.pos, ConstructJob.range));
                 if(!this.target) {
                     this.target = this.site.pos;
                 }
+            }
+            else if(this.site.pos.roomName !== creep.pos.roomName) {
+                // find a path to the desired room
+                const exitConstant = creep.room.findExitTo(this.site.pos.roomName);
 
+                if(exitConstant === ERR_NO_PATH || exitConstant === ERR_INVALID_ARGS) {
+                    return false;
+                }
+
+                this.target = creep.pos.findClosestByRange(exitConstant);
+            }
+            else {
+                this.target = creep.pos;
+            }
+
+            if(!this.target) {
+                this.target = new RoomPosition(25, 25, this.site.pos.roomName);
+                this.ttr = 25;
+            }
+            else {
                 const range = creep.pos.getRangeTo(this.target);
                 const halfDistance = Math.max(Math.ceil(range / 2), 5);
                 this.ttr = Math.min(range, halfDistance);
-            }
-            else {
-                this.ttr = 0;
-                this.target = creep.pos;
             }
 
             return creep.getActiveBodyparts(WORK) > 0 && creep.getActiveBodyparts(CARRY) > 0;
@@ -61,7 +76,7 @@ export class ConstructJob extends Job {
         }
         else if (jobInfo !== '') {
             const fields = jobInfo.split(',');
-            this.site = Game.getObjectById(fields[0]);
+            this.site = Game.constructionSites[fields[0]];
             this.ttr = Number(fields[1]);
 
             if(Number(fields[2]) >= 0) {

@@ -67,17 +67,17 @@ export class HarvestJob extends Job {
         let vals: any[];
 
         if(this.sourceId && this.sourceRoomName) {
-            vals = [this.sourceId, this.sourceRoomName, this.ttr]
+            vals = [this.sourceId, this.sourceRoomName, this.ttr];
         }
         else {
             return '';
         }
 
         if(this.target) {
-            vals.concat([this.target.x, this.target.y, this.target.roomName]);
+            vals = vals.concat([this.target.x, this.target.y, this.target.roomName]);
         }
         else {
-            vals.concat([-1, -1, 'none']);
+            vals = vals.concat([-1, -1, 'none']);
         }
 
         return vals.join();
