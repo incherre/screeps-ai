@@ -114,7 +114,7 @@ export class DropoffJob extends Job {
     public do(creep: Creep): void {
         if(this.container) {
             creep.transfer(this.container, this.resourceType);
-            this.container = null;
+            this.containerId = null;
         }
     }
 

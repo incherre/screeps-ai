@@ -12,7 +12,7 @@ export class UpgradeManager extends Manager {
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
-        const upgradeNumber = 2;
+        const upgradeNumber = 2 + this.parent.capital.find(FIND_DROPPED_RESOURCES, {filter: (reso) => reso.resourceType === RESOURCE_ENERGY && reso.amount > 50}).length;
         let actualNumber = this.workers.length;
 
         for(const worker of this.workers) {
