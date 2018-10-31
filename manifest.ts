@@ -48,9 +48,9 @@ export const managerTypes: {[key: string]: (parent: Colony) => Manager} = {
 };
 
 export const buildingOwnership: {[key: string]: string[]} = {
-    [STRUCTURE_SPAWN]: [SpawnManager.type, TransportManager.type],
-    [STRUCTURE_EXTENSION]: [TransportManager.type],
-    [STRUCTURE_CONTAINER]: [TransportManager.type],
-    [STRUCTURE_TOWER]: [TransportManager.type, DefenseManager.type, RepairManager.type],
+    [STRUCTURE_SPAWN]: [SpawnManager.type],
+    [STRUCTURE_EXTENSION]: [],
+    [STRUCTURE_CONTAINER]: [],
+    [STRUCTURE_TOWER]: [DefenseManager.type, RepairManager.type],
     [STRUCTURE_OBSERVER]: [ExplorationManager.type],
 };

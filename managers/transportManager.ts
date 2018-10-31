@@ -3,7 +3,6 @@ import { DropoffJob } from "../jobs/dropoffJob";
 import { IdleJob } from "../jobs/idleJob";
 import { PickupJob } from "../jobs/pickupJob";
 import { shuffle } from "../misc/helperFunctions";
-import { EnergyContainer, GeneralContainer } from "../misc/typeChecking";
 import { DropoffRequest } from "../requests/dropoffRequest";
 import { PickupRequest } from "../requests/pickupRequest";
 import { ScreepsRequest } from "../requests/request";
@@ -34,48 +33,18 @@ export class TransportManager extends Manager {
     }
 
     public manage(): void {
-        const dropoffRequests: ScreepsRequest[] = this.parent.requests[DropoffRequest.type];
-        const pickupRequests: ScreepsRequest[] = this.parent.requests[PickupRequest.type];
         const hungryContainers: Map<ResourceConstant, Set<string>> = new Map<ResourceConstant, Set<string>>();
-        hungryContainers.set(RESOURCE_ENERGY, new Set<string>());
         const fullContainers: Map<ResourceConstant, Set<string>> = new Map<ResourceConstant, Set<string>>();
         const resourcesGettingGot: Set<ResourceConstant> = new Set<ResourceConstant>();
 
         const idleEmpty: WorkerCreep[] = [];
         const idlePartFull: WorkerCreep[] = [];
         const idleFull: Map<ResourceConstant, WorkerCreep[]> = new Map<ResourceConstant, WorkerCreep[]>();
-        idleFull.set(RESOURCE_ENERGY, []);
 
         // calculate all the things that need to get stuff, and what sort of activities are in progress
-        // first, deal with buildings
-        for(const i in this.buildings) {
-            const test = this.buildings[i] as any;
-            if((test as EnergyContainer).energy !== undefined && (test as EnergyContainer).energy < (test as EnergyContainer).energyCapacity) {
-                // this building needs filling
-                const energySet = hungryContainers.get(RESOURCE_ENERGY);
-                if(energySet) {
-                    energySet.add(this.buildings[i].id);
-                }
-            }
-            else if((test as GeneralContainer).store !== undefined && _.sum((test as GeneralContainer).store) > 0) {
-                // this building needs emptying
-                const resources = Object.keys((test as GeneralContainer).store);
-                for(const j in resources) {
-                    const resourceAmount = (test as GeneralContainer).store[resources[j] as ResourceConstant];
-                    if(resourceAmount && resourceAmount > 0) {
-                        if(!fullContainers.has(resources[j] as ResourceConstant)) {
-                            fullContainers.set(resources[j] as ResourceConstant, new Set<string>());
-                        }
-                        const resourceSet = fullContainers.get(resources[j] as ResourceConstant);
-                        if(resourceSet) {
-                            resourceSet.add(this.buildings[i].id);
-                        }
-                    }
-                }
-            }
-        }
 
-        // second, deal with other managers requesting stuff
+        // deal with other managers requesting stuff
+        const dropoffRequests: ScreepsRequest[] = this.parent.requests[DropoffRequest.type];
         if(dropoffRequests) {
             shuffle(dropoffRequests);
             for(const i in dropoffRequests) {
@@ -93,7 +62,8 @@ export class TransportManager extends Manager {
             }
         }
 
-        // third, deal with other managers giving stuff
+        // deal with other managers giving stuff
+        const pickupRequests: ScreepsRequest[] = this.parent.requests[PickupRequest.type];
         if(pickupRequests) {
             shuffle(pickupRequests);
             for(const i in pickupRequests) {
@@ -105,40 +75,6 @@ export class TransportManager extends Manager {
                     const resourceSet = fullContainers.get(asPR.resourceType as ResourceConstant);
                     if(resourceSet) {
                         resourceSet.add(asPR.container.id);
-                    }
-                }
-            }
-        }
-
-        // fourth, deal with resources on the ground
-        const droppedResources: Resource[] = this.parent.capital.find(FIND_DROPPED_RESOURCES);
-        shuffle(droppedResources);
-        for(const i in droppedResources) {
-            if(!fullContainers.has(droppedResources[i].resourceType)) {
-                fullContainers.set(droppedResources[i].resourceType as ResourceConstant, new Set<string>());
-            }
-            const resourceSet = fullContainers.get(droppedResources[i].resourceType as ResourceConstant);
-            if(resourceSet) {
-                resourceSet.add(droppedResources[i].id);
-            }
-        }
-
-        // fifth, deal with tombstones with resources in
-        const tombstones: Tombstone[] = this.parent.capital.find(FIND_TOMBSTONES);
-        shuffle(tombstones);
-        for(const i in tombstones) {
-            if(_.sum(tombstones[i].store) > 0) {
-                const resources = Object.keys(tombstones[i].store);
-                for(const j in resources) {
-                    const resourceAmount = tombstones[i].store[resources[j] as ResourceConstant];
-                    if(resourceAmount && resourceAmount > 0) {
-                        if(!fullContainers.has(resources[j] as ResourceConstant)) {
-                            fullContainers.set(resources[j] as ResourceConstant, new Set<string>());
-                        }
-                        const resourceSet = fullContainers.get(resources[j] as ResourceConstant);
-                        if(resourceSet) {
-                            resourceSet.add(tombstones[i].id);
-                        }
                     }
                 }
             }
@@ -215,18 +151,20 @@ export class TransportManager extends Manager {
         }
 
         // now actually assign creeps to do the things that need to be done
-        shuffle(idleEmpty);
-        shuffle(idlePartFull);
 
         while(idleEmpty.length > 0 && fullContainers.size > 0) {
             // pair idle and empty workers with containers that need emptying
-            const worker = idleEmpty.pop();
+            let worker = null;
             const [resourceType, resourceSet] = fullContainers.entries().next().value;
             const containerId = resourceSet.values().next().value;
             const container = Game.getObjectById(containerId);
             resourceSet.delete(containerId);
             if(resourceSet.size === 0) {
                 fullContainers.delete(resourceType);
+            }
+
+            if(container instanceof RoomObject) {
+                worker = getAndRemoveClosest(idleEmpty, container.pos);
             }
 
             if(worker && (container instanceof Structure || container instanceof Resource || container instanceof Tombstone)) {
@@ -236,17 +174,19 @@ export class TransportManager extends Manager {
 
         const energyFull =  idleFull.get(RESOURCE_ENERGY);
         const energyHungry = hungryContainers.get(RESOURCE_ENERGY);
-        if(energyFull) {
-            shuffle(energyFull);
-        }
 
         if(energyFull && energyHungry) {
             while(energyFull.length > 0 && energyHungry.size > 0) {
                 // pair idle and full workers with containers that need energy
-                const worker = energyFull.pop();
+                let worker = null;
                 const containerId = energyHungry.values().next().value;
                 const container = Game.getObjectById(containerId);
                 energyHungry.delete(containerId);
+
+                if(container instanceof RoomObject) {
+                    worker = getAndRemoveClosest(energyFull, container.pos);
+                }
+
                 if(worker && (container instanceof Structure || container instanceof Creep)) {
                     worker.job = new DropoffJob(container);
                 }
@@ -256,10 +196,15 @@ export class TransportManager extends Manager {
         if(energyHungry) {
             while(idlePartFull.length > 0 && energyHungry.size > 0) {
                 // pair idle and partially full workers with containers that need energy
-                const worker = idlePartFull.pop();
+                let worker = null;
                 const containerId = energyHungry.values().next().value;
                 const container = Game.getObjectById(containerId);
                 energyHungry.delete(containerId);
+
+                if(container instanceof RoomObject) {
+                    worker = getAndRemoveClosest(idlePartFull, container.pos);
+                }
+
                 if(worker && (container instanceof Structure || container instanceof Creep)) {
                     worker.job = new DropoffJob(container);
                 }
@@ -268,15 +213,16 @@ export class TransportManager extends Manager {
             if(energyHungry.size > 0 && !resourcesGettingGot.has(RESOURCE_ENERGY) && idleEmpty.length > 0 && this.parent.capital.storage !== undefined && this.parent.capital.storage.store.energy > 0){
                 // if there are still containers that need energy, and there are no workers going to pick up energy, and we have a store of it, and spare idle workers,
                 // then send someone to pick some up
-                const worker = idleEmpty.pop()
+                const worker = getAndRemoveClosest(idleEmpty, this.parent.capital.storage.pos);
                 if(worker) {
                     worker.job = new PickupJob(this.parent.capital.storage);
+                    resourcesGettingGot.add(RESOURCE_ENERGY);
                 }
             }
         }
 
-        if(energyFull) {
-            while(energyFull.length > 0 && this.parent.capital.storage !== undefined) {
+        if(energyFull && this.parent.capital.storage !== undefined) {
+            while(energyFull.length > 0) {
                 // if there are full workers that have nowhere to go, drop off their stuff at storage
                 const worker = energyFull.pop();
                 if(worker) {
@@ -289,15 +235,19 @@ export class TransportManager extends Manager {
         hungryContainers.delete(RESOURCE_ENERGY);
 
         for(const [resource, readyWorkers] of idleFull.entries()) {
-            shuffle(readyWorkers);
             const containerSet = hungryContainers.get(resource);
             if(containerSet) {
                 // pair workers carrying minerals with the containers that require that mineral
                 while(readyWorkers.length > 0 && containerSet.size > 0) {
-                    const worker = readyWorkers.pop();
+                    let worker = null;
                     const containerId = containerSet.values().next().value;
                     const container = Game.getObjectById(containerId);
                     containerSet.delete(containerId);
+
+                    if(container instanceof RoomObject) {
+                        worker = getAndRemoveClosest(readyWorkers, container.pos);
+                    }
+
                     if(worker && (container instanceof Structure || container instanceof Creep)) {
                         worker.job = new DropoffJob(container, resource);
                     }
@@ -305,12 +255,12 @@ export class TransportManager extends Manager {
 
                 // if we ran out of workers, assign one (if available) to go pick up something
                 if(containerSet.size > 0 && !resourcesGettingGot.has(resource) && this.parent.capital.storage !== undefined && this.parent.capital.storage.store[resource] !== undefined){
-                    let worker;
+                    let worker = null;
                     if(idleEmpty.length > 0) {
-                        worker = idleEmpty.pop();
+                        worker = getAndRemoveClosest(idleEmpty, this.parent.capital.storage.pos);
                     }
                     else if(idlePartFull.length > 0) {
-                        worker = idlePartFull.pop();
+                        worker = getAndRemoveClosest(idlePartFull, this.parent.capital.storage.pos);
                     }
 
                     if(worker) {
@@ -333,13 +283,17 @@ export class TransportManager extends Manager {
 
         while(idlePartFull.length > 0 && fullContainers.size > 0) {
             // pair remaining idle and partially full workers with containers that need emptying
-            const worker = idlePartFull.pop();
+            let worker = null;
             const [resourceType, resourceSet] = fullContainers.entries().next().value;
             const containerId = resourceSet.values().next().value;
             const container = Game.getObjectById(containerId);
             resourceSet.delete(containerId);
             if(resourceSet.size === 0) {
                 fullContainers.delete(resourceType);
+            }
+
+            if(container instanceof RoomObject) {
+                worker = getAndRemoveClosest(idlePartFull, container.pos);
             }
 
             if(worker && (container instanceof Structure || container instanceof Resource || container instanceof Tombstone)) {
@@ -354,5 +308,47 @@ export class TransportManager extends Manager {
 
     constructor (parent: Colony) {
         super(parent);
+    }
+}
+
+function getAndRemoveClosest(creeps: WorkerCreep[], pos: RoomPosition): WorkerCreep | null {
+    const roomWidth = 50;
+    let minDist = Infinity;
+    let index = -1;
+
+    for(let i = 0; i < creeps.length; i++) {
+        const creep = creeps[i].creep;
+        let dist;
+        if(creep.pos.roomName === pos.roomName) {
+            dist = creep.pos.getRangeTo(pos);
+        }
+        else {
+            const exit = creep.room.findExitTo(pos.roomName);
+            if(exit === ERR_INVALID_ARGS || exit === ERR_NO_PATH) {
+                dist = Infinity;
+            }
+            else {
+                dist = (roomWidth * Game.map.getRoomLinearDistance(creep.pos.roomName, pos.roomName));
+                const closest = creep.pos.findClosestByRange(exit);
+                if(closest) {
+                    dist += creep.pos.getRangeTo(closest);
+                }
+            }
+        }
+
+        if(dist < minDist) {
+            minDist = dist;
+            index = i;
+        }
+    }
+
+    if(minDist !== Infinity && index >= 0) {
+        const creep = creeps[index];
+        creeps[index] = creeps[creeps.length - 1];
+        creeps.pop();
+        return creep;
+    }
+    else {
+        return null;
     }
 }

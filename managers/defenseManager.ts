@@ -1,12 +1,21 @@
 import { Colony } from "../colony";
+import { DropoffRequest } from "../requests/dropoffRequest";
 import { ScreepsRequest } from "../requests/request";
 import { Manager } from "./manager";
 
 export class DefenseManager extends Manager {
     public static type: string = 'defense';
+    public static refillConstant: number = 1;
 
     public generateRequests(): ScreepsRequest[] {
-        return [];
+        const requests: ScreepsRequest[] = [];
+        for(const building of this.buildings) {
+            if(building.structureType === STRUCTURE_TOWER && (building as StructureTower).energy < (DefenseManager.refillConstant * (building as StructureTower).energyCapacity)) {
+                requests.push(new DropoffRequest(DefenseManager.type, building));
+            }
+        }
+
+        return requests;
     }
 
     public manage(): void {

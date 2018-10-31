@@ -1,6 +1,7 @@
 import { Colony } from "../colony";
 import { HarvestJob } from "../jobs/harvestJob";
 import { IdleJob } from "../jobs/idleJob";
+import { PickupRequest } from "../requests/pickupRequest";
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest } from "../requests/spawnRequest";
 import { WorkerCreep } from "../worker";
@@ -8,6 +9,8 @@ import { Manager } from "./manager";
 
 export class HarvestManager extends Manager {
     public static type = 'harvest';
+    public static minCont = 150;
+    public static minReso = 50;
 
     private creepNearDeath(creep: Creep): boolean {
         const ticksPerStep = Math.ceil(creep.body.length / (creep.getActiveBodyparts(MOVE) * 2));
@@ -31,18 +34,30 @@ export class HarvestManager extends Manager {
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
 
-        let harvestNumber = this.parent.capital.find(FIND_SOURCES).length;
+        let sources = this.parent.capital.find(FIND_SOURCES);
 
         if(this.parent.capital.storage) {
             for(const roomName of this.parent.farms) {
                 if(Game.rooms[roomName]) {
-                    harvestNumber += Game.rooms[roomName].find(FIND_SOURCES).length;
+                    sources = sources.concat(Game.rooms[roomName].find(FIND_SOURCES));
                 }
                 else {
                     // TODO(Daniel): Request visibility from exploration manager
                 }
             }
         }
+
+        for(const source of sources) {
+            for(const resource of source.pos.findInRange(FIND_DROPPED_RESOURCES, 1, {filter: (res) => res.amount > HarvestManager.minReso})) {
+                requests.push(new PickupRequest(HarvestManager.type, resource, resource.resourceType))
+            }
+
+            for(const container of source.pos.findInRange(FIND_STRUCTURES, 1, {filter: (struct) => struct.structureType === STRUCTURE_CONTAINER && struct.store.energy > HarvestManager.minCont})) {
+                requests.push(new PickupRequest(HarvestManager.type, container))
+            }
+        }
+
+        const harvestNumber = sources.length;
         let actualNumber = this.workers.length;
 
         for(const worker of this.workers) {
