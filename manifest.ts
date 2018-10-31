@@ -13,6 +13,7 @@ import { PickupJob } from "./jobs/pickupJob";
 import { RepairJob } from "./jobs/repairJob";
 import { ScoutJob } from "./jobs/scoutJob";
 import { UpgradeJob } from "./jobs/upgradeJob";
+import { VisionJob } from "./jobs/visionJob";
 
 export const jobTypes: {[key: string]: (jobInfo: string) => Job} = {
     [BusyJob.type]: (jobInfo: string) => new BusyJob(),
@@ -24,6 +25,7 @@ export const jobTypes: {[key: string]: (jobInfo: string) => Job} = {
     [RepairJob.type]: (jobInfo: string) => new RepairJob(jobInfo),
     [ScoutJob.type]: (jobInfo: string) => new ScoutJob(jobInfo),
     [UpgradeJob.type]: (jobInfo: string) => new UpgradeJob(jobInfo),
+    [VisionJob.type]: (jobInfo: string) => new VisionJob(jobInfo),
 };
 
 // -----Managers-----
@@ -50,7 +52,6 @@ export const managerTypes: {[key: string]: (parent: Colony) => Manager} = {
 export const buildingOwnership: {[key: string]: string[]} = {
     [STRUCTURE_SPAWN]: [SpawnManager.type],
     [STRUCTURE_EXTENSION]: [SpawnManager.type],
-    // [STRUCTURE_CONTAINER]: [],
     [STRUCTURE_TOWER]: [DefenseManager.type, RepairManager.type],
     [STRUCTURE_OBSERVER]: [ExplorationManager.type],
 };

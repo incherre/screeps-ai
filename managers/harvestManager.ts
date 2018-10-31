@@ -4,6 +4,7 @@ import { IdleJob } from "../jobs/idleJob";
 import { PickupRequest } from "../requests/pickupRequest";
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest } from "../requests/spawnRequest";
+import { VisionRequest } from "../requests/visionRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
 
@@ -42,7 +43,7 @@ export class HarvestManager extends Manager {
                     sources = sources.concat(Game.rooms[roomName].find(FIND_SOURCES));
                 }
                 else {
-                    // TODO(Daniel): Request visibility from exploration manager
+                    requests.push(new VisionRequest(HarvestManager.type, roomName));
                 }
             }
         }

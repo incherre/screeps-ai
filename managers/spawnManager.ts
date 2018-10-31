@@ -40,7 +40,7 @@ export class SpawnManager extends Manager {
         },
         
         'scout': (energyLimit: number) => {
-            return [TOUGH, MOVE, MOVE];
+            return [MOVE];
         },
 
         'worker': (energyLimit: number) => {

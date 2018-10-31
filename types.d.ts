@@ -6,6 +6,7 @@ interface CreepMemory {
 }
 
 interface RoomMemory {
+  needsVision: boolean | null;
   parent: string | null;
   seedX: number | null;
   seedY: number | null;

@@ -1,21 +1,27 @@
 import { Colony } from "../colony";
 import { IdleJob } from "../jobs/idleJob";
 import { ScoutJob } from "../jobs/scoutJob";
-import { getAdjacentRooms, getOwnName, getRoomInfo} from "../misc/helperFunctions";
+import { VisionJob } from "../jobs/visionJob";
+import { getAdjacentRooms, getOwnName, getRoomInfo, shuffle} from "../misc/helperFunctions";
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest } from "../requests/spawnRequest";
+import { VisionRequest } from "../requests/visionRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
 
 export class ExplorationManager extends Manager {
     public static type = 'explore';
-    public static refreshRate = 3000;
+    public static refreshRate = 9000;
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
         const controller = this.parent.capital.controller;
         let scoutNumber = 0;
-        if(controller && controller.my && controller.level >= 3) {
+        if(this.parent.capital.memory.needsVision && this.buildings.length === 0) {
+            scoutNumber = 1;
+            this.parent.capital.memory.needsVision = false;
+        }
+        else if(controller && controller.my && controller.level >= 3 && this.buildings.length === 0) {
             for(const roomName of getAdjacentRooms(this.parent.capital.name)) {
                 const info = getRoomInfo(roomName);
                 if(!info || Game.time - info.lastObserved > ExplorationManager.refreshRate) {
@@ -33,18 +39,62 @@ export class ExplorationManager extends Manager {
     }
 
     public manage(): void {
+        const observer: StructureObserver | undefined = _.find(this.buildings, (build) => build.structureType === STRUCTURE_OBSERVER) as StructureObserver;
+        const visionRequests = this.parent.requests[VisionRequest.type];
+        let visionRequest = null;
+        const visionRequired: Set<string> = new Set<string>();
+    
         const idleWorkers: WorkerCreep[] = [];
         const adjacentRooms = getAdjacentRooms(this.parent.capital.name);
         const T0: Set<string> = new Set<string>(adjacentRooms);
 
+        if(visionRequests) {
+            shuffle(visionRequests);
+            visionRequest = visionRequests.pop();
+            
+            if(visionRequest && (visionRequest instanceof VisionRequest) && observer) {
+                observer.observeRoom(visionRequest.roomName);
+                visionRequest = visionRequests.pop();
+            }
+
+            if(visionRequests.length > 0 && this.workers.length === 0) {
+                this.parent.capital.memory.needsVision = true;
+                return; // if we have no scouts, there's no more to do
+            }
+
+            while(visionRequest) {
+                if(visionRequest instanceof VisionRequest) {
+                    visionRequired.add(visionRequest.roomName);
+                }
+                visionRequest = visionRequests.pop();
+            }
+        }
+
         for(const worker of this.workers) {
-            if(worker.job instanceof IdleJob) {
+            if(worker.job instanceof IdleJob ) {
                 idleWorkers.push(worker);
             }
             else if(worker.job instanceof ScoutJob) {
-                const job = worker.job as ScoutJob;
-                if(job.roomName) {
-                    T0.delete(job.roomName);
+                if(worker.job.roomName) {
+                    T0.delete(worker.job.roomName);
+                }
+            }
+            else if(worker.job instanceof VisionJob) {
+                if(worker.job.roomName) {
+                    visionRequired.delete(worker.job.roomName);
+                    T0.delete(worker.job.roomName);
+                }
+            }
+        }
+
+        if(idleWorkers.length > 0) {
+            for(const roomName of visionRequired.values()) {
+                const worker = idleWorkers.pop();
+                if(worker) {
+                    worker.job = new VisionJob(roomName);
+                }
+                else {
+                    break;
                 }
             }
         }
@@ -99,15 +149,15 @@ export class ExplorationManager extends Manager {
 
         for(const roomName of adjacentRooms) {
             const info = getRoomInfo(roomName);
-            if(info && info.owner === null) {
+            if(info && !info.owner) {
                 if(!Memory.rooms[roomName]) {
-                    Memory.rooms[roomName] = {parent: this.parent.capital.name, seedX: null, seedY: null};
+                    Memory.rooms[roomName] = {parent: this.parent.capital.name, seedX: null, seedY: null, needsVision: false};
                 }
                 else {
                     Memory.rooms[roomName].parent = this.parent.capital.name;
                 }
             }
-            else if(info && info.owner !== null && info.owner !== getOwnName() && Memory.rooms[roomName]) {
+            else if(info && info.owner && info.owner !== getOwnName() && Memory.rooms[roomName]) {
                 delete Memory.rooms[roomName];
             }
         }
