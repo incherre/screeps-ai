@@ -39,9 +39,9 @@ export class RepairManager extends Manager {
     }
 
     public manage(): void {
-        const roads = this.parent.capital.find(FIND_STRUCTURES, {filter: (struct) => struct.structureType === STRUCTURE_ROAD && struct.hits < struct.hitsMax});
+        const neutrals = this.parent.capital.find(FIND_STRUCTURES, {filter: (struct) => (struct.structureType === STRUCTURE_CONTAINER || struct.structureType === STRUCTURE_ROAD) && struct.hits < struct.hitsMax});
         const walls = this.parent.capital.find(FIND_STRUCTURES, {filter: (struct) => (struct.structureType === STRUCTURE_WALL || struct.structureType === STRUCTURE_RAMPART) && struct.hits < struct.hitsMax});
-        const weakestRoad = _.min(roads, (road) => road.hits);
+        const weakestNeutral = _.min(neutrals, (road) => road.hits);
         const weakestWall = _.min(walls, (wall) => wall.hits);
     
         for(const worker of this.workers) {
@@ -57,7 +57,7 @@ export class RepairManager extends Manager {
                 if(building instanceof StructureTower) {
                     const tower = building as StructureTower;
                     if(tower.energy > RepairManager.towerConstant * tower.energyCapacity) {
-                        tower.repair(weakestRoad);
+                        tower.repair(weakestNeutral);
                     }
                 }
             }
