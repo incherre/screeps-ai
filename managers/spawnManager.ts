@@ -1,6 +1,8 @@
 import { Colony } from "../colony";
 import { BusyJob } from "../jobs/busyJob";
 import { shuffle } from "../misc/helperFunctions";
+import { EnergyContainer } from "../misc/typeChecking";
+import { DropoffRequest } from "../requests/dropoffRequest";
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest } from "../requests/spawnRequest";
 import { HarvestManager } from "./harvestManager";
@@ -55,7 +57,14 @@ export class SpawnManager extends Manager {
     };
 
     public generateRequests(): ScreepsRequest[] {
-        return [];
+        const requests: ScreepsRequest[] = [];
+        for(const building of this.buildings) {
+            const test = building as any;
+            if((test as EnergyContainer).energy !== undefined && (test as EnergyContainer).energy < (test as EnergyContainer).energyCapacity) {
+                requests.push(new DropoffRequest(SpawnManager.type, building));
+            }
+        }
+        return requests;
     }
 
     public manage(): void {

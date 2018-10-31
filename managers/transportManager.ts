@@ -110,6 +110,10 @@ export class TransportManager extends Manager {
                 }
                 else if(idleCreep.carry.energy > 0 && idleCreep.carry.energy === idleCreep.carryCapacity) {
                     // full with energy
+                    if(!idleFull.has(RESOURCE_ENERGY)) {
+                        idleFull.set(RESOURCE_ENERGY, []);
+                    }
+
                     const workerList = idleFull.get(RESOURCE_ENERGY);
                     if(workerList) {
                         workerList.push(this.workers[i]);
