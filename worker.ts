@@ -28,7 +28,7 @@ export class WorkerCreep {
         if(targetPos && targetPos.isEqualTo(creepPos)) {
             this.job.do(this.creep);
         }
-        else if(targetPos && this.creep.moveTo(targetPos, {reusePath: Math.max(this.job.ttr, 5)}) === OK) {
+        else if(targetPos && this.creep.moveTo(targetPos, {reusePath: Math.max(this.job.ttr, 5), visualizePathStyle: {stroke: '#51ff8b', opacity: 0.2}}) === OK) {
             this.job.ttr--;
         }
 
