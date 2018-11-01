@@ -70,22 +70,27 @@ module.exports.loop = function () {
     }
   
     if(Game.time % 7 == 0) {
-        var resource = RESOURCE_OXYGEN;
-        var room1 = Game.rooms['E3S4'];
+        var resourcePairs = [[RESOURCE_OXYGEN, 'E3S4'], [RESOURCE_ZYNTHIUM, 'E7S3']];
         var room2 = Game.rooms['E1S7'];
-        var lab = _getLabWith(room2, resource);
+        
+        for(var [resource, roomName] of resourcePairs) {
+            var room1 = Game.rooms[roomName];
+            var lab = _getLabWith(room2, resource);
+        
+            if(room1.terminal != undefined && room2.terminal != undefined && lab != null && room1.terminal.store[resource] != undefined && room1.terminal.cooldown == 0) {
+                var amountInRoom = lab.mineralAmount;
+                if(room2.terminal.store[resource] != undefined) {
+                    amountInRoom += room2.terminal.store[resource];
+                }
     
-        if(room1.terminal != undefined && room2.terminal != undefined && lab != null && room1.terminal.store[resource] != undefined && room1.terminal.cooldown == 0) {
-            var amountInRoom = lab.mineralAmount;
-            if(room2.terminal.store[resource] != undefined) {
-                amountInRoom += room2.terminal.store[resource];
-            }
-
-            var amount = Math.min(lab.mineralCapacity - amountInRoom, room1.terminal.store[resource]);
-            
-            if(amount > 500) {
-                room1.terminal.send(resource, amount, room2.name);
+                var amount = Math.min(lab.mineralCapacity - amountInRoom, room1.terminal.store[resource]);
+                
+                if(amount > 500) {
+                    room1.terminal.send(resource, amount, room2.name);
+                }
             }
         }
     }
+    
+    logStuff();
 }

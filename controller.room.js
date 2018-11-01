@@ -102,6 +102,65 @@ var _spawnSingleCreep = function(spawn, energy_limit) {
 // *** End ***
 
 // *** Labs ***
+var _runReaction = function(mineralLabs, type1, type2) {
+    let source1 = null;
+    let source2 = null;
+    let sinkType = null;
+    let sink = null;
+    
+    if(REACTIONS[type1] && REACTIONS[type1][type2]) {
+        sinkType = REACTIONS[type1][type2];
+    }
+    else {
+        return;
+    }
+    
+    if(mineralLabs.hasOwnProperty(type1)) {
+        for(let i in mineralLabs[type1]) {
+            let lab = mineralLabs[type1][i];
+            if(lab.mineralAmount > LAB_REACTION_AMOUNT) {
+                source1 = lab;
+                break;
+            }
+        }
+    }
+    
+    if(source1 && mineralLabs.hasOwnProperty(type2)) {
+        for(let i in mineralLabs[type2]) {
+            let lab = mineralLabs[type2][i];
+            if(lab.mineralAmount > LAB_REACTION_AMOUNT) {
+                source2 = lab;
+                break;
+            }
+        }
+    }
+    
+    if(source2 && mineralLabs.hasOwnProperty(sinkType)) {
+        for(let i in mineralLabs[sinkType]) {
+            let lab = mineralLabs[sinkType][i];
+            if(lab.mineralCapacity - lab.mineralAmount >= LAB_REACTION_AMOUNT && lab.cooldown == 0) {
+                sink = lab;
+                break;
+            }
+        }
+    }
+    
+    if(source2 && !mineralLabs.hasOwnProperty(sinkType) && mineralLabs.hasOwnProperty('none')) {
+        for(let i in mineralLabs['none']) {
+            let lab = mineralLabs['none'][i];
+            if(lab.mineralCapacity - lab.mineralAmount >= LAB_REACTION_AMOUNT && lab.cooldown == 0) {
+                sink = lab;
+                break;
+            }
+        }
+    }
+    
+    if(source1 && source2 && sink) {
+        console.log(sink.runReaction(source1, source2));
+    }
+    
+}
+
 var _controlLabs = function(room) {
     let labs = find.getLabs(room);
     const MINERAL_EMPTY = 'none';
@@ -123,53 +182,9 @@ var _controlLabs = function(room) {
         minerals[mineralType].push(labs[i]);
     }
     
-    let sourceO = null;
-    let sourceH = null;
-    let sinkOH = null;
-    
-    if(minerals.hasOwnProperty(RESOURCE_HYDROGEN)) {
-        for(let i in minerals[RESOURCE_HYDROGEN]) {
-            let lab = minerals[RESOURCE_HYDROGEN][i];
-            if(lab.mineralAmount > LAB_REACTION_AMOUNT) {
-                sourceH = lab;
-                break;
-            }
-        }
-    }
-    
-    if(sourceH && minerals.hasOwnProperty(RESOURCE_OXYGEN)) {
-        for(let i in minerals[RESOURCE_OXYGEN]) {
-            let lab = minerals[RESOURCE_OXYGEN][i];
-            if(lab.mineralAmount > LAB_REACTION_AMOUNT) {
-                sourceO = lab;
-                break;
-            }
-        }
-    }
-    
-    if(sourceO && minerals.hasOwnProperty(RESOURCE_HYDROXIDE)) {
-        for(let i in minerals[RESOURCE_HYDROXIDE]) {
-            let lab = minerals[RESOURCE_HYDROXIDE][i];
-            if(lab.mineralCapacity - lab.mineralAmount >= LAB_REACTION_AMOUNT && lab.cooldown == 0) {
-                sinkOH = lab;
-                break;
-            }
-        }
-    }
-    
-    if(sourceO && sinkOH == null && minerals.hasOwnProperty(MINERAL_EMPTY)) {
-        for(let i in minerals[MINERAL_EMPTY]) {
-            let lab = minerals[MINERAL_EMPTY][i];
-            if(lab.mineralCapacity - lab.mineralAmount >= LAB_REACTION_AMOUNT && lab.cooldown == 0) {
-                sinkOH = lab;
-                break;
-            }
-        }
-    }
-    
-    if(sourceH && sourceO && sinkOH) {
-        sinkOH.runReaction(sourceH, sourceO);
-    }
+    _runReaction(minerals, RESOURCE_ZYNTHIUM, RESOURCE_OXYGEN);
+    _runReaction(minerals, RESOURCE_HYDROGEN, RESOURCE_OXYGEN);
+    _runReaction(minerals, RESOURCE_ZYNTHIUM_OXIDE, RESOURCE_HYDROXIDE);
 }
 // *** End ***
 

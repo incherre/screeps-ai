@@ -14,8 +14,8 @@ var controllerRange = 2;
 // ***** End *****
 
 var find = require('manager.roomInfo');
-const labTypes = [RESOURCE_OXYGEN, RESOURCE_HYDROGEN];
-const labProducts = [RESOURCE_HYDROXIDE];
+const labTypes = [RESOURCE_OXYGEN, RESOURCE_ZYNTHIUM, RESOURCE_HYDROGEN, RESOURCE_HYDROXIDE];
+const labProducts = [];
 
 var _getLabWith = function(room, resource) {
     let labs = find.getLabs(room);
@@ -140,7 +140,7 @@ var _run = function(creep) {
         }
         else if(labTypes.indexOf(resource) >= 0) {
             target = _getLabWith(creep.room, resource);
-            if(target == null || target.mineralAmount == target.mineralCapacity) {
+            if(target == null || target.mineralAmount > (target.mineralCapacity * 0.75)) {
                 target = creep.room.terminal;
             }
         }
