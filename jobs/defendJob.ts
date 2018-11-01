@@ -4,7 +4,7 @@ import { Job } from "./job";
 export class DefendJob extends Job {
     public static type: string = 'defend';
 
-    public roomName: string;
+    public roomName: string | null;
 
     public recalculateTarget(creep: Creep): boolean {
         if(!this.roomName) {
