@@ -22,11 +22,23 @@ export class SpawnManager extends Manager {
             return body;
         },
 
+        'fighter': (energyLimit: number) => {
+            const partNumber = Math.floor(energyLimit / (BODYPART_COST[MOVE] + BODYPART_COST[ATTACK]));
+            const body: BodyPartConstant[] = [];
+            for(let i = 0; i < partNumber; i++) {
+                body.push(MOVE);
+            }
+            for(let i = 0; i < partNumber; i++) {
+                body.push(ATTACK);
+            }
+            return body;
+        },
+
         'harvester': (energyLimit: number) => {
             let soFar = 0;
             const baseBody: BodyPartConstant[] = [MOVE, WORK, WORK, WORK];
             const body: BodyPartConstant[] = [];
-            while(soFar + BODYPART_COST[baseBody[body.length % baseBody.length]] <= energyLimit) {
+            while(soFar + BODYPART_COST[baseBody[body.length % baseBody.length]] <= energyLimit && body.length < 8) {
                 body.push(baseBody[body.length % baseBody.length]);
                 soFar += BODYPART_COST[baseBody[body.length % baseBody.length]];
             }
