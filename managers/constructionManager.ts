@@ -84,9 +84,33 @@ export class ConstructionManager extends Manager {
             }
         }
 
+        // place extractor
+        if(sites < ConstructionManager.targetSites && controllerLevel >= 6) {
+            const mineral = this.parent.capital.find(FIND_MINERALS);
+            if(mineral.length > 0) {
+                mineral[0].pos.createConstructionSite(STRUCTURE_EXTRACTOR);
+            }
+        }
+
         // place containers
         if(sites < ConstructionManager.targetSites && controllerLevel >= 3) {
-            const sources = this.parent.capital.find(FIND_SOURCES);
+            let sources: Array<Source | Mineral> = this.parent.capital.find(FIND_SOURCES);
+
+            if(controllerLevel >= 6) {
+                const mineral = this.parent.capital.find(FIND_MINERALS);
+                if(mineral.length > 0) {
+                    sources.push(mineral[0]);
+                }
+            }
+
+            if(this.parent.capital.storage) {
+                for(const roomName of this.parent.farms) {
+                    if(Game.rooms[roomName]) {
+                        sources = sources.concat(Game.rooms[roomName].find(FIND_SOURCES));
+                    }
+                }
+            }
+
             for(const source of sources) {
                 if(sites >= ConstructionManager.targetSites) {
                     break;
@@ -114,14 +138,6 @@ export class ConstructionManager extends Manager {
             }
         }
 
-        // place extractor
-        if(sites < ConstructionManager.targetSites && controllerLevel >= 6) {
-            const mineral = this.parent.capital.find(FIND_MINERALS);
-            if(mineral.length > 0) {
-                mineral[0].pos.createConstructionSite(STRUCTURE_EXTRACTOR);
-            }
-        }
-
         // TODO(Daniel): Add arbitrary roads, walls, labs, observer, etc.
         // TODO(Daniel): Make the bunker layout a little less brittle
     }
@@ -132,7 +148,15 @@ export class ConstructionManager extends Manager {
         }
 
         const unpairedSites: Set<string> = new Set<string>();
-        const sites: ConstructionSite[] = this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES);
+        let sites: ConstructionSite[] = this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES);
+
+        if(this.parent.capital.storage) {
+            for(const roomName of this.parent.farms) {
+                if(Game.rooms[roomName]) {
+                    sites = sites.concat(Game.rooms[roomName].find(FIND_MY_CONSTRUCTION_SITES));
+                }
+            }
+        }
 
         for(const site of sites) {
             unpairedSites.add(site.id);
