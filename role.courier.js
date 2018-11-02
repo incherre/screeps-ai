@@ -89,7 +89,7 @@ var _run = function(creep) {
                 for(let i in labTypes) {
                     if(creep.room.terminal.store.hasOwnProperty(labTypes[i])) {
                         let lab = _getLabWith(creep.room, labTypes[i]);
-                        if(lab != null && lab.mineralAmount < lab.mineralCapacity) {
+                        if(lab != null && lab.mineralAmount < (lab.mineralCapacity * 0.75)) {
                             target = creep.room.terminal;
                             resource = labTypes[i];
                             break;
