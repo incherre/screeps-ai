@@ -156,7 +156,7 @@ var _runReaction = function(mineralLabs, type1, type2) {
     }
     
     if(source1 && source2 && sink) {
-        console.log(sink.runReaction(source1, source2));
+        sink.runReaction(source1, source2);
     }
     
 }
