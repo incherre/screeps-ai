@@ -1,3 +1,5 @@
+import { ScreepsRequest } from "../requests/request";
+
 export function shuffle(a: any[]): void {
     let j: number;
     let item: any;
@@ -6,6 +8,28 @@ export function shuffle(a: any[]): void {
         item = a[j];
         a[j] = a[i];
         a[i] = item;
+    }
+}
+
+export function popMostImportant(requests: ScreepsRequest[]): ScreepsRequest | null {
+    let min = Infinity;
+    let index = -1;
+
+    for(let i = 0; i < requests.length; i++) {
+        if(requests[i].priority < min) {
+            min = requests[i].priority;
+            index = i;
+        }
+    }
+
+    if(min !== Infinity && index >= 0) {
+        const request = requests[index];
+        requests[index] = requests[requests.length - 1];
+        requests.pop();
+        return request;
+    }
+    else {
+        return null;
     }
 }
 

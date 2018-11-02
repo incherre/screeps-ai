@@ -3,7 +3,7 @@ import { DefendJob } from "../jobs/defendJob";
 import { IdleJob } from "../jobs/idleJob";
 import { DropoffRequest } from "../requests/dropoffRequest";
 import { ScreepsRequest } from "../requests/request";
-import { SpawnRequest } from "../requests/spawnRequest";
+import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
 
@@ -30,7 +30,7 @@ export class DefenseManager extends Manager {
         }
         
         for(let i = this.workers.length; i < dangerCount; i++) {
-            requests.push(new SpawnRequest(DefenseManager.type, 'fighter'));
+            requests.push(new SpawnRequest(DefenseManager.type, spawnTypes.fighter, 2)); // see request.ts for priority meanings
         }
 
         return requests;

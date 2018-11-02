@@ -3,7 +3,7 @@ import { ConstructJob } from "../jobs/constructJob";
 import { IdleJob } from "../jobs/idleJob";
 import { DropoffRequest } from "../requests/dropoffRequest";
 import { ScreepsRequest } from "../requests/request";
-import { SpawnRequest } from "../requests/spawnRequest";
+import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
 
@@ -29,7 +29,7 @@ export class ConstructionManager extends Manager {
         }
 
         for(let i = actualNumber; i < constructNumber; i++) {
-            requests.push(new SpawnRequest(ConstructionManager.type, 'worker'));
+            requests.push(new SpawnRequest(ConstructionManager.type, spawnTypes.worker));
         }
 
         return requests;

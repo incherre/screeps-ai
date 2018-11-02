@@ -3,7 +3,7 @@ import { HarvestJob } from "../jobs/harvestJob";
 import { IdleJob } from "../jobs/idleJob";
 import { PickupRequest } from "../requests/pickupRequest";
 import { ScreepsRequest } from "../requests/request";
-import { SpawnRequest } from "../requests/spawnRequest";
+import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
 import { VisionRequest } from "../requests/visionRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
@@ -39,10 +39,10 @@ export class HarvestManager extends Manager {
 
         if(this.parent.capital.storage) {
             for(const roomName of this.parent.farms) {
-                if(Game.rooms[roomName]) {
+                if(Game.rooms[roomName] && Game.rooms[roomName].find(FIND_HOSTILE_CREEPS).length === 0) {
                     sources = sources.concat(Game.rooms[roomName].find(FIND_SOURCES));
                 }
-                else {
+                else if(!Game.rooms[roomName]) {
                     requests.push(new VisionRequest(HarvestManager.type, roomName));
                 }
             }
@@ -67,8 +67,13 @@ export class HarvestManager extends Manager {
             }
         }
 
+        if(actualNumber === 0) {
+            requests.push(new SpawnRequest(HarvestManager.type, spawnTypes.harvester, 0));  // see request.ts for priority meanings
+            actualNumber++;
+        }
+
         for(let i = actualNumber; i < harvestNumber; i++){
-            requests.push(new SpawnRequest(HarvestManager.type, 'harvester'));
+            requests.push(new SpawnRequest(HarvestManager.type, spawnTypes.harvester, 2));  // see request.ts for priority meanings
         }
 
         return requests;

@@ -3,7 +3,7 @@ import { IdleJob } from "../jobs/idleJob";
 import { UpgradeJob } from "../jobs/upgradeJob";
 import { DropoffRequest } from "../requests/dropoffRequest";
 import { ScreepsRequest } from "../requests/request";
-import { SpawnRequest } from "../requests/spawnRequest";
+import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
 import { Manager } from "./manager";
 
 export class UpgradeManager extends Manager {
@@ -12,7 +12,7 @@ export class UpgradeManager extends Manager {
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
-        const upgradeNumber = 2 + this.parent.capital.find(FIND_DROPPED_RESOURCES, {filter: (reso) => reso.resourceType === RESOURCE_ENERGY && reso.amount > 50}).length;
+        const upgradeNumber = 1 + this.parent.capital.find(FIND_DROPPED_RESOURCES, {filter: (reso) => reso.resourceType === RESOURCE_ENERGY && reso.amount > 500}).length;
         let actualNumber = this.workers.length;
 
         for(const worker of this.workers) {
@@ -25,8 +25,13 @@ export class UpgradeManager extends Manager {
             }
         }
 
+        if(actualNumber === 0) {
+            requests.push(new SpawnRequest(UpgradeManager.type, spawnTypes.worker, 2));  // see request.ts for priority meanings
+            actualNumber++;
+        }
+
         for(let i = actualNumber; i < upgradeNumber; i++){
-            requests.push(new SpawnRequest(UpgradeManager.type, 'worker'));
+            requests.push(new SpawnRequest(UpgradeManager.type, spawnTypes.worker));
         }
 
         return requests;

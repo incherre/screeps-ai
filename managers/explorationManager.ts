@@ -4,7 +4,7 @@ import { ScoutJob } from "../jobs/scoutJob";
 import { VisionJob } from "../jobs/visionJob";
 import { getAdjacentRooms, getOwnName, getRoomInfo, shuffle} from "../misc/helperFunctions";
 import { ScreepsRequest } from "../requests/request";
-import { SpawnRequest } from "../requests/spawnRequest";
+import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
 import { VisionRequest } from "../requests/visionRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
@@ -32,7 +32,7 @@ export class ExplorationManager extends Manager {
 
         const actualNumber = this.workers.length;
         for(let i = actualNumber; i < scoutNumber; i++) {
-            requests.push(new SpawnRequest(ExplorationManager.type, 'scout'));
+            requests.push(new SpawnRequest(ExplorationManager.type, spawnTypes.scout));
         }
 
         return requests;
