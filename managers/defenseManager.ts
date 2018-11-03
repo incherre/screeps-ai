@@ -122,7 +122,7 @@ export class DefenseManager extends Manager {
             }
         }
 
-        if(idleWorkers.length > 0) {
+        if(idleWorkers.length > 0 && dangerRooms.length > 0) {
             for(let i = 0; i < idleWorkers.length; i++) {
                 idleWorkers[i].job = new DefendJob(dangerRooms[i % dangerRooms.length]);
             }

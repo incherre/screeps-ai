@@ -32,15 +32,14 @@ export class SpawnManager extends Manager {
         let energy: number = this.parent.capital.energyAvailable;
         const energyMax: number = this.parent.capital.energyCapacityAvailable;
         if(energy >= SpawnManager.minSpawnEnergy) {
-            for(const i in this.buildings) {
-                if(this.buildings[i].structureType === STRUCTURE_SPAWN && requests.length > 0) {
+            for(const building of this.buildings) {
+                if(building instanceof StructureSpawn && requests.length > 0 && !building.spawning) {
                     const request = popMostImportant(requests) as SpawnRequest;
-                    const spawn = this.buildings[i] as StructureSpawn;
                     const memory = {jobType: BusyJob.type, jobInfo: '', colonyRoom: this.parent.capital.name, managerType: request.requester};
                     const body = request.creepFunction(energy, energyMax);
-                    const name = spawn.name + '-' + Game.time;
+                    const name = building.name + '-' + Game.time;
                     
-                    const status = spawn.spawnCreep(body, name, {'memory': memory});
+                    const status = building.spawnCreep(body, name, {'memory': memory});
                     if(status === OK) {
                         for(const j in body) {
                             energy -= BODYPART_COST[body[j]];

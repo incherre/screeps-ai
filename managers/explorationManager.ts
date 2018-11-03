@@ -57,7 +57,7 @@ export class ExplorationManager extends Manager {
                 visionRequest = visionRequests.pop();
             }
 
-            if(visionRequests.length > 0 && this.workers.length === 0) {
+            if(visionRequest && this.workers.length === 0) {
                 this.parent.capital.memory.needsVision = true;
                 return; // if we have no scouts, there's no more to do
             }

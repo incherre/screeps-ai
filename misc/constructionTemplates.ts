@@ -85,7 +85,12 @@ export function displayLayout(room: Room) {
     if(room.memory.seed) {
         let template = rotateTemplate(seedTemplate, room.memory.seed.r);
         for(const type of Object.keys(template)) {
-            if(type !== FREE_SPACE) {
+            if(type === STRUCTURE_SPAWN) {
+                for(const delta of template[type]) {
+                    room.visual.circle(room.memory.seed.x + delta.dx, room.memory.seed.y + delta.dy, {radius: 0.3});
+                }
+            }
+            else if(type !== FREE_SPACE) {
                 for(const delta of template[type]) {
                     room.visual.circle(room.memory.seed.x + delta.dx, room.memory.seed.y + delta.dy);
                 }
@@ -107,7 +112,12 @@ export function displayLayout(room: Room) {
             for(const petal of room.memory.petals) {
                 template = rotateTemplate(petalTemplate, petal.r);
                 for(const type of Object.keys(template)) {
-                    if(type !== FREE_SPACE) {
+                    if(type === STRUCTURE_SPAWN) {
+                        for(const delta of template[type]) {
+                            room.visual.circle(room.memory.seed.x + delta.dx, room.memory.seed.y + delta.dy, {fill: '#cde26f', radius: 0.3});
+                        }
+                    }
+                    else if(type !== FREE_SPACE) {
                         for(const delta of template[type]) {
                             room.visual.circle(room.memory.seed.x + petal.dx + delta.dx, room.memory.seed.y + petal.dy + delta.dy, {fill: '#cde26f'});
                         }
@@ -210,7 +220,7 @@ const seedTemplate: Template = {
 const petalTemplate: Template = {
     [STRUCTURE_EXTENSION]: [
         {dx: 1, dy: -3}, {dx: 2, dy: -3}, {dx: 3, dy: -2}, {dx: 3, dy: -1}, {dx: 2, dy: -4},
-        {dx: 3, dy: -4}, {dx: 4, dy: -3}, {dx: 4, dy: -3}, {dx: 1, dy: -5}, {dx: 3, dy: -5},
+        {dx: 3, dy: -4}, {dx: 4, dy: -3}, {dx: 4, dy: -2}, {dx: 1, dy: -5}, {dx: 3, dy: -5},
         {dx: 4, dy: -5}, {dx: 5, dy: -4}, {dx: 5, dy: -3}, {dx: 5, dy: -1}, {dx: 1, dy: -6},
         {dx: 2, dy: -6}, {dx: 4, dy: -6}, {dx: 6, dy: -4}, {dx: 6, dy: -2}, {dx: 6, dy: -1}
     ],

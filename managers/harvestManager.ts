@@ -49,12 +49,35 @@ export class HarvestManager extends Manager {
         }
 
         for(const source of sources) {
-            for(const resource of source.pos.findInRange(FIND_DROPPED_RESOURCES, 1, {filter: (res) => res.amount > HarvestManager.minReso})) {
-                requests.push(new PickupRequest(HarvestManager.type, resource, resource.resourceType))
+            if(source.pos.roomName !== this.parent.capital.name) {
+                for(const resource of source.pos.findInRange(FIND_DROPPED_RESOURCES, 1, {filter: (res) => res.amount > HarvestManager.minReso})) {
+                    requests.push(new PickupRequest(HarvestManager.type, resource, resource.resourceType))
+                }
             }
 
             for(const container of source.pos.findInRange(FIND_STRUCTURES, 1, {filter: (struct) => struct.structureType === STRUCTURE_CONTAINER && struct.store.energy > HarvestManager.minCont})) {
                 requests.push(new PickupRequest(HarvestManager.type, container))
+            }
+        }
+
+        const droppedResources = this.parent.capital.find(FIND_DROPPED_RESOURCES, {filter:
+            (reso) => (reso.resourceType === RESOURCE_ENERGY && reso.amount > HarvestManager.minReso) || (reso.resourceType !== RESOURCE_ENERGY && this.parent.capital.storage)
+        });
+        for(const resource of droppedResources) {
+            requests.push(new PickupRequest(HarvestManager.type, resource, resource.resourceType));
+        }
+
+        const tombstones = this.parent.capital.find(FIND_TOMBSTONES, {filter:
+            (stone) => (stone.store.energy > HarvestManager.minReso) || (Object.keys(stone.store).length > 1 && this.parent.capital.storage)
+        });
+        for(const tombstone of tombstones) {
+            for(const resource of Object.keys(tombstone.store)) {
+                if(resource === RESOURCE_ENERGY && tombstone.store.energy > HarvestManager.minReso) {
+                    requests.push(new PickupRequest(HarvestManager.type, tombstone));
+                }
+                else if(this.parent.capital.storage) {
+                    requests.push(new PickupRequest(HarvestManager.type, tombstone, resource as ResourceConstant));
+                }
             }
         }
 

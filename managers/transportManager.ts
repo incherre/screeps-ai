@@ -15,7 +15,15 @@ export class TransportManager extends Manager {
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
-        const transportNumber = this.parent.capital.find(FIND_SOURCES).length + 1;
+        let transportNumber = 1 + this.parent.capital.find(FIND_SOURCES).length;
+        if(this.parent.capital.storage) {
+            for(const roomName of this.parent.farms) {
+                if(Game.rooms[roomName]) {
+                    transportNumber += 1 + Game.rooms[roomName].find(FIND_SOURCES).length;
+                }
+            }
+        }
+
         let actualNumber = this.workers.length;
 
         for(const worker of this.workers) {

@@ -9,10 +9,24 @@ import { Manager } from "./manager";
 export class UpgradeManager extends Manager {
     public static type = 'upgrade';
     public static refillRatio = 0.5;
+    public static capacityConstant = .3;
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
-        const upgradeNumber = 1 + this.parent.capital.find(FIND_DROPPED_RESOURCES, {filter: (reso) => reso.resourceType === RESOURCE_ENERGY && reso.amount > 500}).length;
+        let upgradeNumber = 1;
+        if(this.parent.capital.controller && this.parent.capital.controller.level <= 4) {
+            upgradeNumber = this.parent.capital.controller.level;
+        }
+        else if(this.parent.capital.storage) {
+            const upperCapacityConstant = Math.min(1 - ((1 - UpgradeManager.capacityConstant) / 2), UpgradeManager.capacityConstant * 2);
+            if(this.parent.capital.storage.store[RESOURCE_ENERGY] > (this.parent.capital.storage.storeCapacity * upperCapacityConstant)) {
+                upgradeNumber = 3;
+            }
+            else if(this.parent.capital.storage.store[RESOURCE_ENERGY] > (this.parent.capital.storage.storeCapacity * UpgradeManager.capacityConstant)) {
+                upgradeNumber = 2;
+            }
+        }
+
         let actualNumber = this.workers.length;
 
         for(const worker of this.workers) {

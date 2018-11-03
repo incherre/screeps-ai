@@ -51,7 +51,7 @@ export class DefendJob extends Job {
             this.ttr = Math.min(range, halfDistance);
         }
 
-        return creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0;
+        return (creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0) && (creep.room.name !== this.roomName || creep.room.find(FIND_HOSTILE_CREEPS).length > 0);
     }
 
     public getJobType(): string {

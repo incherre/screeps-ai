@@ -11,6 +11,11 @@ export class WorkerCreep {
         this.job = jobTypes[creep.memory.jobType](creep.memory.jobInfo);
     }
 
+    private moveTo(targetPos: RoomPosition): CreepMoveReturnCode | ERR_NO_PATH | ERR_INVALID_TARGET | ERR_NOT_FOUND {
+        // TODO(Daniel): put collision resolution here
+        return this.creep.moveTo(targetPos, {reusePath: Math.max(this.job.ttr, 5), visualizePathStyle: {stroke: '#51ff8b', opacity: 0.2}});
+    }
+
     public work(): void {
         if(this.job.ttr === Infinity) {
             // this can happen when the target is in another room
@@ -28,7 +33,7 @@ export class WorkerCreep {
         if(targetPos && targetPos.isEqualTo(creepPos)) {
             this.job.do(this.creep);
         }
-        else if(targetPos && this.creep.moveTo(targetPos, {reusePath: Math.max(this.job.ttr, 5), visualizePathStyle: {stroke: '#51ff8b', opacity: 0.2}}) === OK) {
+        else if(targetPos && this.creep.fatigue === 0 && this.moveTo(targetPos) === OK) {
             this.job.ttr--;
         }
 

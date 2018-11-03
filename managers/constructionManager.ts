@@ -10,13 +10,14 @@ import { Manager } from "./manager";
 
 export class ConstructionManager extends Manager {
     public static type = 'construction';
-    public static siteFrequency = 50; // 101; // this is currently set low for testing
+    public static siteFrequency = 53;
     public static refillRatio = 0.5;
-    public static targetSites = 3;
+    public static targetSites = 5;
+    public static targetWorkers = 2;
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
-        const constructNumber = Math.min(this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES).length, 3);
+        const constructNumber = Math.min(this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES).length, ConstructionManager.targetWorkers);
         let actualNumber = this.workers.length;
 
         for(const worker of this.workers) {
@@ -90,7 +91,12 @@ export class ConstructionManager extends Manager {
                     let retVal;
                     for(let dx = -1; dx <= 1; dx++) {
                         for(let dy = -1; dy <= 1; dy++) {
-                            retVal = this.parent.capital.createConstructionSite(source.pos.x + dx, source.pos.y + dy, STRUCTURE_CONTAINER);
+                            if(source.room) {
+                                retVal = source.room.createConstructionSite(source.pos.x + dx, source.pos.y + dy, STRUCTURE_CONTAINER);
+                            }
+                            else {
+                                retVal = ERR_NOT_FOUND;
+                            }
 
                             if(retVal === OK) {
                                 sites++;
