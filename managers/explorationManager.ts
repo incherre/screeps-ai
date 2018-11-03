@@ -151,7 +151,7 @@ export class ExplorationManager extends Manager {
             const info = getRoomInfo(roomName);
             if(info && !info.owner) {
                 if(!Memory.rooms[roomName]) {
-                    Memory.rooms[roomName] = {parent: this.parent.capital.name, seedX: null, seedY: null, needsVision: false};
+                    Memory.rooms[roomName] = {parent: this.parent.capital.name, seed: null, lab: null, petals: null, seedX: null, seedY: null, needsVision: false};
                 }
                 else {
                     Memory.rooms[roomName].parent = this.parent.capital.name;

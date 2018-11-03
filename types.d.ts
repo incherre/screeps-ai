@@ -10,6 +10,9 @@ interface RoomMemory {
   parent: string | null;
   seedX: number | null;
   seedY: number | null;
+  seed: {x: number, y: number, r: number} | null;
+  lab: {dx: number, dy: number, r: number} | null;
+  petals: Array<{dx: number, dy: number, r: number}> | null;
 }
 
 interface Memory {
@@ -19,6 +22,6 @@ interface Memory {
 
 declare namespace NodeJS {
   interface Global {
-    log: any;
+    myMaps: {[key: string]: Array<Array<{exitDist: number, wallDist: number, sourceDist: number[], controllerDist:number}>>} | null;
   }
 }
