@@ -8,8 +8,6 @@ interface CreepMemory {
 interface RoomMemory {
   needsVision: boolean | null;
   parent: string | null;
-  seedX: number | null;
-  seedY: number | null;
   seed: {x: number, y: number, r: number} | null;
   lab: {dx: number, dy: number, r: number} | null;
   petals: Array<{dx: number, dy: number, r: number}> | null;

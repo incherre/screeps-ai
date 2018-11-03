@@ -11,6 +11,72 @@ const minClearance = 4;
 const maxTries = 64;
 const width = 6;
 
+export function placeBaseSites(room: Room, count: number): number {
+    if(!hasSeeds(room)) {
+        setSeeds(room);
+    }
+
+    let placed = 0;
+
+    if(room.memory.seed) {
+        const seed = room.memory.seed;
+        let template = rotateTemplate(seedTemplate, seed.r);
+        let retVal;
+        for(const type of Object.keys(template)) {
+            if(type !== FREE_SPACE) {
+                for(const delta of template[type]) {
+                    retVal = room.createConstructionSite(seed.x + delta.dx, seed.y + delta.dy, type as BuildableStructureConstant);
+                    if(retVal === OK) {
+                        placed++;
+                        if(placed >= count) {
+                            return placed;
+                        }
+                    }
+                }
+            }
+        }
+
+        if(room.memory.petals) {
+            for(const petal of room.memory.petals) {
+                template = rotateTemplate(petalTemplate, petal.r);
+                for(const type of Object.keys(template)) {
+                    if(type !== FREE_SPACE) {
+                        for(const delta of template[type]) {
+                            retVal = room.createConstructionSite(seed.x + petal.dx + delta.dx, seed.y + petal.dy + delta.dy, type as BuildableStructureConstant);
+                            if(retVal === OK) {
+                                placed++;
+                                if(placed >= count) {
+                                    return placed;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if(room.memory.lab) {
+            const lab = room.memory.lab;
+            template = rotateTemplate(labTemplate, room.memory.lab.r);
+            for(const type of Object.keys(template)) {
+                if(type !== FREE_SPACE) {
+                    for(const delta of template[type]) {
+                        retVal = room.createConstructionSite(seed.x + lab.dx + delta.dx, seed.y + lab.dy + delta.dy, type as BuildableStructureConstant);
+                        if(retVal === OK) {
+                            placed++;
+                            if(placed >= count) {
+                                return placed;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return placed;
+}
+
 export function displayLayout(room: Room) {
     if(!hasSeeds(room)) {
         setSeeds(room);
@@ -31,7 +97,7 @@ export function displayLayout(room: Room) {
             for(const type of Object.keys(template)) {
                 if(type !== FREE_SPACE) {
                     for(const delta of template[type]) {
-                        room.visual.circle(room.memory.seed.x + room.memory.lab.dx + delta.dx, room.memory.seed.y+ room.memory.lab.dy + delta.dy, {fill: '#8846f2'});
+                        room.visual.circle(room.memory.seed.x + room.memory.lab.dx + delta.dx, room.memory.seed.y + room.memory.lab.dy + delta.dy, {fill: '#8846f2'});
                     }
                 }
             }
@@ -43,7 +109,7 @@ export function displayLayout(room: Room) {
                 for(const type of Object.keys(template)) {
                     if(type !== FREE_SPACE) {
                         for(const delta of template[type]) {
-                            room.visual.circle(room.memory.seed.x + petal.dx + delta.dx, room.memory.seed.y+ petal.dy + delta.dy, {fill: '#cde26f'});
+                            room.visual.circle(room.memory.seed.x + petal.dx + delta.dx, room.memory.seed.y + petal.dy + delta.dy, {fill: '#cde26f'});
                         }
                     }
                 }
@@ -53,7 +119,7 @@ export function displayLayout(room: Room) {
     
 }
 
-export function hasSeeds(room: Room): boolean {
+function hasSeeds(room: Room): boolean {
     if(room.memory.seed && room.memory.lab && room.memory.petals && room.memory.petals.length === 3) {
         return true;
     }
@@ -62,7 +128,7 @@ export function hasSeeds(room: Room): boolean {
     }
 }
 
-export function setSeeds(room: Room): boolean {
+function setSeeds(room: Room): boolean {
     const myMap = getDistanceGraph(room);
     if(!myMap) {
         return false;
