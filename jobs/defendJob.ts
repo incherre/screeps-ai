@@ -11,23 +11,14 @@ export class DefendJob extends Job {
             return false;
         }
 
-        let attackRange = 1;
         if(creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
-            attackRange = 3;
+            this.targetRange = 3;
         }
         
         // find an enemy
         const closestHostile = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
         if(closestHostile) {
-            const range = creep.pos.getRangeTo(closestHostile);
-            if(range > attackRange) {
-                // move to enemy
-                this.target = closestHostile.pos;
-            }
-            else {
-                // already in range
-                this.target = creep.pos;
-            }
+            this.target = closestHostile.pos;
         }
         else {
             this.target = new RoomPosition(25, 25, this.roomName);

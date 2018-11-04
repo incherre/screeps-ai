@@ -2,7 +2,7 @@ import { Colony } from "./colony";
 import { IdleJob } from "./jobs/idleJob";
 import { Job } from "./jobs/job";
 import { jobTypes } from "./manifest"
-import { addRoomInfo, getOwnName, getRoomInfo, SOURCE_KEEPER_NAME } from "./misc/helperFunctions";
+import { addRoomInfo, getOwnName, getRoomInfo, getSpotsNear, movePos, shuffle, SOURCE_KEEPER_NAME } from "./misc/helperFunctions";
 
 export class WorkerCreep {
     public parent: Colony;
@@ -19,23 +19,53 @@ export class WorkerCreep {
         this.worked = false;
     }
 
-    public getOutOfTheWay(incomingWorker: WorkerCreep): void {
+    public getOutOfTheWay(incomingWorker: WorkerCreep, swapAllowed: boolean = true): void {
         // see if we can move as we are supposed to
         this.work();
 
         if(!this.moved && this.creep.fatigue === 0) {
             let retVal: CreepMoveReturnCode = ERR_BUSY;
-            let dir: DirectionConstant;
+            let dir: DirectionConstant | null = null;
+
             if(this.job.target) {
                 // try to move toward our target
                 dir = this.creep.pos.getDirectionTo(this.job.target);
-                retVal = this.creep.move(dir);
+                let newPos: RoomPosition | null = movePos(this.creep.pos, dir);
+                const blockingWorker = this.parent.getWorker(newPos)
+
+                const matrix = standardCallback(this.creep.pos.roomName);
+                const terrain = Game.map.getRoomTerrain(this.creep.pos.roomName);
+                if((matrix && matrix.get(newPos.x, newPos.y) > 250) || terrain.get(newPos.x, newPos.y) === TERRAIN_MASK_WALL) {
+                    // can't move into stuff
+                    newPos = null;
+                }
+
+                // check if there will be a blocking worker in that direction
+                if(blockingWorker) {
+                    this.moved = true; // prevent circular moves
+                    blockingWorker.getOutOfTheWay(this, false);
+                    this.moved = false;
+                }
+                
+                if(newPos && (!blockingWorker || blockingWorker.moved)) {
+                    // only move if we think we're in the clear
+                    retVal = this.creep.move(dir);
+                }
             }
 
-            if(retVal !== OK) {
+            if(retVal !== OK && swapAllowed) {
                 // try to swap places with the incoming creep
                 dir = this.creep.pos.getDirectionTo(incomingWorker.creep);
                 retVal = this.creep.move(dir);
+            }
+            else if(retVal !== OK) {
+                // just find a random open spot
+                const spots = getSpotsNear(this.creep.pos);
+                if(spots.length > 0) {
+                    shuffle(spots);
+                    dir = this.creep.pos.getDirectionTo(spots[0]);
+                    retVal = this.creep.move(dir);
+                }
             }
 
             if(retVal === OK) {
@@ -68,6 +98,7 @@ export class WorkerCreep {
         }
         
         // give them a chance to move by themselves
+        this.creep.say("Beep-beep!")
         blockingWorker.getOutOfTheWay(this);
 
         if(blockingWorker.moved) {
@@ -96,29 +127,56 @@ export class WorkerCreep {
 
         if(retVal === ERR_NOT_FOUND) {
             // if the path isn't in memory, or the path is wrong generate a new one
+            let pathRange = this.job.targetRange;
             if(targetPos.x === 25 && targetPos.y === 25 && targetPos.roomName !== this.creep.pos.roomName) {
                 // if the target is at the generic center point of a room, just find a path to pretty much anywhere in the room
-                const pathfinderReturn = PathFinder.search(this.creep.pos, {pos: targetPos, range: 23}, {roomCallback: standardCallback});
-                if(pathfinderReturn.path.length > 0) {
-                    path = convertPath([this.creep.pos].concat(pathfinderReturn.path));
-                    changed = true;
-                }
-            }
-            else {
-                // find a path to the target
-                const pathfinderReturn = PathFinder.search(this.creep.pos, {pos: targetPos, range: this.job.targetRange}, {roomCallback: standardCallback});
-                if(pathfinderReturn.path.length > 0) {
-                    path = convertPath([this.creep.pos].concat(pathfinderReturn.path));
-                    changed = true;
-                }
+                pathRange = 23;
             }
 
-            if(changed) {
-                // if a path was found, move along it and save it
+            // find a path to the target
+            const pathfinderReturn = PathFinder.search(this.creep.pos, {pos: targetPos, range: pathRange}, {roomCallback: standardCallback});
+            if(pathfinderReturn.path.length > 0) {
+                path = convertPath([this.creep.pos].concat(pathfinderReturn.path));
                 retVal = this.moveByPath(path);
-                this.creep.memory.path = Room.serializePath(path);
-                this.job.ttr = path.length;
+                changed = true;
             }
+        }
+
+        if(retVal === ERR_TIRED) { // I use this to mean blocked, probably because a creep on the path was tired
+            // repath, but around nearby creeps
+            let pathRange = this.job.targetRange;
+            if(targetPos.x === 25 && targetPos.y === 25 && targetPos.roomName !== this.creep.pos.roomName) {
+                // if the target is at the generic center point of a room, just find a path to pretty much anywhere in the room
+                pathRange = 23;
+            }
+
+            const creepCallback: (roomName: string) => false | CostMatrix = (roomName: string) => {
+                const matrix = standardCallback(roomName);
+                if(!matrix) {
+                    return false;
+                }
+
+                if(roomName === this.creep.pos.roomName) {
+                    for(const creep of this.creep.pos.findInRange(FIND_CREEPS, 1)) {
+                        matrix.set(creep.pos.x, creep.pos.y, 0xff);
+                    }
+                }
+                return matrix;
+            }
+
+            // find a path to the target
+            const pathfinderReturn = PathFinder.search(this.creep.pos, {pos: targetPos, range: pathRange}, {roomCallback: creepCallback});
+            if(pathfinderReturn.path.length > 0) {
+                path = convertPath([this.creep.pos].concat(pathfinderReturn.path));
+                retVal = this.moveByPath(path);
+                changed = true;
+            }
+        }
+
+        if(changed) {
+            // if a path was found, save it
+            this.creep.memory.path = Room.serializePath(path);
+            this.job.ttr = path.length;
         }
 
         if(retVal === OK) {
@@ -128,6 +186,9 @@ export class WorkerCreep {
             }
 
             // draw the path (more nicely than the default, I might add)
+            this.creep.room.visual.circle(path[path.length - 1].x, path[path.length - 1].y,
+                {radius: 0.35, fill: 'transparent', stroke: '#51ff8b', strokeWidth: .15, opacity: 0.2}
+            );
             const poly: Array<[number, number]> = [];
             for(let i = path.length - 1; i >= 0; i--) {
                 if(path[i].x === this.creep.pos.x && path[i].y === this.creep.pos.y) {
@@ -152,6 +213,7 @@ export class WorkerCreep {
         this.worked = true;
 
         if(this.job.ttr <= 0) {
+            this.job.ttr = 0;
             if(!this.job.recalculateTarget(this.creep)) {
                 this.job = new IdleJob();
             }
@@ -159,7 +221,7 @@ export class WorkerCreep {
 
         const creepPos = this.creep.pos;
         const targetPos = this.job.target;
-        if(targetPos && targetPos.isEqualTo(creepPos)) {
+        if(targetPos && targetPos.getRangeTo(creepPos) <= this.job.targetRange) {
             this.job.do(this.creep);
         }
         else if(targetPos && this.creep.fatigue === 0 && this.moveTo(targetPos) === OK) {
@@ -176,7 +238,7 @@ export class WorkerCreep {
 }
 
 const renewRoomInfo = 50;
-function standardCallback(roomName: string): boolean | CostMatrix {
+function standardCallback(roomName: string): false | CostMatrix {
     if(!global.myCosts) {
         global.myCosts = {};
     }

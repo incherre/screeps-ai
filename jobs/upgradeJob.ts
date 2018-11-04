@@ -9,12 +9,7 @@ export class UpgradeJob extends Job {
 
     public recalculateTarget(creep: Creep): boolean {
         if(this.controller) {
-            if(creep.pos.getRangeTo(this.controller) > UpgradeJob.range) {
-                this.target = this.controller.pos;
-            }
-            else {
-                this.target = creep.pos;
-            }
+            this.target = this.controller.pos;
 
             return creep.getActiveBodyparts(WORK) > 0 && creep.getActiveBodyparts(CARRY) > 0;
         }

@@ -10,11 +10,8 @@ export class ConstructJob extends Job {
 
     public recalculateTarget(creep: Creep): boolean {
         if(this.site) {
-            if(this.site.pos.roomName === creep.pos.roomName && creep.pos.getRangeTo(this.site) > ConstructJob.range) {
+            if(this.site.pos.roomName === creep.pos.roomName) {
                 this.target = this.site.pos;
-            }
-            else {
-                this.target = creep.pos;
             }
 
             if(!this.target) {

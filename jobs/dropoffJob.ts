@@ -17,14 +17,7 @@ export class DropoffJob extends Job {
         }
 
         if(this.container) {
-            if(!creep.pos.isNearTo(this.container)) {
-                // if the creep isn't in range of the container, go to it
-                this.target = this.container.pos;
-            }
-            else {
-                // already there, time to do the job
-                this.target = creep.pos;
-            }
+            this.target = this.container.pos;
         }
 
         if(!this.target) {
@@ -94,9 +87,17 @@ export class DropoffJob extends Job {
 
     public do(creep: Creep): void {
         if(this.container) {
-            if(creep.transfer(this.container, this.resourceType) === OK) {
+            const retVal = creep.transfer(this.container, this.resourceType);
+            if(retVal === OK) {
                 this.containerId = null;
             }
+            else if(retVal === ERR_NOT_IN_RANGE) {
+                this.recalculateTarget(creep);
+            }
+        }
+        else if(this.containerRoomName === creep.pos.roomName) {
+            // if the container doesn't exist, but we're in the room where it should be, then it was probably a creep that died
+            this.containerId = null;
         }
     }
 

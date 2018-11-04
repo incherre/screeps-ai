@@ -17,14 +17,7 @@ export class PickupJob extends Job {
         }
 
         if(this.container) {
-            if(!creep.pos.isNearTo(this.container)) {
-                // if the creep isn't in range of the container, find a spot to target
-                this.target = this.container.pos;
-            }
-            else {
-                // already there, time to do the job
-                this.target = creep.pos;
-            }
+            this.target = this.container.pos;
         }
 
         if(!this.target) {

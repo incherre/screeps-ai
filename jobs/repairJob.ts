@@ -12,11 +12,8 @@ export class RepairJob extends Job {
 
     public recalculateTarget(creep: Creep): boolean {
         if(this.repairableId && this.repairableRoomName) {
-            if(this.repairable && creep.pos.getRangeTo(this.repairable) > RepairJob.range) {
+            if(this.repairable) {
                 this.target = this.repairable.pos;
-            }
-            else {
-                this.target = creep.pos;
             }
 
             if(!this.target) {

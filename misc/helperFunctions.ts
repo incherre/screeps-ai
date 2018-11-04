@@ -104,6 +104,27 @@ export function getRoomInfo(roomName: string): {owner: string | null, level: num
     return Memory.seenRooms[roomName];
 }
 
+export function movePos(position: RoomPosition, direction: DirectionConstant): RoomPosition {
+    let x = position.x;
+    let y = position.y;
+
+    if(direction === TOP_RIGHT || direction === RIGHT || direction === BOTTOM_RIGHT) {
+        x++;
+    }
+    else if(direction === BOTTOM_LEFT || direction === LEFT || direction === TOP_LEFT) {
+        x--;
+    }
+
+    if(direction === TOP_LEFT || direction === TOP || direction === TOP_RIGHT) {
+        y--;
+    }
+    else if(direction === BOTTOM_RIGHT || direction === BOTTOM || direction === BOTTOM_LEFT) {
+        y++;
+    }
+
+    return new RoomPosition(x, y, position.roomName);
+}
+
 export function getSpotsNear(position: RoomPosition, range:number = 1): RoomPosition[] {
     if(Game.rooms[position.roomName]) {
         const room = Game.rooms[position.roomName];
