@@ -146,10 +146,6 @@ export class HarvestManager extends Manager {
                 break;
             }
         }
-
-        for(const i in this.workers) {
-            this.workers[i].work();
-        }
     }
 
     constructor (parent: Colony) {

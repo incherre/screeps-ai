@@ -48,8 +48,6 @@ export class RepairManager extends Manager {
             if(worker.job instanceof IdleJob && walls.length > 0) {
                 worker.job = new RepairJob(weakestWall);
             }
-
-            worker.work();
         }
 
         if(this.parent.capital.find(FIND_HOSTILE_CREEPS).length === 0) {

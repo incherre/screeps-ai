@@ -11,20 +11,7 @@ export class ConstructJob extends Job {
     public recalculateTarget(creep: Creep): boolean {
         if(this.site) {
             if(this.site.pos.roomName === creep.pos.roomName && creep.pos.getRangeTo(this.site) > ConstructJob.range) {
-                this.target = creep.pos.findClosestByRange(getSpotsNear(this.site.pos, ConstructJob.range));
-                if(!this.target) {
-                    this.target = this.site.pos;
-                }
-            }
-            else if(this.site.pos.roomName !== creep.pos.roomName) {
-                // find a path to the desired room
-                const exitConstant = creep.room.findExitTo(this.site.pos.roomName);
-
-                if(exitConstant === ERR_NO_PATH || exitConstant === ERR_INVALID_ARGS) {
-                    return false;
-                }
-
-                this.target = creep.pos.findClosestByRange(exitConstant);
+                this.target = this.site.pos;
             }
             else {
                 this.target = creep.pos;
@@ -32,12 +19,6 @@ export class ConstructJob extends Job {
 
             if(!this.target) {
                 this.target = new RoomPosition(25, 25, this.site.pos.roomName);
-                this.ttr = 25;
-            }
-            else {
-                const range = creep.pos.getRangeTo(this.target);
-                const halfDistance = Math.max(Math.ceil(range / 2), 5);
-                this.ttr = Math.min(range, halfDistance);
             }
 
             return creep.getActiveBodyparts(WORK) > 0 && creep.getActiveBodyparts(CARRY) > 0;
@@ -71,6 +52,7 @@ export class ConstructJob extends Job {
 
     constructor (jobInfo: string | ConstructionSite) {
         super();
+        this.targetRange = ConstructJob.range;
         if(jobInfo instanceof ConstructionSite) {
             this.site = jobInfo;
         }

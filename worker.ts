@@ -1,26 +1,155 @@
+import { Colony } from "./colony";
 import { IdleJob } from "./jobs/idleJob";
 import { Job } from "./jobs/job";
 import { jobTypes } from "./manifest"
+import { addRoomInfo, getOwnName, getRoomInfo, SOURCE_KEEPER_NAME } from "./misc/helperFunctions";
 
 export class WorkerCreep {
+    public parent: Colony;
     public creep: Creep;
     public job: Job;
+    public moved: boolean;
+    public worked: boolean;
 
-    constructor (creep: Creep) {
+    constructor (creep: Creep, parent: Colony) {
+        this.parent = parent;
         this.creep = creep;
         this.job = jobTypes[creep.memory.jobType](creep.memory.jobInfo);
+        this.moved = false;
+        this.worked = false;
     }
 
-    private moveTo(targetPos: RoomPosition): CreepMoveReturnCode | ERR_NO_PATH | ERR_INVALID_TARGET | ERR_NOT_FOUND {
-        // TODO(Daniel): put collision resolution here
-        return this.creep.moveTo(targetPos, {reusePath: Math.max(this.job.ttr, 5), visualizePathStyle: {stroke: '#51ff8b', opacity: 0.2}});
+    public getOutOfTheWay(incomingWorker: WorkerCreep): void {
+        // see if we can move as we are supposed to
+        this.work();
+
+        if(!this.moved && this.creep.fatigue === 0) {
+            let retVal: CreepMoveReturnCode = ERR_BUSY;
+            let dir: DirectionConstant;
+            if(this.job.target) {
+                // try to move toward our target
+                dir = this.creep.pos.getDirectionTo(this.job.target);
+                retVal = this.creep.move(dir);
+            }
+
+            if(retVal !== OK) {
+                // try to swap places with the incoming creep
+                dir = this.creep.pos.getDirectionTo(incomingWorker.creep);
+                retVal = this.creep.move(dir);
+            }
+
+            if(retVal === OK) {
+                // if we moved, record that we moved
+                this.moved = true;
+            }
+        }
+    }
+
+    private moveByPath(path: PathStep[]): CreepMoveReturnCode | ERR_NOT_FOUND | ERR_INVALID_ARGS {
+        // first, find the spot that the creep wants to move to
+        let targetPos: RoomPosition | null = null;
+        for(const step of path) {
+            if(step.x - step.dx === this.creep.pos.x && step.y - step.dy === this.creep.pos.y) {
+                targetPos = new RoomPosition(step.x, step.y, this.creep.pos.roomName);
+                break;
+            }
+        }
+
+        if(!targetPos) {
+            // oh no, we're not on the path
+            return ERR_NOT_FOUND;
+        }
+
+        // figure out if someone is blocking us
+        const blockingWorker = this.parent.getWorker(targetPos);
+        if(!blockingWorker) {
+            // nothing is blocking us, happy day!
+            return this.creep.moveByPath(path);
+        }
+        
+        // give them a chance to move by themselves
+        blockingWorker.getOutOfTheWay(this);
+
+        if(blockingWorker.moved) {
+            // they moved for us!
+            return this.creep.moveByPath(path);
+        }
+        else {
+            // they probably didn't move because they were tired...
+            return ERR_TIRED;
+        }
+    }
+
+    private moveTo(targetPos: RoomPosition): CreepMoveReturnCode | ERR_NOT_FOUND | ERR_INVALID_ARGS {
+        // record that we intend to move
+        this.moved = true;
+
+        let path: PathStep[] = [];
+        let changed: boolean = false;
+        let retVal: CreepMoveReturnCode | ERR_NOT_FOUND | ERR_INVALID_ARGS = ERR_NOT_FOUND;
+
+        if(this.creep.memory.path) {
+            // get the path from memory
+            path = Room.deserializePath(this.creep.memory.path);
+            retVal = this.moveByPath(path);
+        }
+
+        if(retVal === ERR_NOT_FOUND) {
+            // if the path isn't in memory, or the path is wrong generate a new one
+            if(targetPos.x === 25 && targetPos.y === 25 && targetPos.roomName !== this.creep.pos.roomName) {
+                // if the target is at the generic center point of a room, just find a path to pretty much anywhere in the room
+                const pathfinderReturn = PathFinder.search(this.creep.pos, {pos: targetPos, range: 23}, {roomCallback: standardCallback});
+                if(pathfinderReturn.path.length > 0) {
+                    path = convertPath([this.creep.pos].concat(pathfinderReturn.path));
+                    changed = true;
+                }
+            }
+            else {
+                // find a path to the target
+                const pathfinderReturn = PathFinder.search(this.creep.pos, {pos: targetPos, range: this.job.targetRange}, {roomCallback: standardCallback});
+                if(pathfinderReturn.path.length > 0) {
+                    path = convertPath([this.creep.pos].concat(pathfinderReturn.path));
+                    changed = true;
+                }
+            }
+
+            if(changed) {
+                // if a path was found, move along it and save it
+                retVal = this.moveByPath(path);
+                this.creep.memory.path = Room.serializePath(path);
+                this.job.ttr = path.length;
+            }
+        }
+
+        if(retVal === OK) {
+            if(path.length === 0 || (this.creep.pos.x === path[path.length - 1].x && this.creep.pos.y === path[path.length - 1].y)) {
+                // if the creep is at the end of the path, delete it so a new one will be generated
+                this.creep.memory.path = null;
+            }
+
+            // draw the path (more nicely than the default, I might add)
+            const poly: Array<[number, number]> = [];
+            for(let i = path.length - 1; i >= 0; i--) {
+                if(path[i].x === this.creep.pos.x && path[i].y === this.creep.pos.y) {
+                    break;
+                }
+                poly.push([path[i].x, path[i].y]);
+            }
+            this.creep.room.visual.poly(poly, {fill: 'transparent', stroke: '#51ff8b', lineStyle: 'dashed', strokeWidth: .15, opacity: 0.2});
+        }
+        else {
+            // undo our move intention
+            this.moved = false;
+        }
+
+        return retVal;
     }
 
     public work(): void {
-        if(this.job.ttr === Infinity) {
-            // this can happen when the target is in another room
-            this.job.ttr = 5; // 5 is an arbitrary low number
+        if(this.worked || this.creep.spawning) {
+            return;
         }
+        this.worked = true;
 
         if(this.job.ttr <= 0) {
             if(!this.job.recalculateTarget(this.creep)) {
@@ -44,4 +173,91 @@ export class WorkerCreep {
         this.creep.memory.jobType = this.job.getJobType();
         this.creep.memory.jobInfo = this.job.getJobInfo();
     }
+}
+
+const renewRoomInfo = 50;
+function standardCallback(roomName: string): boolean | CostMatrix {
+    if(!global.myCosts) {
+        global.myCosts = {};
+    }
+
+    const roomInfo = getRoomInfo(roomName);
+    if((!roomInfo || Game.time - roomInfo.lastObserved > renewRoomInfo) && Game.rooms[roomName]) {
+        addRoomInfo(Game.rooms[roomName]); // record the room
+    }
+    else if(roomInfo && roomInfo.owner && roomInfo.owner !== getOwnName() && roomInfo.level > 2) {
+        return false; // don't go in rooms that could have towers
+    }
+
+    // set up the costs of things that shouldn't change very often
+    let costs: CostMatrix;
+    if(global.myCosts[roomName] && Game.time - global.myCosts[roomName].time <= renewRoomInfo) {
+        costs = global.myCosts[roomName].mat.clone(); // used the cached one
+    }
+    else if(Game.rooms[roomName]) {
+        costs = new PathFinder.CostMatrix(); // generate and cache
+        for(const structure of Game.rooms[roomName].find(FIND_STRUCTURES)) {
+            if (structure.structureType === STRUCTURE_ROAD) {
+                // Favor roads over swamp and wall (if there are roads over those things)
+                costs.set(structure.pos.x, structure.pos.y, 1);
+            } else if (structure.structureType !== STRUCTURE_CONTAINER && (structure.structureType !== STRUCTURE_RAMPART || !structure.my)) {
+                // Can't walk through non-walkable buildings
+                costs.set(structure.pos.x, structure.pos.y, 0xff);
+            }
+        }
+        global.myCosts[roomName] = {mat: costs, time: Game.time};
+        costs = costs.clone();
+    }
+    else if(global.myCosts[roomName]) {
+        costs = global.myCosts[roomName].mat.clone(); // used the cached one, even though it's old
+    }
+    else {
+        costs = new PathFinder.CostMatrix();
+    }
+
+    // set up the cost of enemy creeps
+    if(Game.rooms[roomName]) {
+        for(const creep of Game.rooms[roomName].find(FIND_HOSTILE_CREEPS)) {
+            if(creep.owner.username === SOURCE_KEEPER_NAME) {
+                for(let dx = -3; dx <= 3; dx++) {
+                    if(creep.pos.x + dx >= 0 && creep.pos.x + dx < 50) {
+                        for(let dy = -3; dy <= 3; dy++) {
+                            if(creep.pos.y + dy >= 0 && creep.pos.y + dy < 50) {
+                                costs.set(creep.pos.x + dx, creep.pos.y + dy, 0xff);
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                costs.set(creep.pos.x, creep.pos.y, 0xff);
+            }
+        }
+    }
+
+    return costs;
+}
+
+function convertPath(path: RoomPosition[]): PathStep[] {
+	const result: PathStep[] = [];
+	for (let i = 0; i + 1 < path.length; i++) {
+		const pos = path[i]; // 17, 27
+		const rel = path[i + 1]; // 18, 26
+        const dir: number = pos.getDirectionTo(rel);
+
+		if (pos.roomName !== rel.roomName) {
+            // dir = ((dir + 3) % 8) + 1;
+            break;
+        }
+
+		result.push({
+            direction: dir as DirectionConstant,
+            dx: rel.x - pos.x, // 18 - 17 = 1
+            dy: rel.y - pos.y, // 26 - 27 = -1
+			x: rel.x, // 18
+            y: rel.y // 26
+		});
+	}
+
+	return result;
 }

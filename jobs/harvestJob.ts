@@ -29,31 +29,11 @@ export class HarvestJob extends Job {
             else {
                 // if the creep isn't in range of the source, find a spot to target
                 this.target = creep.pos.findClosestByRange(getSpotsNear(this.source.pos));
-
-                if(!this.target) {
-                    this.target = this.source.pos;
-                }
             }
-        }
-        else {
-            // find a path to the desired room
-            const exitConstant = creep.room.findExitTo(this.sourceRoomName);
-
-            if(exitConstant === ERR_NO_PATH || exitConstant === ERR_INVALID_ARGS) {
-                return false;
-            }
-
-            this.target = creep.pos.findClosestByRange(exitConstant);
         }
 
         if(!this.target) {
             this.target = new RoomPosition(25, 25, this.sourceRoomName);
-            this.ttr = 25;
-        }
-        else {
-            const range = creep.pos.getRangeTo(this.target);
-            const halfDistance = Math.max(Math.ceil(range / 2), 5);
-            this.ttr = Math.min(range, halfDistance);
         }
 
         return creep.getActiveBodyparts(WORK) > 0 && (creep.getActiveBodyparts(CARRY) === 0 || _.sum(creep.carry) < creep.carryCapacity);
@@ -91,6 +71,7 @@ export class HarvestJob extends Job {
 
     constructor(jobInfo: string | Source) {
         super();
+        this.targetRange = 0;
         if(jobInfo instanceof Source) {
             this.source = jobInfo;
             this.sourceId = jobInfo.id;

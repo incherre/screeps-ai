@@ -16,24 +16,10 @@ export class DropoffJob extends Job {
             return false;
         }
 
-        if(this.containerRoomName !== creep.room.name) {
-            // find a path to the desired room
-            const exitConstant = creep.room.findExitTo(this.containerRoomName);
-
-            if(exitConstant === ERR_NO_PATH || exitConstant === ERR_INVALID_ARGS) {
-                return false;
-            }
-
-            this.target = creep.pos.findClosestByRange(exitConstant);
-        }
-        else if(this.container) {
+        if(this.container) {
             if(!creep.pos.isNearTo(this.container)) {
-                // if the creep isn't in range of the container, find a spot to target
-                this.target = creep.pos.findClosestByRange(getSpotsNear(this.container.pos));
-
-                if(!this.target) {
-                    this.target = this.container.pos;
-                }
+                // if the creep isn't in range of the container, go to it
+                this.target = this.container.pos;
             }
             else {
                 // already there, time to do the job
@@ -43,12 +29,6 @@ export class DropoffJob extends Job {
 
         if(!this.target) {
             this.target = new RoomPosition(25, 25, this.containerRoomName);
-            this.ttr = 25;
-        }
-        else {
-            const range = creep.pos.getRangeTo(this.target);
-            const halfDistance = Math.max(Math.ceil(range / 2), 5);
-            this.ttr = Math.min(range, halfDistance);
         }
 
         if(this.containerRoomName !== creep.room.name) {

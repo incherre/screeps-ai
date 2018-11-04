@@ -44,7 +44,14 @@ export function getOwnName(): string {
             return Memory.username;
         }
         else {
-            return '';
+            const creep = _.find(Game.creeps);
+            if(creep && creep.my) {
+                Memory.username = creep.owner.username;
+                return Memory.username;
+            }
+            else {
+                return '';
+            }
         }
     }
 }
@@ -62,6 +69,8 @@ export function getAdjacentRooms(roomName: string): string[] {
     }
     return roomNames;
 }
+
+export const SOURCE_KEEPER_NAME = 'Source Keeper';
 
 export function addRoomInfo(room: Room): void {
     if(!Memory.seenRooms) {
@@ -81,7 +90,7 @@ export function addRoomInfo(room: Room): void {
         }
     }
     else if(room.find(FIND_STRUCTURES, {filter: (struct) => struct.structureType === STRUCTURE_KEEPER_LAIR}).length > 0) {
-        info.owner = 'Source Keeper';
+        info.owner = SOURCE_KEEPER_NAME;
     }
 
     Memory.seenRooms[room.name] = info;

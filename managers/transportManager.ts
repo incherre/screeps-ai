@@ -317,10 +317,6 @@ export class TransportManager extends Manager {
                 worker.job = new PickupJob(container, resourceType);
             }
         }
-
-        for(const i in this.workers) {
-            this.workers[i].work();
-        }
     }
 
     constructor (parent: Colony) {

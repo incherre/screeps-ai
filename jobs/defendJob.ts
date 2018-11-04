@@ -16,39 +16,21 @@ export class DefendJob extends Job {
             attackRange = 3;
         }
         
-        if(creep.room.name !== this.roomName) {
-            // get to the room
-            const exitConstant = creep.room.findExitTo(this.roomName);
-
-            if(exitConstant === ERR_NO_PATH || exitConstant === ERR_INVALID_ARGS) {
-                return false;
+        // find an enemy
+        const closestHostile = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+        if(closestHostile) {
+            const range = creep.pos.getRangeTo(closestHostile);
+            if(range > attackRange) {
+                // move to enemy
+                this.target = closestHostile.pos;
             }
-
-            this.target = creep.pos.findClosestByRange(exitConstant);
-        }
-        else {
-            // find an enemy
-            const closestHostile = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-            if(closestHostile) {
-                const range = creep.pos.getRangeTo(closestHostile);
-                if(range > attackRange) {
-                    // move to enemy
-                    this.target = creep.pos.findClosestByRange(getSpotsNear(closestHostile.pos, attackRange));
-                }
-                else {
-                    // already in range
-                    this.target = creep.pos;
-                }
+            else {
+                // already in range
+                this.target = creep.pos;
             }
         }
-
-        if(!this.target) {
-            return creep.room.find(FIND_HOSTILE_CREEPS).length > 0;
-        }
         else {
-            const range = creep.pos.getRangeTo(this.target);
-            const halfDistance = Math.max(Math.ceil(range / 2), 5);
-            this.ttr = Math.min(range, halfDistance);
+            this.target = new RoomPosition(25, 25, this.roomName);
         }
 
         return (creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0) && (creep.room.name !== this.roomName || creep.room.find(FIND_HOSTILE_CREEPS).length > 0);

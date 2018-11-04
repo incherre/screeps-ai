@@ -35,7 +35,7 @@ export class SpawnManager extends Manager {
             for(const building of this.buildings) {
                 if(building instanceof StructureSpawn && requests.length > 0 && !building.spawning) {
                     const request = popMostImportant(requests) as SpawnRequest;
-                    const memory = {jobType: BusyJob.type, jobInfo: '', colonyRoom: this.parent.capital.name, managerType: request.requester};
+                    const memory = {jobType: BusyJob.type, jobInfo: '', colonyRoom: this.parent.capital.name, managerType: request.requester, path: null};
                     const body = request.creepFunction(energy, energyMax);
                     const name = building.name + '-' + Game.time;
                     

@@ -3,6 +3,7 @@ interface CreepMemory {
   jobInfo: string;
   colonyRoom: string;
   managerType: string;
+  path: string | null;
 }
 
 interface RoomMemory {
@@ -21,5 +22,6 @@ interface Memory {
 declare namespace NodeJS {
   interface Global {
     myMaps: {[key: string]: Array<Array<{exitDist: number, wallDist: number, sourceDist: number[], controllerDist:number}>>} | null;
+    myCosts: {[key: string]: {mat: CostMatrix, time: number}} | null;
   }
 }

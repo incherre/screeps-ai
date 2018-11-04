@@ -12,21 +12,8 @@ export class RepairJob extends Job {
 
     public recalculateTarget(creep: Creep): boolean {
         if(this.repairableId && this.repairableRoomName) {
-            if(this.repairableRoomName === creep.pos.roomName && this.repairable && creep.pos.getRangeTo(this.repairable) > RepairJob.range) {
-                this.target = creep.pos.findClosestByRange(getSpotsNear(this.repairable.pos, RepairJob.range));
-                if(!this.target) {
-                    this.target = this.repairable.pos;
-                }
-            }
-            else if(this.repairableRoomName !== creep.pos.roomName) {
-                // find a path to the desired room
-                const exitConstant = creep.room.findExitTo(this.repairableRoomName);
-    
-                if(exitConstant === ERR_NO_PATH || exitConstant === ERR_INVALID_ARGS) {
-                    return false;
-                }
-    
-                this.target = creep.pos.findClosestByRange(exitConstant);
+            if(this.repairable && creep.pos.getRangeTo(this.repairable) > RepairJob.range) {
+                this.target = this.repairable.pos;
             }
             else {
                 this.target = creep.pos;
@@ -34,12 +21,6 @@ export class RepairJob extends Job {
 
             if(!this.target) {
                 this.target = new RoomPosition(25, 25, this.repairableRoomName);
-                this.ttr = 25;
-            }
-            else {
-                const range = creep.pos.getRangeTo(this.target);
-                const halfDistance = Math.max(Math.ceil(range / 2), 5);
-                this.ttr = Math.min(range, halfDistance);
             }
 
             if(this.repairable) {
@@ -87,6 +68,7 @@ export class RepairJob extends Job {
 
     constructor (jobInfo: string | Structure) {
         super();
+        this.targetRange = RepairJob.range;
         if(jobInfo instanceof Structure) {
             this.repairable = jobInfo;
             this.repairableId = jobInfo.id;

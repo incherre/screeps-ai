@@ -165,7 +165,6 @@ export class ConstructionManager extends Manager {
             if(this.workers[i].job instanceof IdleJob && sites.length > 0) {
                 this.workers[i].job = new ConstructJob(sites[i % sites.length]);
             }
-            this.workers[i].work();
         }
     }
 

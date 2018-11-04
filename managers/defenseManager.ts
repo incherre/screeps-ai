@@ -127,11 +127,6 @@ export class DefenseManager extends Manager {
                 idleWorkers[i].job = new DefendJob(dangerRooms[i % dangerRooms.length]);
             }
         }
-
-        // do the jobs
-        for(const i in this.workers) {
-            this.workers[i].work();
-        }
     }
 
     constructor (parent: Colony) {

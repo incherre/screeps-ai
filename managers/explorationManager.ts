@@ -143,10 +143,6 @@ export class ExplorationManager extends Manager {
             }
         }
 
-        for(const i in this.workers) {
-            this.workers[i].work();
-        }
-
         for(const roomName of adjacentRooms) {
             const info = getRoomInfo(roomName);
             if(info && !info.owner) {

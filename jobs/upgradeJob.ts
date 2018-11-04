@@ -10,17 +10,9 @@ export class UpgradeJob extends Job {
     public recalculateTarget(creep: Creep): boolean {
         if(this.controller) {
             if(creep.pos.getRangeTo(this.controller) > UpgradeJob.range) {
-                this.target = creep.pos.findClosestByRange(getSpotsNear(this.controller.pos, UpgradeJob.range));
-                if(!this.target) {
-                    this.target = this.controller.pos;
-                }
-
-                const range = creep.pos.getRangeTo(this.target);
-                const halfDistance = Math.max(Math.ceil(range / 2), 5);
-                this.ttr = Math.min(range, halfDistance);
+                this.target = this.controller.pos;
             }
             else {
-                this.ttr = 0;
                 this.target = creep.pos;
             }
 
@@ -55,6 +47,7 @@ export class UpgradeJob extends Job {
 
     constructor (jobInfo: string | StructureController) {
         super();
+        this.targetRange = UpgradeJob.range;
         if(jobInfo instanceof StructureController) {
             this.controller = jobInfo;
         }

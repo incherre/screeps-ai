@@ -9,6 +9,22 @@ export class Colony {
     public farms: string[];
     public managers: {[key: string]: Manager};
     public requests: {[key: string]: ScreepsRequest[]};
+    public workers: {[key: string]: WorkerCreep};
+
+    private addWorker(worker: WorkerCreep): void {
+        const posString: string = [worker.creep.pos.x, worker.creep.pos.y, worker.creep.pos.roomName].join();
+        this.workers[posString] = worker;
+    }
+
+    public getWorker(pos: RoomPosition): WorkerCreep | null {
+        const posString: string = [pos.x, pos.y, pos.roomName].join();
+        if(this.workers[posString]) {
+            return this.workers[posString];
+        }
+        else {
+            return null;
+        }
+    }
 
     public run(): void{
         for(const manager in this.managers) {
@@ -25,6 +41,10 @@ export class Colony {
             this.managers[manager].manage();
         }
 
+        for(const posString in this.workers) {
+            this.workers[posString].work();
+        }
+
         // TODO(Daniel): save anything that needs to be multi-tick
     }
 
@@ -32,6 +52,7 @@ export class Colony {
         this.capital = capital;
         this.managers = {};
         this.requests = {};
+        this.workers = {};
 
         this.farms = [];
         for(const roomName of getAdjacentRooms(capital.name)) {
@@ -57,7 +78,9 @@ export class Colony {
 
         for(const creep of creeps) {
             if(creep.memory.managerType in this.managers) {
-                this.managers[creep.memory.managerType].workers.push(new WorkerCreep(creep));
+                const worker = new WorkerCreep(creep, this);
+                this.managers[creep.memory.managerType].workers.push(worker);
+                this.addWorker(worker);
             }
         }
     }
