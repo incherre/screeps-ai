@@ -22,11 +22,12 @@ export const spawnTypes: {[key: string]: (energyLimit: number, maxEnergy: number
         const energyPerRound = BODYPART_COST[CARRY] + BODYPART_COST[MOVE];
         const partsPerRound = 2;
         const maxParts = MAX_CREEP_SIZE;
+        const minParts = 4;
 
-        if(energyLimit < partsPerRound * energyPerRound){ return []; }
+        if(energyLimit < energyPerRound * (minParts / partsPerRound)){ return []; }
         let soFar = 0;
         const body: BodyPartConstant[] = [];
-        while(soFar + energyPerRound <= energyLimit && body.length + 2 <= maxParts) {
+        while(soFar + energyPerRound <= energyLimit && body.length + partsPerRound <= maxParts) {
             body.push(CARRY);
             body.push(MOVE);
             soFar += energyPerRound;
@@ -86,6 +87,22 @@ export const spawnTypes: {[key: string]: (energyLimit: number, maxEnergy: number
         while(soFar + energyPerRound <= energyLimit && body.length + partsPerRound <= maxParts) {
             body.push(WORK);
             body.push(CARRY);
+            body.push(MOVE);
+            soFar += energyPerRound;
+        }
+        return body;
+    },
+
+    'claimer': (energyLimit: number, maxEnergy: number) => {
+        const energyPerRound = BODYPART_COST[CLAIM] + BODYPART_COST[MOVE];
+        const partsPerRound = 2;
+        const maxParts = 4;
+
+        if(energyLimit < energyPerRound){ return []; }
+        let soFar = 0;
+        const body: BodyPartConstant[] = [];
+        while(soFar + energyPerRound <= energyLimit && body.length + partsPerRound <= maxParts) {
+            body.push(CLAIM);
             body.push(MOVE);
             soFar += energyPerRound;
         }

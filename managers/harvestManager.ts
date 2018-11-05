@@ -1,6 +1,7 @@
 import { Colony } from "../colony";
 import { HarvestJob } from "../jobs/harvestJob";
 import { IdleJob } from "../jobs/idleJob";
+import { ReserveJob } from "../jobs/reserveJob";
 import { PickupRequest } from "../requests/pickupRequest";
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
@@ -10,6 +11,7 @@ import { Manager } from "./manager";
 
 export class HarvestManager extends Manager {
     public static type = 'harvest';
+    public static reserveMargin = 600;
     public static minCont = 150;
     public static minReso = 50;
 
@@ -36,11 +38,16 @@ export class HarvestManager extends Manager {
         const requests: ScreepsRequest[] = [];
 
         let sources = this.parent.capital.find(FIND_SOURCES);
+        let reserveNumber = 0;
 
         if(this.parent.capital.storage) {
             for(const roomName of this.parent.farms) {
                 if(Game.rooms[roomName] && Game.rooms[roomName].find(FIND_HOSTILE_CREEPS).length === 0) {
                     sources = sources.concat(Game.rooms[roomName].find(FIND_SOURCES));
+                    const controller = Game.rooms[roomName].controller;
+                    if(controller && (!controller.reservation || controller.reservation.ticksToEnd <= (CONTROLLER_RESERVE_MAX - HarvestManager.reserveMargin))) {
+                        reserveNumber++;
+                    }
                 }
                 else if(!Game.rooms[roomName]) {
                     requests.push(new VisionRequest(HarvestManager.type, roomName));
@@ -82,21 +89,31 @@ export class HarvestManager extends Manager {
         }
 
         const harvestNumber = sources.length;
-        let actualNumber = this.workers.length;
+        let workNumber = 0;
+        let claimNumber = 0;
 
         for(const worker of this.workers) {
-            if(this.creepNearDeath(worker.creep)) {
-                actualNumber--;
+            if(!this.creepNearDeath(worker.creep)) {
+                if(worker.creep.getActiveBodyparts(WORK) > 0) {
+                    workNumber++;
+                }
+                else if(worker.creep.getActiveBodyparts(CLAIM) > 0) {
+                    claimNumber++;
+                }
             }
         }
 
-        if(actualNumber === 0) {
+        if(workNumber === 0) {
             requests.push(new SpawnRequest(HarvestManager.type, spawnTypes.harvester, 0));  // see request.ts for priority meanings
-            actualNumber++;
+            workNumber++;
         }
 
-        for(let i = actualNumber; i < harvestNumber; i++){
+        for(let i = workNumber; i < harvestNumber; i++){
             requests.push(new SpawnRequest(HarvestManager.type, spawnTypes.harvester, 2));  // see request.ts for priority meanings
+        }
+
+        for(let i = claimNumber; i < reserveNumber; i++){
+            requests.push(new SpawnRequest(HarvestManager.type, spawnTypes.claimer, 2));  // see request.ts for priority meanings
         }
 
         return requests;
@@ -104,6 +121,7 @@ export class HarvestManager extends Manager {
 
     public manage(): void {
         const unpairedSources: Set<string> = new Set<string>();
+        const unpairedRooms: Set<string> = new Set<string>();
         const sources: Source[] = this.parent.capital.find(FIND_SOURCES);
         for(const source of sources) {
             unpairedSources.add(source.id);
@@ -116,15 +134,26 @@ export class HarvestManager extends Manager {
                     for(const source of roomSources) {
                         unpairedSources.add(source.id);
                     }
+
+                    const controller = Game.rooms[roomName].controller;
+                    if(controller && (!controller.reservation || controller.reservation.ticksToEnd <= (CONTROLLER_RESERVE_MAX - HarvestManager.reserveMargin))) {
+                        unpairedRooms.add(roomName);
+                    }
                 }
             }
         }
 
-        const idleWorkers: WorkerCreep[] = [];
+        const idleHarvesters: WorkerCreep[] = [];
+        const idleReservers: WorkerCreep[] = [];
     
         for(const i in this.workers) {
             if(this.workers[i].job instanceof IdleJob) {
-                idleWorkers.push(this.workers[i]);
+                if(this.workers[i].creep.getActiveBodyparts(WORK) > 0) {
+                    idleHarvesters.push(this.workers[i]);
+                }
+                else if(this.workers[i].creep.getActiveBodyparts(CLAIM) > 0) {
+                    idleReservers.push(this.workers[i]);
+                }
             }
             else if(this.workers[i].job instanceof HarvestJob) {
                 const sourceId = (this.workers[i].job as HarvestJob).sourceId;
@@ -132,14 +161,32 @@ export class HarvestManager extends Manager {
                     unpairedSources.delete(sourceId);
                 }
             }
+            else if(this.workers[i].job instanceof ReserveJob) {
+                const roomName = (this.workers[i].job as ReserveJob).roomName;
+                if(!this.creepNearDeath(this.workers[i].creep) && roomName) {
+                    unpairedRooms.delete(roomName);
+                }
+            }
         }
 
         for(const sourceId of unpairedSources.values()) {
-            if(idleWorkers.length > 0) {
-                const worker = idleWorkers.pop();
+            if(idleHarvesters.length > 0) {
+                const worker = idleHarvesters.pop();
                 const source = Game.getObjectById(sourceId);
                 if(worker && source instanceof Source) {
                     worker.job = new HarvestJob(source);
+                }
+            }
+            else {
+                break;
+            }
+        }
+
+        for(const roomName of unpairedRooms.values()) {
+            if(idleReservers.length > 0) {
+                const worker = idleReservers.pop();
+                if(worker) {
+                    worker.job = new ReserveJob(roomName);
                 }
             }
             else {

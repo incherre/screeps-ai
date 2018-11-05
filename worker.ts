@@ -14,7 +14,13 @@ export class WorkerCreep {
     constructor (creep: Creep, parent: Colony) {
         this.parent = parent;
         this.creep = creep;
-        this.job = jobTypes[creep.memory.jobType](creep.memory.jobInfo);
+        if(jobTypes[creep.memory.jobType]) {
+            this.job = jobTypes[creep.memory.jobType](creep.memory.jobInfo);
+        }
+        else {
+            console.log(('Jobtype: "' + creep.memory.jobType + '" not found!').fontcolor('red'));
+            this.job = jobTypes.idle('');
+        }
         this.moved = false;
         this.worked = false;
     }
