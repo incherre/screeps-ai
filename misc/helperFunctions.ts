@@ -149,8 +149,7 @@ export function getSpotsNear(position: RoomPosition, range:number = 1): RoomPosi
                     }
                     else if(objects[y][x][i].type === 'structure') {
                         const structure = objects[y][x][i].structure;
-                        if(structure && OBSTACLE_OBJECT_TYPES.indexOf(structure.structureType as "wall") >= 0){
-                            // TODO:(Daniel) figure out if the above being necessary is actually a bug in typed-screeps, or if I'm doing something wrong
+                        if(structure && OBSTACLE_OBJECT_TYPES.includes(structure.structureType as any)){
                             blocked = true;
                             break;
                         }
