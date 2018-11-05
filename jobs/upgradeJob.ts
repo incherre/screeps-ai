@@ -1,4 +1,5 @@
-import { getSpotsNear } from "../misc/helperFunctions";
+import { getOwnName } from "../misc/helperFunctions";
+import { signs } from "../misc/signs";
 import { Job } from "./job";
 
 export class UpgradeJob extends Job {
@@ -35,6 +36,13 @@ export class UpgradeJob extends Job {
     }
 
     public do(creep: Creep): void {
+        if(this.controller && (!this.controller.sign || this.controller.sign.username !== getOwnName())) {
+            const sign: string = signs[Math.floor(Math.random() * signs.length)];
+            if(creep.signController(this.controller, sign) === ERR_NOT_IN_RANGE) {
+                creep.move(creep.pos.getDirectionTo(this.controller));
+            }
+        }
+
         if(this.controller && creep.carry.energy > 0) {
             creep.upgradeController(this.controller);
         }
