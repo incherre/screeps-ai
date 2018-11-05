@@ -1,4 +1,3 @@
-import { getSpotsNear } from "../misc/helperFunctions";
 import { Job } from "./job";
 
 

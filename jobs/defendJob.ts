@@ -1,4 +1,3 @@
-import { getSpotsNear } from "../misc/helperFunctions";
 import { Job } from "./job";
 
 export class DefendJob extends Job {
@@ -43,6 +42,10 @@ export class DefendJob extends Job {
         }
     }
 
+    public setTtr(pathLen: number) {
+        this.ttr = Math.ceil(pathLen / 2);
+    }
+
     public do(creep: Creep): void {
         const nearestHostile = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
         if(nearestHostile && creep.pos.getRangeTo(nearestHostile) <= 1 && creep.getActiveBodyparts(ATTACK) > 0) {
@@ -50,6 +53,13 @@ export class DefendJob extends Job {
         }
         if(nearestHostile && creep.pos.getRangeTo(nearestHostile) <= 3 && creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
             creep.rangedAttack(nearestHostile);
+            if(creep.pos.getRangeTo(nearestHostile) <= 2) {
+                // kite the attacker
+                const pathfinderReturn = PathFinder.search(creep.pos, {pos: nearestHostile.pos, range: 2}, {flee: true, maxOps: 500});
+                if(pathfinderReturn.path.length > 0) {
+                    creep.moveByPath(pathfinderReturn.path);
+                }
+            }
         }
     }
 

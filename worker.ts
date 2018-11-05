@@ -182,7 +182,7 @@ export class WorkerCreep {
         if(changed) {
             // if a path was found, save it
             this.creep.memory.path = Room.serializePath(path);
-            this.job.ttr = path.length;
+            this.job.setTtr(path.length);
         }
 
         if(retVal === OK) {

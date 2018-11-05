@@ -51,6 +51,22 @@ export const spawnTypes: {[key: string]: (energyLimit: number, maxEnergy: number
         return body;
     },
 
+    'ranger': (energyLimit: number, maxEnergy: number) => {
+        const energyPerRound = BODYPART_COST[MOVE] + BODYPART_COST[RANGED_ATTACK];
+        const partsPerRound = 2;
+        const maxParts = MAX_CREEP_SIZE;
+
+        const partNumber = Math.min(Math.floor(energyLimit / energyPerRound), Math.floor(maxParts / partsPerRound));
+        const body: BodyPartConstant[] = [];
+        for(let i = 0; i < partNumber; i++) {
+            body.push(MOVE);
+        }
+        for(let i = 0; i < partNumber; i++) {
+            body.push(RANGED_ATTACK);
+        }
+        return body;
+    },
+
     'harvester': (energyLimit: number, maxEnergy: number) => {
         const maxParts = 8;
         const minParts = 3;

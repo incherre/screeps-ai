@@ -4,6 +4,10 @@ export abstract class Job {
     public abstract getJobInfo(): string;
     public abstract do(creep: Creep): void;
 
+    public setTtr(pathLen: number): void {
+        this.ttr = pathLen;
+    }
+
     public priority: number;
     public ttr: number;
     public target: RoomPosition | null;
