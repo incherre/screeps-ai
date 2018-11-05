@@ -6,7 +6,8 @@ A pioneer should attempt to build a spawn in a new room.
 // ***** Options *****
 var maxPioneerParts = 11; // the maximum number of parts a pioneer can have
 var maxPioneers = 4;
-var _target = 'E7S3'; // set to undefined to turn off
+var _target = 'W6N17'; // W6N17 // set to undefined to turn off
+var _portal = 'E5S5'; // set to undefined to turn off
 // ***** End *****
 
 var find = require('manager.roomInfo');
@@ -18,8 +19,18 @@ var _run = function(creep) {
 	else if(!creep.memory.working && creep.carry.energy == creep.carryCapacity) {
 	    creep.memory.working = true;
 	}
-
-    if(creep.room.name != creep.memory.target) {
+	
+	if(creep.room.name == creep.memory.portal) {
+	    const portal = creep.pos.findClosestByRange(FIND_STRUCTURES, {filter: (struct) => { return struct.structureType == STRUCTURE_PORTAL; }});
+	    if(portal) {
+	        creep.moveTo(portal);
+	        creep.memory.goneThrough = true;
+	    }
+	}
+	else if(creep.room.name != creep.memory.target && creep.memory.portal && !creep.memory.goneThrough) {
+	    creep.moveTo(new RoomPosition(25, 25, creep.memory.portal), {costCallback: find.avoidSourceKeepersCallback});
+	}
+    else if(creep.room.name != creep.memory.target && (!creep.memory.portal || creep.memory.goneThrough)) {
         creep.moveTo(new RoomPosition(25, 25, creep.memory.target), {costCallback: find.avoidSourceKeepersCallback});
     }
     else if(!creep.room.controller.my && creep.getActiveBodyparts(CLAIM) > 0) {
@@ -71,7 +82,7 @@ var _make = function(spawn, energy_limit) {
     }
 
 
-    var mem = {role: 'pioneer', home: spawn.room.controller.id, long_range: true, target: _target};
+    var mem = {role: 'pioneer', home: spawn.room.controller.id, long_range: true, target: _target, portal: _portal, goneThrough: false};
     var name = find.creepNames[Math.floor(Math.random() * find.creepNames.length)] + ' ' + spawn.name + Game.time;
     var retVal = spawn.spawnCreep(body, name, {memory: mem});
 
@@ -97,7 +108,7 @@ var _shouldMake = function(room) {
         return false;
     }
     
-    if(Game.map.getRoomLinearDistance(room.name, _target) > 4) {
+    if(Game.map.getRoomLinearDistance(room.name, _target) > 4 && (!_portal || Game.map.getRoomLinearDistance(room.name, _portal) > 3)) {
         return false;
     }
     
