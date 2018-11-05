@@ -17,7 +17,16 @@ export class ConstructionManager extends Manager {
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
-        const constructNumber = Math.min(this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES).length, ConstructionManager.targetWorkers);
+        let siteCount = this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES).length;
+        if(this.parent.capital.storage) {
+            for(const roomName of this.parent.farms) {
+                if(Game.rooms[roomName]) {
+                    siteCount += Game.rooms[roomName].find(FIND_MY_CONSTRUCTION_SITES).length;
+                }
+            }
+        }
+
+        const constructNumber = Math.min(siteCount, ConstructionManager.targetWorkers);
         let actualNumber = this.workers.length;
 
         for(const worker of this.workers) {
