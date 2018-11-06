@@ -58,7 +58,7 @@ var _controlRoom = function(room) {
     _spawnCreeps(room);
     _controlTowers(room);
     
-    if(room.controller.level <= 3 && !room.controller.safeMode && room.controller.safeModeAvailable > 0 && !room.controller.safeModeCooldown) {
+    if(find.getTowers(room).length == 0 && !room.controller.safeMode && room.controller.safeModeAvailable > 0 && !room.controller.safeModeCooldown) {
         var enemies = find.getHostileCreeps(room);
         if(enemies.length > 0) {
             room.controller.activateSafeMode();
