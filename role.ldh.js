@@ -6,10 +6,11 @@ These creeps should harvest energy from adjacent rooms and bring it back to the 
 // ***** Options *****
 var maxLdhParts = 9;
 var targets = [
-    {source: {room: "E1S6", id:"5bbcacfc9099fc012e6366d9"}, dropoff: {room: "E1S7", id:"5bbe54b11b8845779a1e79ea"}},
-    {source: {room: "E3S5", id:"5bbcad189099fc012e6369e3"}, dropoff: {room: "E3S4", id:"5bc2a5132183d2326fc83ea7"}},
-    {source: {room: "E6S3", id:"5bbcad469099fc012e637031"}, dropoff: {room: "E7S3", id:"5bd09c0f5d1113251e695fec"}},
-    {source: {room: "E6S3", id:"5bbcad469099fc012e63702f"}, dropoff: {room: "E7S3", id:"5bd09c0f5d1113251e695fec"}}
+    {source: {room: "E1S6",  id: "5bbcacfc9099fc012e6366d9"}, dropoff: {room: "E1S7",  id: "5bbe54b11b8845779a1e79ea"}},
+    {source: {room: "E3S5",  id: "5bbcad189099fc012e6369e3"}, dropoff: {room: "E3S4",  id: "5bc2a5132183d2326fc83ea7"}},
+    {source: {room: "E6S3",  id: "5bbcad469099fc012e637031"}, dropoff: {room: "E7S3",  id: "5bd09c0f5d1113251e695fec"}},
+    {source: {room: "E6S3",  id: "5bbcad469099fc012e63702f"}, dropoff: {room: "E7S3",  id: "5bd09c0f5d1113251e695fec"}},
+    {source: {room: "W5N17", id: "5bbcac979099fc012e635ccf"}, dropoff: {room: "W6N17", id: "5be1b2a6b476b366f9f3187c"}}
 ];
 // ***** End *****
 
