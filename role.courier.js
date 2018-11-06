@@ -38,6 +38,10 @@ var _run = function(creep) {
         creep.memory.working = true;
         creep.room.visual.text("🔍", creep.pos);
 	}
+	else if(!creep.memory.working && !creep.room.storage && creep.carry[RESOURCE_ENERGY] == 0) {
+	    creep.memory.working = true;
+        creep.room.visual.text("🔍", creep.pos);
+	}
 	else if(creep.memory.working && _.sum(creep.carry) == creep.carryCapacity) {
 	    creep.memory.working = false;
 	    creep.room.visual.text("🔋", creep.pos);
@@ -49,7 +53,7 @@ var _run = function(creep) {
         var ground = false;
         var resource = RESOURCE_ENERGY;
         
-        if(find.getHostileCreeps(creep.room).length == 0) { // avoid going near battles just to collect stuff
+        if(find.getHostileCreeps(creep.room).length == 0 && creep.room.storage) { // avoid going near battles just to collect stuff, only pick it up if there's a place to put it
             if(find.getGroundMinerals(creep.room).length > 0) {
                 target = creep.pos.findClosestByRange(find.getGroundMinerals(creep.room));
                 ground = true;
