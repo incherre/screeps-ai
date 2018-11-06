@@ -104,7 +104,7 @@ var _shouldMake = function(room) {
         return false;
     }
 
-    if(Game.rooms.hasOwnProperty(_target) && Game.rooms[_target].controller.my && Game.rooms[_target].controller.level >= 2) {
+    if(Game.rooms.hasOwnProperty(_target) && Game.rooms[_target].controller.my && Game.rooms[_target].controller.level >= 3) {
         return false;
     }
     
