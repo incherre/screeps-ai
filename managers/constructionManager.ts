@@ -7,6 +7,7 @@ import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
+import { RepairManager } from "./repairManager";
 
 export class ConstructionManager extends Manager {
     public static type = 'construction';
@@ -170,9 +171,19 @@ export class ConstructionManager extends Manager {
             }
         }
 
-        for(let i = 0; i < this.workers.length; i++) {
-            if(this.workers[i].job instanceof IdleJob && sites.length > 0) {
-                this.workers[i].job = new ConstructJob(sites[i % sites.length]);
+        if(sites.length > 0) {
+            for(let i = 0; i < this.workers.length; i++) {
+                if(this.workers[i].job instanceof IdleJob) {
+                    this.workers[i].job = new ConstructJob(sites[i % sites.length]);
+                }
+            }
+        }
+        else {
+            for(const worker of this.workers) {
+                if(worker.job instanceof IdleJob) {
+                    // if we have nothing more to build for the moment, give the workers to the repair manager
+                    worker.creep.memory.managerType = RepairManager.type;
+                }
             }
         }
     }

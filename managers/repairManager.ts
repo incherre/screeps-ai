@@ -19,6 +19,18 @@ export class RepairManager extends Manager {
             repairNumber += 1;
         }
 
+        if(this.parent.capital.storage) {
+            for(const roomName of this.parent.farms) {
+                if(Game.rooms[roomName] && Game.rooms[roomName].find(FIND_HOSTILE_CREEPS).length === 0) {
+                    const repairs = Game.rooms[roomName].find(FIND_STRUCTURES, {filter: (struct) => (struct.structureType === STRUCTURE_ROAD || struct.structureType === STRUCTURE_CONTAINER) && struct.hits < struct.hitsMax});
+                    if(repairs.length > 0) {
+                        repairNumber += 1;
+                        break;
+                    }
+                }
+            }
+        }
+
         let actualNumber = this.workers.length;
 
         for(const worker of this.workers) {
@@ -42,11 +54,25 @@ export class RepairManager extends Manager {
         const neutrals = this.parent.capital.find(FIND_STRUCTURES, {filter: (struct) => (struct.structureType === STRUCTURE_CONTAINER || struct.structureType === STRUCTURE_ROAD) && struct.hits < struct.hitsMax});
         const walls = this.parent.capital.find(FIND_STRUCTURES, {filter: (struct) => (struct.structureType === STRUCTURE_WALL || struct.structureType === STRUCTURE_RAMPART) && struct.hits < struct.hitsMax});
         const weakestNeutral = _.min(neutrals, (road) => road.hits);
-        const weakestWall = _.min(walls, (wall) => wall.hits);
+        let repairs = [];
+        if(walls.length > 0) {
+            repairs.push(_.min(walls, (wall) => wall.hits));
+        }
+
+        if(this.parent.capital.storage) {
+            for(const roomName of this.parent.farms) {
+                if(Game.rooms[roomName] && Game.rooms[roomName].find(FIND_HOSTILE_CREEPS).length === 0) {
+                    repairs = repairs.concat(Game.rooms[roomName].find(FIND_STRUCTURES, {filter: (struct) => (struct.structureType === STRUCTURE_ROAD || struct.structureType === STRUCTURE_CONTAINER) && struct.hits < struct.hitsMax}));
+                }
+            }
+        }
     
-        for(const worker of this.workers) {
-            if(worker.job instanceof IdleJob && walls.length > 0) {
-                worker.job = new RepairJob(weakestWall);
+        if(repairs.length > 0) {
+            for(let i = 0; i < this.workers.length; i++) {
+                const worker = this.workers[i];
+                if(worker.job instanceof IdleJob) {
+                    worker.job = new RepairJob(repairs[i % repairs.length]);
+                }
             }
         }
 
