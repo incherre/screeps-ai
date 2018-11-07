@@ -49,36 +49,37 @@ var _run = function(creep) {
             }
         }
         else {
-            var source = creep.pos.findClosestByRange(find.getSources(creep.room), {filter: (source) => {return (source.energy > 0 && find.isOpen(source, creep))}});
-            if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(source, {maxRooms: 1});
-            }
-            if(source == null) { // TODO clean up!
-                var energy = _.filter(find.getGroundEnergy(creep.room), (resource) => {return resource.amount > energyMin && (resource.amount >= resourceThreshold || creep.pos.inRangeTo(resource, resourceRange));});
-                var target = null;
-                var ground = false;
+            var energy = _.filter(find.getGroundEnergy(creep.room), (resource) => {return resource.amount > energyMin && (resource.amount >= resourceThreshold || creep.pos.inRangeTo(resource, resourceRange));});
+            var target = null;
+            var ground = false;
 
-                if(energy.length > 0) {
-                    target = creep.pos.findClosestByRange(energy);
-                    ground = true;
+            if(energy.length > 0) {
+                target = creep.pos.findClosestByRange(energy);
+                ground = true;
+            }
+            else {
+                target = creep.pos.findClosestByRange(find.getContainerEnergy(creep.room), {filter: (container) => {return container.store[RESOURCE_ENERGY] >= resourceThreshold || creep.pos.inRangeTo(container, resourceRange);}});
+            }
+
+            if(target == null){target = creep.room.storage;}
+
+            if(target != null) {
+                var ret;
+                if(ground) {
+                    ret = creep.pickup(target);
                 }
                 else {
-                    target = creep.pos.findClosestByRange(find.getContainerEnergy(creep.room), {filter: (container) => {return container.store[RESOURCE_ENERGY] >= resourceThreshold || creep.pos.inRangeTo(container, resourceRange);}});
+                    ret = creep.withdraw(target, RESOURCE_ENERGY);
                 }
-
-                if(target == null){target = creep.room.storage;}
-
-                if(target != null) {
-                    var ret;
-                    if(ground) {
-                        ret = creep.pickup(target);
-                    }
-                    else {
-                        ret = creep.withdraw(target, RESOURCE_ENERGY);
-                    }
-                    if(ret == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(target, {maxRooms: 1});
-                    }
+                if(ret == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(target, {maxRooms: 1});
+                }
+            }
+            
+            if(target == null) {
+                var source = creep.pos.findClosestByRange(find.getSources(creep.room), {filter: (source) => {return (source.energy > 0 && find.isOpen(source, creep))}});
+                if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(source, {maxRooms: 1});
                 }
             }
         }
@@ -171,14 +172,7 @@ var _make = function(spawn, energy_limit) {
 }
 
 var _shouldMake = function(room) {
-    var target = 0;
-    if(room.controller.level < 3) {
-        target = room.controller.level;
-    }
-    else {
-        let num = find.getRepairable(room).length + find.getConstructionSites(room).length;
-        target = 1 + Math.ceil(num / repairsPer);
-    }
+    var target = Math.min(room.controller.level, 2)
 
     return find.getRole(room, 'handyman').length < target;
 }
