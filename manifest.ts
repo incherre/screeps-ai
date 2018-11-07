@@ -37,6 +37,7 @@ import { ConstructionManager } from "./managers/constructionManager";
 import { DefenseManager } from "./managers/defenseManager";
 import { ExplorationManager } from "./managers/explorationManager";
 import { HarvestManager } from "./managers/harvestManager";
+import { MineralManager } from "./managers/mineralManager";
 import { RepairManager } from "./managers/repairManager";
 import { SpawnManager } from "./managers/spawnManager";
 import { TransportManager } from "./managers/transportManager";
@@ -47,6 +48,7 @@ export const managerTypes: {[key: string]: (parent: Colony) => Manager} = {
     [DefenseManager.type]: (parent: Colony) => new DefenseManager(parent),
     [ExplorationManager.type]: (parent: Colony) => new ExplorationManager(parent),
     [HarvestManager.type]: (parent: Colony) => new HarvestManager(parent),
+    [MineralManager.type]: (parent: Colony) => new MineralManager(parent),
     [RepairManager.type]: (parent: Colony) => new RepairManager(parent),
     [SpawnManager.type]: (parent: Colony) => new SpawnManager(parent),
     [TransportManager.type]: (parent: Colony) => new TransportManager(parent),

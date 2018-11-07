@@ -3,8 +3,9 @@ import { Job } from "./job";
 
 export class HarvestJob extends Job {
     public static type: string = 'harvest';
+    public static mineralCooldown: number = 6; // the docs say 5, but it's 0 - 5, so actually mod 6
 
-    public source: Source | null;
+    public source: Source | Mineral | null;
     public sourceId: string | null;
     public sourceRoomName: string | null;
 
@@ -64,18 +65,21 @@ export class HarvestJob extends Job {
     }
 
     public do(creep: Creep): void {
-        if(this.source) {
+        if(this.source instanceof Source && this.source.energy > 0) {
+            creep.harvest(this.source);
+        }
+        else if(this.source instanceof Mineral && Game.time % HarvestJob.mineralCooldown === 0) {
             creep.harvest(this.source);
         }
     }
 
-    constructor(jobInfo: string | Source) {
+    constructor(jobInfo: string | Source | Mineral) {
         super();
         this.targetRange = 0;
-        if(jobInfo instanceof Source) {
+        if(jobInfo instanceof Source || jobInfo instanceof Mineral) {
             this.source = jobInfo;
             this.sourceId = jobInfo.id;
-            this.sourceRoomName = jobInfo.room.name;
+            this.sourceRoomName = jobInfo.pos.roomName;
         }
         else if (jobInfo !== '') {
             const fields = jobInfo.split(',');

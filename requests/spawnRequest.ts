@@ -17,7 +17,9 @@ export class SpawnRequest extends ScreepsRequest {
 }
 
 // -----Creep Generating Functions-----
-export const spawnTypes: {[key: string]: (energyLimit: number, maxEnergy: number) => BodyPartConstant[]} = {
+type BodyType = 'carrier' | 'fighter' | 'ranger' | 'harvester' | 'miner' | 'scout' | 'worker' | 'claimer';
+
+export const spawnTypes: Record<BodyType, (energyLimit: number, maxEnergy: number) => BodyPartConstant[]> = {
     'carrier': (energyLimit: number, maxEnergy: number) => {
         const energyPerRound = BODYPART_COST[CARRY] + BODYPART_COST[MOVE];
         const partsPerRound = 2;
@@ -72,6 +74,28 @@ export const spawnTypes: {[key: string]: (energyLimit: number, maxEnergy: number
         const minParts = 3;
         const minCost = BODYPART_COST[WORK] + BODYPART_COST[WORK] + BODYPART_COST[MOVE];
         const baseBody: BodyPartConstant[] = [MOVE, WORK, WORK, WORK];
+
+        if(energyLimit < minCost){ return []; }
+        let soFar = 0;
+        const body: BodyPartConstant[] = [];
+        while(soFar + BODYPART_COST[baseBody[body.length % baseBody.length]] <= energyLimit && body.length < maxParts) {
+            body.push(baseBody[body.length % baseBody.length]);
+            soFar += BODYPART_COST[baseBody[body.length % baseBody.length]];
+        }
+
+        if(body.length < minParts) {
+            return [];
+        }
+        else {
+            return body;
+        }
+    },
+
+    'miner': (energyLimit: number, maxEnergy: number) => {
+        const maxParts = MAX_CREEP_SIZE;
+        const minParts = 5;
+        const minCost = (BODYPART_COST[WORK] * 4) + BODYPART_COST[MOVE];
+        const baseBody: BodyPartConstant[] = [MOVE, WORK, WORK, WORK, WORK];
 
         if(energyLimit < minCost){ return []; }
         let soFar = 0;

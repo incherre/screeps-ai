@@ -2,6 +2,7 @@ import { Colony } from "../colony";
 import { HarvestJob } from "../jobs/harvestJob";
 import { IdleJob } from "../jobs/idleJob";
 import { ReserveJob } from "../jobs/reserveJob";
+import { creepNearDeath } from "../misc/helperFunctions";
 import { PickupRequest } from "../requests/pickupRequest";
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
@@ -14,25 +15,6 @@ export class HarvestManager extends Manager {
     public static reserveMargin = 600;
     public static minCont = 150;
     public static minReso = 50;
-
-    private creepNearDeath(creep: Creep): boolean {
-        const ticksPerStep = Math.ceil(creep.body.length / (creep.getActiveBodyparts(MOVE) * 2));
-        const spawnTime = CREEP_SPAWN_TIME * creep.body.length;
-        const walkDistanceEstimate = (Game.map.getRoomLinearDistance(creep.pos.roomName, this.parent.capital.name) + 0.5) * 50;
-        const walkTime = ticksPerStep * walkDistanceEstimate;
-
-        if(creep.ticksToLive && creep.ticksToLive < (spawnTime + walkTime)) {
-            const nearestSpawn  = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
-            if(nearestSpawn && creep.ticksToLive <= (spawnTime + (creep.pos.getRangeTo(nearestSpawn) * ticksPerStep))) {
-                return true;
-            }
-            else if(!nearestSpawn) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
@@ -93,7 +75,7 @@ export class HarvestManager extends Manager {
         let claimNumber = 0;
 
         for(const worker of this.workers) {
-            if(!this.creepNearDeath(worker.creep)) {
+            if(!creepNearDeath(worker.creep, this.parent.capital.name)) {
                 if(worker.creep.getActiveBodyparts(WORK) > 0) {
                     workNumber++;
                 }
@@ -146,24 +128,24 @@ export class HarvestManager extends Manager {
         const idleHarvesters: WorkerCreep[] = [];
         const idleReservers: WorkerCreep[] = [];
     
-        for(const i in this.workers) {
-            if(this.workers[i].job instanceof IdleJob) {
-                if(this.workers[i].creep.getActiveBodyparts(WORK) > 0) {
-                    idleHarvesters.push(this.workers[i]);
+        for(const worker of this.workers) {
+            if(worker.job instanceof IdleJob) {
+                if(worker.creep.getActiveBodyparts(WORK) > 0) {
+                    idleHarvesters.push(worker);
                 }
-                else if(this.workers[i].creep.getActiveBodyparts(CLAIM) > 0) {
-                    idleReservers.push(this.workers[i]);
+                else if(worker.creep.getActiveBodyparts(CLAIM) > 0) {
+                    idleReservers.push(worker);
                 }
             }
-            else if(this.workers[i].job instanceof HarvestJob) {
-                const sourceId = (this.workers[i].job as HarvestJob).sourceId;
-                if(!this.creepNearDeath(this.workers[i].creep) && sourceId) {
+            else if(worker.job instanceof HarvestJob) {
+                const sourceId = (worker.job as HarvestJob).sourceId;
+                if(!creepNearDeath(worker.creep, this.parent.capital.name) && sourceId) {
                     unpairedSources.delete(sourceId);
                 }
             }
-            else if(this.workers[i].job instanceof ReserveJob) {
-                const roomName = (this.workers[i].job as ReserveJob).roomName;
-                if(!this.creepNearDeath(this.workers[i].creep) && roomName) {
+            else if(worker.job instanceof ReserveJob) {
+                const roomName = (worker.job as ReserveJob).roomName;
+                if(!creepNearDeath(worker.creep, this.parent.capital.name) && roomName) {
                     unpairedRooms.delete(roomName);
                 }
             }

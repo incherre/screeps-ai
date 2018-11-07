@@ -168,3 +168,22 @@ export function getSpotsNear(position: RoomPosition, range:number = 1): RoomPosi
         return [];
     }
 }
+
+export function creepNearDeath(creep: Creep, spawnRoomName: string): boolean {
+    const ticksPerStep = Math.ceil(creep.body.length / (creep.getActiveBodyparts(MOVE) * 2));
+    const spawnTime = CREEP_SPAWN_TIME * creep.body.length;
+    const walkDistanceEstimate = (Game.map.getRoomLinearDistance(creep.pos.roomName, spawnRoomName) + 0.5) * 50;
+    const walkTime = ticksPerStep * walkDistanceEstimate;
+
+    if(creep.ticksToLive && creep.ticksToLive < (spawnTime + walkTime)) {
+        const nearestSpawn  = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
+        if(nearestSpawn && creep.ticksToLive <= (spawnTime + (creep.pos.getRangeTo(nearestSpawn) * ticksPerStep))) {
+            return true;
+        }
+        else if(!nearestSpawn) {
+            return true;
+        }
+    }
+
+    return false;
+}
