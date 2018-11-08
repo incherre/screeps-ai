@@ -220,6 +220,7 @@ export class WorkerCreep {
 
         if(this.job.ttr <= 0) {
             this.job.ttr = 0;
+            this.creep.memory.path = null;
             if(!this.job.recalculateTarget(this.creep)) {
                 this.job = new IdleJob();
             }
