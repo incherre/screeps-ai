@@ -90,7 +90,7 @@ var _spawnCreeps = function(room) {
 
 var _spawnSingleCreep = function(spawn, energy_limit) {
     for(let name in creepLimits) {
-        if(creepLimits[name].shouldMake(spawn.room) ){
+        if(creepLimits[name].shouldMake(spawn.room)){
             let retVal = creepLimits[name].make(spawn, energy_limit);
             if(retVal != 0) {
                 return retVal;
@@ -182,9 +182,7 @@ var _controlLabs = function(room) {
         minerals[mineralType].push(labs[i]);
     }
     
-    _runReaction(minerals, RESOURCE_ZYNTHIUM, RESOURCE_OXYGEN);
     _runReaction(minerals, RESOURCE_HYDROGEN, RESOURCE_OXYGEN);
-    _runReaction(minerals, RESOURCE_ZYNTHIUM_OXIDE, RESOURCE_HYDROXIDE);
 }
 // *** End ***
 
@@ -201,7 +199,7 @@ var _operateTower = function(tower){
     
     if(closestHostile) {
         tower.attack(closestHostile);
-        if(tower.energy < 0.25 * tower.energyCapacity) {
+        if(tower.energy < 0.4 * tower.energyCapacity) {
             if(!Memory.PROTECTOR_REQUESTS) {
                 Memory.PROTECTOR_REQUESTS = [];
             }
