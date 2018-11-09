@@ -9,6 +9,9 @@ import { VisionRequest } from "../requests/visionRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
 
+import { profile } from "../Profiler/Profiler";
+
+@profile
 export class ExplorationManager extends Manager {
     public static type = 'explore';
     public static refreshRate = 9000;

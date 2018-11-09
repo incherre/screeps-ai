@@ -10,6 +10,9 @@ import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
 
+import { profile } from "../Profiler/Profiler";
+
+@profile
 export class TransportManager extends Manager {
     public static type = 'transport';
 

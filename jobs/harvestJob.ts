@@ -1,6 +1,9 @@
 import { getSpotsNear } from "../misc/helperFunctions";
 import { Job } from "./job";
 
+import { profile } from "../Profiler/Profiler";
+
+@profile
 export class HarvestJob extends Job {
     public static type: string = 'harvest';
     public static mineralCooldown: number = 6; // the docs say 5, but it's 0 - 5, so actually mod 6

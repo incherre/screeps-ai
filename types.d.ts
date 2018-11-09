@@ -23,5 +23,6 @@ declare namespace NodeJS {
   interface Global {
     myMaps: {[key: string]: Array<Array<{exitDist: number, wallDist: number, sourceDist: number[], controllerDist:number}>>} | null;
     myCosts: {[key: string]: {mat: CostMatrix, time: number}} | null;
+    Profiler: any;
   }
 }

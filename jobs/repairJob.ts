@@ -1,7 +1,8 @@
-import { getSpotsNear } from "../misc/helperFunctions";
 import { Job } from "./job";
 
+import { profile } from "../Profiler/Profiler";
 
+@profile
 export class RepairJob extends Job {
     public static type: string = 'repair';
     public static range: number = 3;

@@ -1,6 +1,8 @@
 import { Job } from "./job";
 
+import { profile } from "../Profiler/Profiler";
 
+@profile
 export class ConstructJob extends Job {
     public static type: string = 'construct';
 

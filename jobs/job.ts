@@ -1,3 +1,6 @@
+import { profile } from "../Profiler/Profiler";
+
+@profile
 export abstract class Job {
     public abstract recalculateTarget(creep: Creep): boolean;
     public abstract getJobType(): string;

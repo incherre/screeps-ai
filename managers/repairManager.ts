@@ -6,6 +6,9 @@ import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
 import { Manager } from "./manager";
 
+import { profile } from "../Profiler/Profiler";
+
+@profile
 export class RepairManager extends Manager {
     public static type = 'repair';
     public static towerConstant = 0.75;

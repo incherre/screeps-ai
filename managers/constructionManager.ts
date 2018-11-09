@@ -9,6 +9,9 @@ import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
 import { RepairManager } from "./repairManager";
 
+import { profile } from "../Profiler/Profiler";
+
+@profile
 export class ConstructionManager extends Manager {
     public static type = 'construction';
     public static siteFrequency = 53;

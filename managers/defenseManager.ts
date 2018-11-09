@@ -7,6 +7,9 @@ import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
 
+import { profile } from "../Profiler/Profiler";
+
+@profile
 export class DefenseManager extends Manager {
     public static type: string = 'defense';
     public static refillConstant: number = 1;

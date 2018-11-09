@@ -1,7 +1,9 @@
-import { getSpotsNear } from "../misc/helperFunctions";
 import { EnergyContainer, GeneralContainer } from "../misc/typeChecking";
 import { Job } from "./job";
 
+import { profile } from "../Profiler/Profiler";
+
+@profile
 export class DropoffJob extends Job {
     public static type: string = 'dropoff';
 

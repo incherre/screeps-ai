@@ -5,9 +5,11 @@ import { creepNearDeath } from "../misc/helperFunctions";
 import { PickupRequest } from "../requests/pickupRequest";
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
-import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
 
+import { profile } from "../Profiler/Profiler";
+
+@profile
 export class MineralManager extends Manager {
     public static type: string = 'mineral';
     public static mineralRCL: number = 6;

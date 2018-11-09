@@ -1,6 +1,9 @@
 import { addRoomInfo, getRoomInfo } from "../misc/helperFunctions";
 import { Job } from "./job";
 
+import { profile } from "../Profiler/Profiler";
+
+@profile
 export class ScoutJob extends Job {
     public static type: string = 'scout';
     public static rescoutThreshold = 50;

@@ -4,6 +4,9 @@ import { getAdjacentRooms } from "./misc/helperFunctions";
 import { ScreepsRequest } from "./requests/request";
 import { WorkerCreep } from "./worker";
 
+import { profile } from "./Profiler/Profiler";
+
+@profile
 export class Colony {
     public capital: Room;
     public farms: string[];

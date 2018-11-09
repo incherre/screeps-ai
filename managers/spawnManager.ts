@@ -5,9 +5,11 @@ import { EnergyContainer } from "../misc/typeChecking";
 import { DropoffRequest } from "../requests/dropoffRequest";
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest } from "../requests/spawnRequest";
-import { HarvestManager } from "./harvestManager";
 import { Manager } from "./manager";
 
+import { profile } from "../Profiler/Profiler";
+
+@profile
 export class SpawnManager extends Manager {
     public static type: string = 'spawn';
     public static minSpawnEnergy: number = 100;

@@ -2,6 +2,9 @@ import { getOwnName } from "../misc/helperFunctions";
 import { signs } from "../misc/signs";
 import { Job } from "./job";
 
+import { profile } from "../Profiler/Profiler";
+
+@profile
 export class ReserveJob extends Job {
     public static type: string = 'reserve';
     

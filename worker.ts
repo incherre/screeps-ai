@@ -4,6 +4,9 @@ import { Job } from "./jobs/job";
 import { jobTypes } from "./manifest"
 import { addRoomInfo, getOwnName, getRoomInfo, getSpotsNear, movePos, shuffle, SOURCE_KEEPER_NAME } from "./misc/helperFunctions";
 
+import { profile } from "./Profiler/Profiler";
+
+@profile
 export class WorkerCreep {
     public parent: Colony;
     public creep: Creep;

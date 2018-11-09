@@ -1,5 +1,8 @@
 import { Job } from "./job";
 
+import { profile } from "../Profiler/Profiler";
+
+@profile
 export class BusyJob extends Job {
     public static type: string = 'busy';
 
