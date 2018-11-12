@@ -58,7 +58,8 @@ export const managerTypes: {[key: string]: (parent: Colony) => Manager} = {
 };
 
 // -----Empire Managers-----
+import { MarketManager } from "./empireManagers/marketManager";
 
 export const empireTypes: {[key: string]: (parent: Empire) => EmpireManager} = {
-    // none
+    [MarketManager.type]: (parent: Empire) => new MarketManager(parent),
 };
