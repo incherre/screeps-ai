@@ -2,6 +2,7 @@ import { Empire } from "./empire";
 import { Manager } from "./managers/manager";
 import { managerTypes } from "./manifest";
 import { getAdjacentRooms } from "./misc/helperFunctions";
+import { EmpireRequest } from "./requests/empireRequest";
 import { ScreepsRequest } from "./requests/request";
 import { WorkerCreep } from "./worker";
 
@@ -62,17 +63,27 @@ export class Colony {
         }
     }
 
-    public generateRequests(): void {
+    public generateRequests(): EmpireRequest[] {
+        const empireRequests: EmpireRequest[] = [];
+
         // generate any manager requests
         for(const manager in this.managers) {
             const newRequests = this.managers[manager].generateRequests();
-            for(const i in newRequests) {
-                if(!this.requests[newRequests[i].getType()]){
-                    this.requests[newRequests[i].getType()] = [];
+            for(const request of newRequests) {
+                if(request instanceof EmpireRequest) {
+                    empireRequests.push(request);
                 }
-                this.requests[newRequests[i].getType()].push(newRequests[i]);
+                else {
+                    const type = request.getType();
+                    if(!this.requests[type]){
+                        this.requests[type] = [];
+                    }
+                    this.requests[type].push(request);
+                }
             }
         }
+
+        return empireRequests;
     }
 
     public run(): void {

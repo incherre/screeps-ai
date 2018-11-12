@@ -1,5 +1,7 @@
 // General Imports:
 import { Colony } from "./colony";
+import { Empire } from "./empire";
+import { EmpireManager } from "./empireManagers/empireManager";
 import { Job } from "./jobs/job";
 import { Manager } from "./managers/manager";
 
@@ -53,4 +55,10 @@ export const managerTypes: {[key: string]: (parent: Colony) => Manager} = {
     [SpawnManager.type]: (parent: Colony) => new SpawnManager(parent),
     [TransportManager.type]: (parent: Colony) => new TransportManager(parent),
     [UpgradeManager.type]: (parent: Colony) => new UpgradeManager(parent),
+};
+
+// -----Empire Managers-----
+
+export const empireTypes: {[key: string]: (parent: Empire) => EmpireManager} = {
+    // none
 };

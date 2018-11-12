@@ -1,4 +1,7 @@
 import { Colony } from "./colony";
+import { EmpireManager } from "./empireManagers/empireManager";
+import { empireTypes } from "./manifest";
+import { EmpireRequest } from "./requests/empireRequest";
 
 import { profile } from "./Profiler/Profiler";
 
@@ -8,7 +11,9 @@ export class Empire {
     public static cleanupWait = 7;
 
     public flags: Map<ColorConstant, Map<ColorConstant, Flag[]>>;
-    public colonies: Colony[];
+    public colonies: {[key: string]: Colony};
+    public managers: EmpireManager[];
+    public requests: Map<string, EmpireRequest[]>;
 
     constructor() {
         // cleanup memory, etc.
@@ -53,30 +58,47 @@ export class Empire {
         }
 
         // init colonies
-        this.colonies = [];
+        this.colonies = {};
         for(const roomName of creepMap.keys()) {
             const room = Game.rooms[roomName];
             const creeps = creepMap.get(roomName);
             if(room && creeps) {
-                this.colonies.push(new Colony(room, creeps));
+                this.colonies[roomName] = new Colony(this, room, creeps);
             }
+        }
+
+        // init empire level managers
+        this.requests = new Map<string, EmpireRequest[]>();
+        this.managers = [];
+        for(const managerName in empireTypes) {
+            this.managers.push(empireTypes[managerName](this));
         }
     }
 
     public generateRequests(): void {
-        // generate colony requests
         if(Game.cpu.bucket >= Empire.cpuBucketSkipThreshold) {
-            for(const colony of this.colonies) {
-                colony.generateRequests();
+            // generate colony requests
+            for(const roomName in this.colonies) {
+                this.addRequests(this.colonies[roomName].generateRequests());
+            }
+
+            // generate empire level manager requests
+            for(const manager of this.managers) {
+                this.addRequests(manager.generateRequests());
             }
         }
     }
 
     public run(): void {
-        // run the colonies
         if(Game.cpu.bucket >= Empire.cpuBucketSkipThreshold) {
-            for(const colony of this.colonies) {
-                colony.run();
+            // run the colonies
+            for(const roomName in this.colonies) {
+                this.colonies[roomName].run();
+            }
+
+            // run the empire level managers
+            for(const manager of this.managers) {
+                manager.manage();
             }
         }
     }
@@ -87,6 +109,19 @@ export class Empire {
             if (!(name in Game.creeps)) {
                 delete Memory.creeps[name];
             }
+        }
+    }
+
+    private addRequests(newRequests: EmpireRequest[]): void {
+        for(const request of newRequests) {
+            const type = request.getType();
+            let requests = this.requests.get(type);
+            if(!requests) {
+                requests = [];
+                this.requests.set(type, requests);
+            }
+
+            requests.push(request);
         }
     }
 }
