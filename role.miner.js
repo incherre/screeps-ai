@@ -26,7 +26,7 @@ var _run = function(creep) {
 			creep.moveTo(target, {maxRooms: 1});
 		}
 	}
-	else if(find.getExtractors(creep.room).length > 0 && find.getExtractors(creep.room)[0].cooldown == 0) { // if there is nothing to deposit and we can, then we will mine.
+	else if(Game.time % 6 == 0) { // if there is nothing to deposit and we can, then we will mine.
 		var target = find.getMineral(creep.room);
 		var retVal = creep.harvest(target);
 		if(retVal == ERR_NOT_IN_RANGE) {
@@ -36,8 +36,7 @@ var _run = function(creep) {
 			creep.room.visual.text("⛏️", creep.pos);
 		}
 	}
-	else if(find.getExtractors(creep.room).length > 0 && find.getExtractors(creep.room)[0].cooldown > 1 &&
-			find.getCreepLink(creep) != undefined && find.getCreepLink(creep).energy > 0 &&
+	else if(find.getCreepLink(creep) != undefined && find.getCreepLink(creep).energy > 0 &&
 			creep.room.terminal != undefined && creep.room.terminal.store[RESOURCE_ENERGY] < creep.room.terminal.storeCapacity / 15) { // if there is energy near us, grab it
 		creep.withdraw(find.getCreepLink(creep), RESOURCE_ENERGY);
 		creep.room.visual.text("🔍", creep.pos);
