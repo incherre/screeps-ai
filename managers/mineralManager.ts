@@ -2,8 +2,10 @@ import { Colony } from "../colony";
 import { HarvestJob } from "../jobs/harvestJob";
 import { IdleJob } from "../jobs/idleJob";
 import { creepNearDeath } from "../misc/helperFunctions";
+import { DropoffRequest } from "../requests/dropoffRequest";
 import { PickupRequest } from "../requests/pickupRequest";
 import { ScreepsRequest } from "../requests/request";
+import { SellRequest } from "../requests/sellRequst";
 import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
 import { Manager } from "./manager";
 
@@ -14,6 +16,8 @@ export class MineralManager extends Manager {
     public static type: string = 'mineral';
     public static mineralRCL: number = 6;
     public static pickupThreshold: number = 500;
+    public static storageAmount: number = 10000;
+    public static terminalAmount: number = 5000;
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
@@ -41,6 +45,27 @@ export class MineralManager extends Manager {
                         if(amount && amount > 0) {
                             requests.push(new PickupRequest(MineralManager.type, container, mineralType as ResourceConstant));
                         }
+                    }
+                }
+
+                if(this.parent.capital.storage && this.parent.capital.terminal) {
+                    const terminal = this.parent.capital.terminal;
+                    const storage = this.parent.capital.storage;
+                    let amount: number | undefined;
+
+                    amount = _.sum(terminal.store) - terminal.store[RESOURCE_ENERGY]
+                    if(terminal.store[RESOURCE_ENERGY] < amount * 2) {
+                        requests.push(new DropoffRequest(MineralManager.type, this.parent.capital.terminal));
+                    }
+
+                    amount = storage.store[mineral.mineralType];
+                    if(amount && amount > MineralManager.storageAmount) {
+                        requests.push(new DropoffRequest(MineralManager.type, this.parent.capital.terminal, mineral.mineralType));
+                    }
+
+                    amount = terminal.store[mineral.mineralType];
+                    if(amount && amount > MineralManager.terminalAmount) {
+                        requests.push(new SellRequest(this.parent.capital.name, amount, mineral.mineralType));
                     }
                 }
             }

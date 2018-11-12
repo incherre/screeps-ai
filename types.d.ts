@@ -15,6 +15,7 @@ interface RoomMemory {
 }
 
 interface Memory {
+  marketHistory: {[key: string]: number[]} | null;
   seenRooms: {[key: string]: {owner: string | null, level: number, lastObserved: number}} | null;
   username: string | null;
 }
