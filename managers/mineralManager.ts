@@ -55,7 +55,7 @@ export class MineralManager extends Manager {
         }
 
         const mineral = _.find(this.parent.capital.find(FIND_MINERALS));
-        if(mineral) {
+        if(mineral && this.parent.structures.get(STRUCTURE_EXTRACTOR)) {
             for(const worker of this.workers) {
                 if(worker.job instanceof IdleJob) {
                     worker.job = new HarvestJob(mineral);

@@ -18,9 +18,12 @@ export class DefenseManager extends Manager {
         const requests: ScreepsRequest[] = [];
         
         // make fill requests for the towers
-        for(const building of this.buildings) {
-            if(building.structureType === STRUCTURE_TOWER && (building as StructureTower).energy < (DefenseManager.refillConstant * (building as StructureTower).energyCapacity)) {
-                requests.push(new DropoffRequest(DefenseManager.type, building));
+        const towers = this.parent.structures.get(STRUCTURE_TOWER);
+        if(towers) {
+            for(const tower of towers) {
+                if((tower as StructureTower).energy < (DefenseManager.refillConstant * (tower as StructureTower).energyCapacity)) {
+                    requests.push(new DropoffRequest(DefenseManager.type, tower));
+                }
             }
         }
 
@@ -61,34 +64,37 @@ export class DefenseManager extends Manager {
         }
 
         // use towers to attack them
-        for(const building of this.buildings) {
-            if(building.structureType === STRUCTURE_TOWER && (building as StructureTower).energy > 0) {
-                const tower = building as StructureTower;
-                let target = null;
-                if(attackers.length > 0) {
-                    target = tower.pos.findClosestByRange(attackers);
-                }
-                else if(healers.length > 0 && crippledAttackers.length > 0) {
-                    target = tower.pos.findClosestByRange(healers);
-                }
-                else if(enemies.length > 0) {
-                    target = tower.pos.findClosestByRange(enemies);
-                }
-
-                if(target) {
-                    tower.attack(target);
-                }
-                else {
-                    if(!hurtAllies) {
-                        hurtAllies = this.parent.capital.find(FIND_MY_CREEPS, {filter: (creep) => creep.hits < creep.hitsMax});
+        const towers = this.parent.structures.get(STRUCTURE_TOWER);
+        if(towers) {
+            for(const towerEntry of towers) {
+                if((towerEntry as StructureTower).energy > 0) {
+                    const tower = towerEntry as StructureTower;
+                    let target = null;
+                    if(attackers.length > 0) {
+                        target = tower.pos.findClosestByRange(attackers);
                     }
-
-                    if(hurtAllies.length > 0) {
-                        target = tower.pos.findClosestByRange(hurtAllies);
+                    else if(healers.length > 0 && crippledAttackers.length > 0) {
+                        target = tower.pos.findClosestByRange(healers);
+                    }
+                    else if(enemies.length > 0) {
+                        target = tower.pos.findClosestByRange(enemies);
                     }
 
                     if(target) {
-                        tower.heal(target);
+                        tower.attack(target);
+                    }
+                    else {
+                        if(!hurtAllies) {
+                            hurtAllies = this.parent.capital.find(FIND_MY_CREEPS, {filter: (creep) => creep.hits < creep.hitsMax});
+                        }
+
+                        if(hurtAllies.length > 0) {
+                            target = tower.pos.findClosestByRange(hurtAllies);
+                        }
+
+                        if(target) {
+                            tower.heal(target);
+                        }
                     }
                 }
             }

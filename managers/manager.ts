@@ -8,14 +8,12 @@ import { profile } from "../Profiler/Profiler";
 export abstract class Manager {
     public parent: Colony;
     public workers: WorkerCreep[];
-    public buildings: Structure[];
 
     public abstract generateRequests(): ScreepsRequest[]; 
     public abstract manage(): void;
 
     constructor (parent: Colony) {
         this.parent = parent;
-        this.workers = []
-        this.buildings = []
+        this.workers = [];
     }
 }

@@ -20,11 +20,11 @@ export class ExplorationManager extends Manager {
         const requests: ScreepsRequest[] = [];
         const controller = this.parent.capital.controller;
         let scoutNumber = 0;
-        if(this.parent.capital.memory.needsVision && this.buildings.length === 0) {
+        if(this.parent.capital.memory.needsVision && !this.parent.structures.get(STRUCTURE_OBSERVER)) {
             scoutNumber = 1;
             this.parent.capital.memory.needsVision = false;
         }
-        else if(controller && controller.my && controller.level >= 3 && this.buildings.length === 0) {
+        else if(controller && controller.my && controller.level >= 3 && !this.parent.structures.get(STRUCTURE_OBSERVER)) {
             for(const roomName of getAdjacentRooms(this.parent.capital.name)) {
                 const info = getRoomInfo(roomName);
                 if(!info || Game.time - info.lastObserved > ExplorationManager.refreshRate) {
@@ -42,7 +42,12 @@ export class ExplorationManager extends Manager {
     }
 
     public manage(): void {
-        const observer: StructureObserver | undefined = _.find(this.buildings, (build) => build.structureType === STRUCTURE_OBSERVER) as StructureObserver;
+        let observer: StructureObserver | undefined;
+        const observers = this.parent.structures.get(STRUCTURE_OBSERVER);
+        if(observers) {
+            observer = _.find(observers) as StructureObserver;
+        }
+
         const visionRequests = this.parent.requests[VisionRequest.type];
         let visionRequest = null;
         const visionRequired: Set<string> = new Set<string>();

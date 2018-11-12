@@ -16,7 +16,19 @@ export class SpawnManager extends Manager {
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
-        for(const building of this.buildings) {
+
+        let buildings: Structure[] = [];
+        const extensions = this.parent.structures.get(STRUCTURE_EXTENSION);
+        if(extensions) {
+            buildings = extensions;
+        }
+
+        const spawns = this.parent.structures.get(STRUCTURE_SPAWN);
+        if(spawns) {
+            buildings = buildings.concat(spawns);
+        }
+
+        for(const building of buildings) {
             const test = building as any;
             if((test as EnergyContainer).energy !== undefined && (test as EnergyContainer).energy < (test as EnergyContainer).energyCapacity) {
                 requests.push(new DropoffRequest(SpawnManager.type, building));
@@ -33,8 +45,9 @@ export class SpawnManager extends Manager {
 
         let energy: number = this.parent.capital.energyAvailable;
         const energyMax: number = this.parent.capital.energyCapacityAvailable;
-        if(energy >= SpawnManager.minSpawnEnergy) {
-            for(const building of this.buildings) {
+        const spawns = this.parent.structures.get(STRUCTURE_SPAWN);
+        if(energy >= SpawnManager.minSpawnEnergy && spawns) {
+            for(const building of spawns) {
                 if(building instanceof StructureSpawn && requests.length > 0 && !building.spawning) {
                     const request = popMostImportant(requests) as SpawnRequest;
                     const memory = {jobType: BusyJob.type, jobInfo: '', colonyRoom: this.parent.capital.name, managerType: request.requester, path: null};

@@ -79,8 +79,9 @@ export class RepairManager extends Manager {
             }
         }
 
-        if(this.parent.capital.find(FIND_HOSTILE_CREEPS).length === 0) {
-            for(const building of this.buildings) {
+        const towers = this.parent.structures.get(STRUCTURE_TOWER);
+        if(this.parent.capital.find(FIND_HOSTILE_CREEPS).length === 0 && towers) {
+            for(const building of towers) {
                 if(building instanceof StructureTower) {
                     const tower = building as StructureTower;
                     if(tower.energy > RepairManager.towerConstant * tower.energyCapacity) {
