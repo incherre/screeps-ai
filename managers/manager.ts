@@ -2,9 +2,6 @@ import { Colony } from "../colony";
 import { ScreepsRequest } from "../requests/request";
 import { WorkerCreep } from "../worker";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export abstract class Manager {
     public parent: Colony;
     public workers: WorkerCreep[];

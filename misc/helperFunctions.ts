@@ -176,7 +176,7 @@ export function creepNearDeath(creep: Creep, spawnRoomName: string): boolean {
     const walkTime = ticksPerStep * walkDistanceEstimate;
 
     if(creep.ticksToLive && creep.ticksToLive < (spawnTime + walkTime)) {
-        const nearestSpawn  = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
+        const nearestSpawn = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
         if(nearestSpawn && creep.ticksToLive <= (spawnTime + (creep.pos.getRangeTo(nearestSpawn) * ticksPerStep))) {
             return true;
         }
