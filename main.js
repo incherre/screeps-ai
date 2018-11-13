@@ -69,12 +69,12 @@ module.exports.loop = function () {
         trading.trade();
     }
   
-    if(Game.time % 7 == 0) {
-        var resourcePairs = [[RESOURCE_OXYGEN, 'E3S4'], [RESOURCE_ZYNTHIUM, 'E7S3']];
-        var room2 = Game.rooms['E1S7'];
+    if(Game.time % 13 == 0) {
+        var resourcePairs = [['E1S7', RESOURCE_OXYGEN, 'E3S4'], ['E1S7', RESOURCE_LEMERGIUM, 'W6N17']];
         
-        for(var [resource, roomName] of resourcePairs) {
-            var room1 = Game.rooms[roomName];
+        for(var [destRoomName, resource, sourceRoomName] of resourcePairs) {
+            var room1 = Game.rooms[sourceRoomName];
+            var room2 = Game.rooms[destRoomName];
             var lab = _getLabWith(room2, resource);
         
             if(room1.terminal != undefined && room2.terminal != undefined && lab != null && room1.terminal.store[resource] != undefined && room1.terminal.cooldown == 0) {

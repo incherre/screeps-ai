@@ -14,8 +14,14 @@ var controllerRange = 2;
 // ***** End *****
 
 var find = require('manager.roomInfo');
-const labTypes = [RESOURCE_OXYGEN, RESOURCE_ZYNTHIUM, RESOURCE_HYDROGEN, RESOURCE_HYDROXIDE];
-const labProducts = [];
+const roomLabTypes = {
+    'E1S7': [RESOURCE_LEMERGIUM, RESOURCE_HYDROGEN, RESOURCE_HYDROXIDE, RESOURCE_OXYGEN],
+    'E3S4': [RESOURCE_OXYGEN],
+    'E7S3': [RESOURCE_ZYNTHIUM]
+};
+const roomLabProducts = {
+    'E1S7': [RESOURCE_LEMERGIUM_ACID]
+};
 
 var _getLabWith = function(room, resource) {
     let labs = find.getLabs(room);
@@ -46,6 +52,16 @@ var _run = function(creep) {
 	    creep.memory.working = false;
 	    creep.room.visual.text("🔋", creep.pos);
 	}
+	
+	let labTypes = [];
+    if(roomLabTypes[creep.room.name]) {
+        labTypes = roomLabTypes[creep.room.name];
+    }
+    
+    let labProducts = [];
+    if(roomLabProducts[creep.room.name]) {
+        labProducts = roomLabProducts[creep.room.name];
+    }
 
     if(creep.memory.working) {
         var energy = [];

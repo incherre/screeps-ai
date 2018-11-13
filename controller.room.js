@@ -67,7 +67,10 @@ var _controlRoom = function(room) {
     }
     
     _buildSomething(room);
-    _controlLabs(room);
+    
+    if(Game.time % 5 == 0) {
+        _controlLabs(room);
+    }
 }
 
 // *** Spawning ***
@@ -183,6 +186,8 @@ var _controlLabs = function(room) {
     }
     
     _runReaction(minerals, RESOURCE_HYDROGEN, RESOURCE_OXYGEN);
+    _runReaction(minerals, RESOURCE_HYDROGEN, RESOURCE_LEMERGIUM);
+    _runReaction(minerals, RESOURCE_HYDROXIDE, RESOURCE_LEMERGIUM_HYDRIDE);
 }
 // *** End ***
 
