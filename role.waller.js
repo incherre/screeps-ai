@@ -6,6 +6,8 @@ Once a waller is full, it should use the energy to repair walls and ramparts.
 
 // ***** Options *****
 var maxWallerParts = 14;
+var ttlThreshold = 1400;
+var boostType = RESOURCE_LEMERGIUM_ACID;
 // ***** End *****
 
 var find = require('manager.roomInfo');
@@ -19,7 +21,39 @@ var _obstacles = function(roomName, costMatrix) {
     }
 }
 
+// copied from courier, just as a temporary measure
+var _getLabWith = function(room, resource) {
+    let labs = find.getLabs(room);
+    let backup = null;
+    
+    for(let i in labs) {
+        if(labs[i].mineralAmount == 0) {
+            backup = labs[i];
+        }
+        else if(labs[i].mineralType == resource) {
+            return labs[i];
+        }
+    }
+    
+    return backup;
+}
+
 var _run = function(creep) {
+    if(creep.ticksToLive > ttlThreshold && !creep.memory.boosted) {
+        var lab = _getLabWith(creep.room, boostType);
+        if(lab && lab.mineralAmount > creep.getActiveBodyparts(WORK) * LAB_BOOST_MINERAL) {
+            var retVal = lab.boostCreep(creep);
+            if(retVal == OK) {
+                creep.memory.boosted = true;
+                return;
+            }
+            else if(retVal == ERR_NOT_IN_RANGE) {
+                creep.moveTo(lab);
+                return;
+            }
+        }
+    }
+    
     if(creep.memory.working && creep.carry.energy == 0) {
         creep.memory.working = false;
         creep.memory.target = false;
@@ -79,7 +113,7 @@ var _make = function(spawn, energy_limit) {
         body.push(MOVE);
     }
 
-    var mem = {role: 'waller', home: spawn.room.controller.id, long_range: false, working: false, target: false};
+    var mem = {role: 'waller', home: spawn.room.controller.id, long_range: false, working: false, target: false, boosted: false};
     var name = find.creepNames[Math.floor(Math.random() * find.creepNames.length)] + ' ' + spawn.name + Game.time;
     var retVal = spawn.spawnCreep(body, name, {memory: mem});
 

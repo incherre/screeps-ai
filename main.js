@@ -70,7 +70,7 @@ module.exports.loop = function () {
     }
   
     if(Game.time % 13 == 0) {
-        var resourcePairs = [['E1S7', RESOURCE_OXYGEN, 'E3S4'], ['E1S7', RESOURCE_LEMERGIUM, 'W6N17']];
+        var resourcePairs = [['E1S7', RESOURCE_OXYGEN, 'E3S4'], ['E1S7', RESOURCE_LEMERGIUM, 'W6N17'], ['W6N17', RESOURCE_LEMERGIUM_ACID, 'E1S7']];
         
         for(var [destRoomName, resource, sourceRoomName] of resourcePairs) {
             var room1 = Game.rooms[sourceRoomName];
