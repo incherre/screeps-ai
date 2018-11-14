@@ -5,42 +5,60 @@ Once a warrior is in the same room as it's flag, if there are enemy creeps, it w
 */
 
 // ***** Options *****
-var maxWarriorParts = 25;
-var message = ['placeholder', 'any energy', 'that you', 'use to', 'attack me', 'isn\'t used', 'for your', 'colony. :('];
+var maxWarriorParts = 12;
+var flagName = 'power';
+var warriorCount = 4;
 // ***** End *****
 
 var find = require('manager.roomInfo');
 
 var _run = function(creep) {
-    var enemy = creep.pos.findClosestByRange(find.getHostileCreeps(creep.room));
-    if(enemy == null) {
-        var flag = creep.pos.findClosestByRange(_findWarriorFlags(creep.room));
-        creep.moveTo(flag);
-    }
-    else if(creep.attack(enemy) == ERR_NOT_IN_RANGE) {
-        creep.moveTo(enemy);
-    }
-    
-    if(enemy != null) {
-        if(!creep.memory.was_enemy) {
-            creep.memory.start_time = Game.time;
-            creep.memory.was_enemy = true;
-        }
-        
-        if((Game.time - creep.memory.start_time) % message.length == 0) {
-            creep.say(enemy.owner.username, true);
+    if(!Game.flags.hasOwnProperty(flagName) && _.sum(creep.carry) == 0) {
+        const room = Game.getObjectById(creep.memory.home).room;
+        if(room.name != creep.room.name) {
+            creep.moveTo(room.controller);
         }
         else {
-            creep.say(message[(Game.time - creep.memory.start_time) % message.length], true);
+            const spawn = creep.pos.findClosestByRange(find.getSpawns(creep.room));
+            creep.moveTo(spawn);
+            spawn.recycleCreep(creep);
+        }
+        return;
+    }
+    
+    const flag = Game.flags[flagName];
+    const homeStorage = Game.getObjectById(creep.memory.home).room.storage;
+    const powerBanks = creep.room.find(FIND_STRUCTURES, {filter: (struct) => {return struct.structureType == STRUCTURE_POWER_BANK;}});
+    const powers = creep.room.find(FIND_DROPPED_RESOURCES, {filter: (resource) => {return resource.resourceType == RESOURCE_POWER;}});
+
+    if(_.sum(creep.carry) > 0 && homeStorage) {
+        if(creep.transfer(homeStorage, RESOURCE_POWER) == ERR_NOT_IN_RANGE) {
+            creep.moveTo(homeStorage);
         }
     }
-    else {
-        creep.memory.was_enemy = false;
+    else if(creep.room.name != flag.pos.roomName) {
+        creep.moveTo(flag);
+    }
+    else if(creep.getActiveBodyparts(ATTACK) == 0 && powerBanks.length > 0) {
+        creep.moveTo(25, 25);
+    }
+    else if(powerBanks.length > 0) {
+        const powerBank = powerBanks[0];
+        if(creep.attack(powerBank) == ERR_NOT_IN_RANGE) {
+            creep.moveTo(powerBank);
+        }
+    }
+    else if(powers.length > 0) {
+        const power = creep.pos.findClosestByRange(powers);
+        if(creep.pickup(power) == ERR_NOT_IN_RANGE) {
+            creep.moveTo(power);
+        }
     }
 }
 
 var _make = function(spawn, energy_limit) {
-    var numOfPart = Math.floor(energy_limit / 130);
+    const bodyCost = BODYPART_COST[MOVE] + BODYPART_COST[MOVE] + BODYPART_COST[CARRY] + BODYPART_COST[ATTACK]
+    var numOfPart = Math.floor(energy_limit / bodyCost);
     if(numOfPart > maxWarriorParts){numOfPart = maxWarriorParts;}
 
     var body = [];
@@ -50,8 +68,14 @@ var _make = function(spawn, energy_limit) {
     for(let i = 0; i < numOfPart; i++) {
         body.push(ATTACK);
     }
+    for(let i = 0; i < numOfPart; i++) {
+        body.push(CARRY);
+    }
+    for(let i = 0; i < numOfPart; i++) {
+        body.push(MOVE);
+    }
 
-    var mem = {role: 'warrior', home: spawn.room.controller.id, long_range: false, start_time: Game.time, was_enemy: false};
+    var mem = {role: 'warrior', home: spawn.room.controller.id, long_range: true};
     var name = find.creepNames[Math.floor(Math.random() * find.creepNames.length)] + ' ' + spawn.name + Game.time;
     var retVal = spawn.spawnCreep(body, name, {memory: mem});
 
@@ -64,31 +88,32 @@ var _make = function(spawn, energy_limit) {
         for(let i = 0; i < body.length; i++) {
             total +=  BODYPART_COST[body[i]];
         }
+        
+        if(!Memory.HEALER_REQUESTS) {
+            Memory.HEALER_REQUESTS = [];
+        }
+        Memory.HEALER_REQUESTS.unshift(Game.flags[flagName].pos.roomName);
+        
         return total;
     }
 }
 
-var _findWarriorFlags = function(room) {
-    if(!room.hasOwnProperty('WARRIOR_FLAGS')) {
-        room.WARRIOR_FLAGS = room.find(FIND_FLAGS, {filter: (flag) => {return (flag.color == COLOR_RED && flag.secondaryColor == COLOR_RED);}});
-    }
-    return room.WARRIOR_FLAGS;
-}
-
-var _shouldFight = function(room) {
-    return _findWarriorFlags(room).length > 0 && room.controller.level > 2;
-}
-
 var _shouldMake = function(room) {
-    var target = 0;
-    if(_shouldFight(room)) {
-        target = find.getHostileCreeps(room).length + 1;
+    if(!Game.flags.hasOwnProperty(flagName)) {
+        return false;
     }
-    else {
-        target = find.getHostileCreeps(room).length;
+    
+    const flag = Game.flags[flagName];
+    if(flag.pos.roomName == room.name) {
+        return false;
     }
 
-    return find.getRole(room, 'warrior').length < target;
+    if(Game.map.getRoomLinearDistance(room.name, flag.pos.roomName) > 2) {
+        return false;
+    }
+    
+    const warriors = _.filter(Game.creeps, (creep) => {return creep.memory.role == 'warrior';});
+    return warriors.length < warriorCount;
 }
 
 module.exports = {

@@ -14,8 +14,7 @@ var roles = {
     ldh: require('role.ldh'),
     reserver: require('role.reserver'),
     pioneer: require('role.pioneer'),
-    //claimer: require('role.claimer'),
-    //warrior: require('role.warrior'), 
+    warrior: require('role.warrior'), 
 }
 
 var _controlCreeps = function() {
@@ -24,10 +23,14 @@ var _controlCreeps = function() {
             delete Memory.creeps[i];
         }
     }
-
+    
+    let timeBefore = Game.cpu.getUsed();
+    let count = 0;
     for(let name in Game.creeps) {
         _controlSingleCreep(Game.creeps[name]);
+        count++;
     }
+    // console.log("Creeps took " + ((Game.cpu.getUsed() - timeBefore) / count).toFixed(2) + " CPU on average");
 }
 
 var _controlSingleCreep = function(creep) {

@@ -5,6 +5,7 @@ A healer should go to the room specified by healFlag and heal the friendly creep
 
 // ***** Options *****
 var maxHealerParts = 25;
+var warriorFlagName = 'power';
 // ***** End *****
 
 var find = require('manager.roomInfo');
@@ -61,7 +62,8 @@ var _make = function(spawn, energy_limit) {
         body.push(HEAL);
     }
 
-    var mem = {role: 'healer', home: spawn.room.controller.id, long_range: true, notify: true, target: Memory.HEALER_REQUESTS.pop()};
+    const healerRoom = Memory.HEALER_REQUESTS[Memory.HEALER_REQUESTS.length - 1];
+    var mem = {role: 'healer', home: spawn.room.controller.id, long_range: true, notify: true, target: healerRoom};
     var name = find.creepNames[Math.floor(Math.random() * find.creepNames.length)] + ' ' + spawn.name + Game.time;
     var retVal = spawn.spawnCreep(body, name, {memory: mem});
 
@@ -69,6 +71,7 @@ var _make = function(spawn, energy_limit) {
         return 0;
     }
     else {
+        Memory.HEALER_REQUESTS.pop();
         find.addRole(Game.creeps[name], 'healer');
         var total = 0;
         for(let i = 0; i < body.length; i++) {
@@ -82,6 +85,14 @@ var _shouldMake = function(room) {
     if(!Memory.HEALER_REQUESTS) {
         Memory.HEALER_REQUESTS = [];
     }
+    
+    if(Game.flags.hasOwnProperty(warriorFlagName) && Memory.HEALER_REQUESTS.length > 0) {
+        const topRequest = Memory.HEALER_REQUESTS[Memory.HEALER_REQUESTS.length - 1];
+        if(topRequest == Game.flags[warriorFlagName].pos.roomName) {
+            return Game.map.getRoomLinearDistance(room.name, Memory.HEALER_REQUESTS[Memory.HEALER_REQUESTS.length - 1]) <= 2;
+        }
+    }
+    
     return Memory.HEALER_REQUESTS.length > 0 && Game.map.getRoomLinearDistance(room.name, Memory.HEALER_REQUESTS[Memory.HEALER_REQUESTS.length - 1]) <= 1;
 }
 

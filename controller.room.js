@@ -20,8 +20,7 @@ var creepLimits = {
     ldh: require('role.ldh'),
     reserver: require('role.reserver'),
     pioneer: require('role.pioneer'),
-    //claimer: require('role.claimer'),
-    //warrior: require('role.warrior'), 
+    warrior: require('role.warrior'), 
 };
 
 //* For the official server: (remove one slash to disable)
