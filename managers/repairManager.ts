@@ -12,6 +12,7 @@ import { profile } from "../Profiler/Profiler";
 export class RepairManager extends Manager {
     public static type = 'repair';
     public static towerConstant = 0.75;
+    public static rampartDangerZone = 10000;
 
     public generateRequests(): ScreepsRequest[] {
         const requests: ScreepsRequest[] = [];
@@ -56,7 +57,16 @@ export class RepairManager extends Manager {
     public manage(): void {
         const neutrals = this.parent.capital.find(FIND_STRUCTURES, {filter: (struct) => (struct.structureType === STRUCTURE_CONTAINER || struct.structureType === STRUCTURE_ROAD) && struct.hits < struct.hitsMax});
         const walls = this.parent.capital.find(FIND_STRUCTURES, {filter: (struct) => (struct.structureType === STRUCTURE_WALL || struct.structureType === STRUCTURE_RAMPART) && struct.hits < struct.hitsMax});
-        const weakestNeutral = _.min(neutrals, (road) => road.hits);
+        const weakestNeutral = _.min(neutrals, (neutral) => neutral.hits);
+
+        let ramparts = this.parent.structures.get(STRUCTURE_RAMPART);
+        if(!ramparts) {
+            ramparts = [];
+        }
+
+        const dangerRamparts = _.filter(ramparts, (ramp) => ramp.hits <= RepairManager.rampartDangerZone);
+        const dangerRampart = _.min(dangerRamparts, (ramp) => ramp.hits);
+
         let repairs = [];
         if(walls.length > 0) {
             repairs.push(_.min(walls, (wall) => wall.hits));
@@ -85,7 +95,12 @@ export class RepairManager extends Manager {
                 if(building instanceof StructureTower) {
                     const tower = building as StructureTower;
                     if(tower.energy > RepairManager.towerConstant * tower.energyCapacity) {
-                        tower.repair(weakestNeutral);
+                        if(dangerRampart instanceof Structure) {
+                            tower.repair(dangerRampart);
+                        }
+                        else if(weakestNeutral instanceof Structure) {
+                            tower.repair(weakestNeutral);
+                        }
                     }
                 }
             }

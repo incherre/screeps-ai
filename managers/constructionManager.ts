@@ -1,7 +1,7 @@
 import { Colony } from "../colony";
 import { ConstructJob } from "../jobs/constructJob";
 import { IdleJob } from "../jobs/idleJob";
-import { placeBaseSites } from "../misc/constructionTemplates";
+import { placeBaseRamparts, placeBaseSites } from "../misc/constructionTemplates";
 import { DropoffRequest } from "../requests/dropoffRequest";
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
@@ -124,6 +124,51 @@ export class ConstructionManager extends Manager {
                 }
             }
         }
+
+        // place ramparts
+        if(sites < ConstructionManager.targetSites && this.parent.capital.storage) {
+            const protectedSpots: Array<Source | Mineral | StructureController> = this.parent.capital.find(FIND_SOURCES);
+
+            if(controllerLevel >= 6) {
+                const mineral = this.parent.capital.find(FIND_MINERALS);
+                if(mineral.length > 0) {
+                    protectedSpots.push(mineral[0]);
+                }
+            }
+
+            if(this.parent.capital.controller) {
+                protectedSpots.push(this.parent.capital.controller);
+            }
+
+            for(const spot of protectedSpots) {
+                let retVal;
+                for(let dx = -1; dx <= 1; dx++) {
+                    for(let dy = -1; dy <= 1; dy++) {
+                        if(spot.room) {
+                            retVal = spot.room.createConstructionSite(spot.pos.x + dx, spot.pos.y + dy, STRUCTURE_RAMPART);
+                        }
+                        else {
+                            retVal = ERR_NOT_FOUND;
+                        }
+
+                        if(retVal === OK) {
+                            sites++;
+
+                            if(sites >= ConstructionManager.targetSites) {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if(sites >= ConstructionManager.targetSites) {
+                    break;
+                }
+            }
+
+            sites += placeBaseRamparts(this.parent.capital, ConstructionManager.targetSites - sites);
+        }
+
     }
 
     public manage(): void {

@@ -57,7 +57,7 @@ export function placeBaseSites(room: Room, count: number): number {
 
         if(room.memory.lab) {
             const lab = room.memory.lab;
-            template = rotateTemplate(labTemplate, room.memory.lab.r);
+            template = rotateTemplate(labTemplate, lab.r);
             for(const type of Object.keys(template)) {
                 if(type !== FREE_SPACE) {
                     for(const delta of template[type]) {
@@ -67,6 +67,76 @@ export function placeBaseSites(room: Room, count: number): number {
                             if(placed >= count) {
                                 return placed;
                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return placed;
+}
+
+export function placeBaseRamparts(room: Room, count: number): number {
+    if(!hasSeeds(room)) {
+        setSeeds(room);
+    }
+
+    if(!room.memory.seed) {
+        return 0;
+    }
+    
+    let placed = 0;
+    const seed = room.memory.seed;
+    let template = rotateTemplate(seedTemplate, seed.r);
+    let retVal;
+    for(const type of Object.keys(template)) {
+        for(const delta of template[type]) {
+            const looked = room.lookForAt(LOOK_STRUCTURES, seed.x + delta.dx, seed.y + delta.dy);
+            if(type === FREE_SPACE || looked.length > 0) {
+                retVal = room.createConstructionSite(seed.x + delta.dx, seed.y + delta.dy, STRUCTURE_RAMPART);
+                if(retVal === OK) {
+                    placed++;
+                    if(placed >= count) {
+                        return placed;
+                    }
+                }
+            }
+        }
+    }
+
+    if(room.memory.petals) {
+        for(const petal of room.memory.petals) {
+            template = rotateTemplate(petalTemplate, petal.r);
+            for(const type of Object.keys(template)) {
+                for(const delta of template[type]) {
+                    const looked = room.lookForAt(LOOK_STRUCTURES, seed.x + petal.dx + delta.dx, seed.y + petal.dy + delta.dy);
+                    if(type === FREE_SPACE || looked.length > 0) {
+                        retVal = room.createConstructionSite(seed.x + petal.dx + delta.dx, seed.y + petal.dy + delta.dy, STRUCTURE_RAMPART);
+                        if(retVal === OK) {
+                            placed++;
+                            if(placed >= count) {
+                                return placed;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if(room.memory.lab) {
+        const lab = room.memory.lab;
+        template = rotateTemplate(labTemplate, lab.r);
+        for(const type of Object.keys(template)) {
+            for(const delta of template[type]) {
+                const looked = room.lookForAt(LOOK_STRUCTURES, seed.x + lab.dx + delta.dx, seed.y + lab.dy + delta.dy);
+                if(type === FREE_SPACE || looked.length > 0) {
+                    retVal = room.createConstructionSite(seed.x + lab.dx + delta.dx, seed.y + lab.dy + delta.dy, STRUCTURE_RAMPART);
+                    if(retVal === OK) {
+                        placed++;
+                        if(placed >= count) {
+                            return placed;
                         }
                     }
                 }
