@@ -34,7 +34,13 @@ var _run = function(creep) {
             creep.moveTo(enemy);
         }
         else {
-            creep.moveTo(creep.room.controller, {range: 4});
+            const spawn = creep.pos.findClosestByRange(find.getSpawns(creep.room));
+            if(creep.room.name == 'E7S3' && spawn && spawn.recycleCreep(creep) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(spawn);
+            }
+            else {
+                creep.moveTo(creep.room.controller, {range: 4});
+            }
         }
     }
     
