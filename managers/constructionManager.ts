@@ -127,21 +127,11 @@ export class ConstructionManager extends Manager {
 
         // place ramparts
         if(sites < ConstructionManager.targetSites && this.parent.capital.storage) {
-            const protectedSpots: Array<Source | Mineral | StructureController> = this.parent.capital.find(FIND_SOURCES);
-
-            if(controllerLevel >= 6) {
-                const mineral = this.parent.capital.find(FIND_MINERALS);
-                if(mineral.length > 0) {
-                    protectedSpots.push(mineral[0]);
-                }
-            }
-
+            // place ramparts around the controller
             if(this.parent.capital.controller) {
-                protectedSpots.push(this.parent.capital.controller);
-            }
-
-            for(const spot of protectedSpots) {
+                const spot = this.parent.capital.controller;
                 let retVal;
+
                 for(let dx = -1; dx <= 1; dx++) {
                     for(let dy = -1; dy <= 1; dy++) {
                         if(spot.room) {
@@ -159,13 +149,66 @@ export class ConstructionManager extends Manager {
                             }
                         }
                     }
-                }
 
-                if(sites >= ConstructionManager.targetSites) {
-                    break;
+                    if(sites >= ConstructionManager.targetSites) {
+                        break;
+                    }
                 }
             }
 
+            // place ramparts on important mining structures
+            let protectedSpots: Array<StructureContainer | StructureLink> = [];
+
+            for(const source of this.parent.capital.find(FIND_SOURCES)) {
+                // find the container next to each source
+                const container = _.find(source.pos.findInRange(FIND_STRUCTURES, 1, {filter: (struct) => struct.structureType === STRUCTURE_CONTAINER}));
+                if(container instanceof StructureContainer) {
+                    protectedSpots.push(container);
+                }
+            }
+
+            const links: StructureLink[] = [];
+            for(const spot of protectedSpots) {
+                // find the links next to the containers next to each source
+                const link = _.find(spot.pos.findInRange(FIND_STRUCTURES, 1, {filter: (struct) => struct.structureType === STRUCTURE_LINK}));
+                if(link instanceof StructureLink) {
+                    links.push(link);
+                }
+            }
+
+            protectedSpots = protectedSpots.concat(links); // add the links to the list
+
+            if(controllerLevel >= 6) {
+                // find the container next to the mineral
+                const mineral = _.find(this.parent.capital.find(FIND_MINERALS));
+                if(mineral) {
+                    const container = _.find(mineral.pos.findInRange(FIND_STRUCTURES, 1, {filter: (struct) => struct.structureType === STRUCTURE_CONTAINER}));
+                    if(container instanceof StructureContainer) {
+                        protectedSpots.push(container);
+                    }
+                }
+            }
+
+            for(const spot of protectedSpots) {
+                // put ramparts on these spots
+                if(sites >= ConstructionManager.targetSites) {
+                    break;
+                }
+
+                let retVal;
+                if(spot.room) {
+                    retVal = spot.room.createConstructionSite(spot.pos.x, spot.pos.y, STRUCTURE_RAMPART);
+                }
+                else {
+                    retVal = ERR_NOT_FOUND;
+                }
+
+                if(retVal === OK) {
+                    sites++;
+                }
+            }
+
+            // place ramparts over the base
             sites += placeBaseRamparts(this.parent.capital, ConstructionManager.targetSites - sites);
         }
 

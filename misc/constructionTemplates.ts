@@ -299,7 +299,10 @@ const petalTemplate: Template = {
     [STRUCTURE_TOWER]: [{dx: 1, dy: -2}],
     [FREE_SPACE]: [
         {dx: 1, dy: -1}, {dx: 2, dy: -2}, {dx: 3, dy: -3}, {dx: 4, dy: -4}, {dx: 5, dy: -5},
-        {dx: 6, dy: -6}, {dx: 1, dy: -4}, {dx: 2, dy: -5}, {dx: 4, dy: -1}, {dx: 5, dy: -2}
+        {dx: 1, dy: -4}, {dx: 2, dy: -5}, {dx: 4, dy: -1}, {dx: 5, dy: -2}, {dx: 3, dy: -6},
+        {dx: 6, dy: -3}, {dx: 2, dy:  0}, {dx: 3, dy:  0}, {dx: 4, dy:  0}, {dx: 5, dy:  0},
+        {dx: 6, dy:  0}, {dx: 0, dy: -2}, {dx: 0, dy: -3}, {dx: 0, dy: -4}, {dx: 0, dy: -5},
+        {dx: 0, dy: -6},
     ]
 };
 
@@ -313,7 +316,7 @@ const labTemplate: Template = {
     [STRUCTURE_TOWER]: [{dx: 1, dy: -2}, {dx: 2, dy: -1}, {dx: 1, dy: -3}],
     [FREE_SPACE]: [
         {dx: 1, dy: -1}, {dx: 2, dy: -2}, {dx: 3, dy: -3}, {dx: 4, dy: -4}, {dx: 5, dy: -5},
-        {dx: 6, dy: -6}
+        {dx: 1, dy: -4}, {dx: 2, dy: -5}, {dx: 4, dy: -1}, {dx: 5, dy: -2}
     ]
 };
 
@@ -400,15 +403,17 @@ function step(spot: {x: number, y: number}, r: number, dist: number = 1): void {
 function doesItFit(template: Template, seedPos: RoomPosition): boolean {
     const terrain: RoomTerrain = Game.map.getRoomTerrain(seedPos.roomName);
     for(const type of Object.keys(template)) {
-        for(const offset of template[type]) {
-            if(seedPos.x + offset.dx < minCoord || seedPos.x + offset.dx > maxCoord) {
-                return false;
-            }
-            else if(seedPos.y + offset.dy < minCoord || seedPos.y + offset.dy > maxCoord) {
-                return false;
-            }
-            else if(terrain.get(seedPos.x + offset.dx, seedPos.y + offset.dy) === TERRAIN_MASK_WALL) {
-                return false;
+        if(type !== FREE_SPACE) {
+            for(const offset of template[type]) {
+                if(seedPos.x + offset.dx < minCoord || seedPos.x + offset.dx > maxCoord) {
+                    return false;
+                }
+                else if(seedPos.y + offset.dy < minCoord || seedPos.y + offset.dy > maxCoord) {
+                    return false;
+                }
+                else if(terrain.get(seedPos.x + offset.dx, seedPos.y + offset.dy) === TERRAIN_MASK_WALL) {
+                    return false;
+                }
             }
         }
     }
