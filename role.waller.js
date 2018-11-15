@@ -8,6 +8,7 @@ Once a waller is full, it should use the energy to repair walls and ramparts.
 var maxWallerParts = 14;
 var ttlThreshold = 1400;
 var boostType = RESOURCE_LEMERGIUM_ACID;
+var boostRooms = ['W6N17'];
 // ***** End *****
 
 var find = require('manager.roomInfo');
@@ -39,7 +40,7 @@ var _getLabWith = function(room, resource) {
 }
 
 var _run = function(creep) {
-    if(creep.ticksToLive > ttlThreshold && !creep.memory.boosted) {
+    if(creep.ticksToLive > ttlThreshold && !creep.memory.boosted && boostRooms.includes(creep.room.name)) {
         var lab = _getLabWith(creep.room, boostType);
         if(lab && lab.mineralAmount > creep.getActiveBodyparts(WORK) * LAB_BOOST_MINERAL) {
             var retVal = lab.boostCreep(creep);
