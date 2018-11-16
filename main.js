@@ -70,20 +70,24 @@ module.exports.loop = function () {
     }
   
     if(Game.time % 13 == 0) {
-        var resourcePairs = [['E1S7', RESOURCE_OXYGEN, 'E3S4'], ['E1S7', RESOURCE_LEMERGIUM, 'W6N17'], ['W6N17', RESOURCE_LEMERGIUM_ACID, 'E1S7']];
+        var resourcePairs = [['E1S7', RESOURCE_OXYGEN, 'E3S4'], ['E3S4', RESOURCE_ZYNTHIUM, 'E7S3'], ['E3S4', RESOURCE_UTRIUM_LEMERGITE, 'W6N17'], ['E1S7', RESOURCE_GHODIUM, 'E3S4']];
         
         for(var [destRoomName, resource, sourceRoomName] of resourcePairs) {
             var room1 = Game.rooms[sourceRoomName];
             var room2 = Game.rooms[destRoomName];
             var lab = _getLabWith(room2, resource);
+            var amountInRoom = 0;
+
+            if(lab) {
+                amountInRoom = lab.mineralAmount;
+            }
         
-            if(room1.terminal != undefined && room2.terminal != undefined && lab != null && room1.terminal.store[resource] != undefined && room1.terminal.cooldown == 0) {
-                var amountInRoom = lab.mineralAmount;
+            if(room1.terminal != undefined && room2.terminal != undefined && room1.terminal.store[resource] != undefined && room1.terminal.cooldown == 0) {
                 if(room2.terminal.store[resource] != undefined) {
                     amountInRoom += room2.terminal.store[resource];
                 }
     
-                var amount = Math.min(lab.mineralCapacity - amountInRoom, room1.terminal.store[resource]);
+                var amount = Math.min(LAB_MINERAL_CAPACITY - amountInRoom, room1.terminal.store[resource]);
                 
                 if(amount > 500) {
                     room1.terminal.send(resource, amount, room2.name);
