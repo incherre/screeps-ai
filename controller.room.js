@@ -184,9 +184,20 @@ var _controlLabs = function(room) {
         minerals[mineralType].push(labs[i]);
     }
     
-    _runReaction(minerals, RESOURCE_HYDROGEN, RESOURCE_OXYGEN);
-    _runReaction(minerals, RESOURCE_HYDROGEN, RESOURCE_LEMERGIUM);
-    _runReaction(minerals, RESOURCE_HYDROXIDE, RESOURCE_LEMERGIUM_HYDRIDE);
+    if(room.name == 'W6N17') {
+        _runReaction(minerals, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM);
+    }
+    
+    if(room.name == 'E3S4') {
+        _runReaction(minerals, RESOURCE_ZYNTHIUM, RESOURCE_KEANIUM);
+        _runReaction(minerals, RESOURCE_UTRIUM_LEMERGITE, RESOURCE_ZYNTHIUM_KEANITE);
+    }
+    
+    if(room.name == 'E1S7') {
+        _runReaction(minerals, RESOURCE_HYDROGEN, RESOURCE_GHODIUM);
+        _runReaction(minerals, RESOURCE_HYDROXIDE, RESOURCE_GHODIUM_HYDRIDE);
+        _runReaction(minerals, RESOURCE_HYDROGEN, RESOURCE_OXYGEN);
+    }
 }
 // *** End ***
 

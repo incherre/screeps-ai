@@ -7,12 +7,48 @@ Once an upgrader is full, it should use the energy to upgrade the room controlle
 // ***** Options *****
 var maxUpgraderParts = 8;
 var capacityConstant = .3;
+
+var ttlThreshold = 1400;
+var boostType = RESOURCE_GHODIUM_ACID;
+var boostRooms = ['E1S7'];
 // ***** End *****
 
 var upperCapacityConstant = Math.min(1 - ((1 - capacityConstant) / 2), capacityConstant * 2);
 var find = require('manager.roomInfo');
 
+// copied from courier, just as a temporary measure
+var _getLabWith = function(room, resource) {
+    let labs = find.getLabs(room);
+    let backup = null;
+    
+    for(let i in labs) {
+        if(labs[i].mineralAmount == 0) {
+            backup = labs[i];
+        }
+        else if(labs[i].mineralType == resource) {
+            return labs[i];
+        }
+    }
+    
+    return backup;
+}
+
 var _run = function(creep) {
+    if(creep.ticksToLive > ttlThreshold && !creep.memory.boosted && boostRooms.includes(creep.room.name)) {
+        var lab = _getLabWith(creep.room, boostType);
+        if(lab && lab.mineralAmount > creep.getActiveBodyparts(WORK) * LAB_BOOST_MINERAL) {
+            var retVal = lab.boostCreep(creep);
+            if(retVal == OK) {
+                creep.memory.boosted = true;
+                return;
+            }
+            else if(retVal == ERR_NOT_IN_RANGE) {
+                creep.moveTo(lab);
+                return;
+            }
+        }
+    }
+    
     if(creep.memory.working && creep.carry.energy == 0) {
         creep.memory.working = false;
         creep.room.visual.text("🔍", creep.pos);
@@ -59,7 +95,7 @@ var _make = function(spawn, energy_limit) {
         body.push(MOVE);
     }
 
-    var mem = {role: 'upgrader', home: spawn.room.controller.id, long_range: false, working: false};
+    var mem = {role: 'upgrader', home: spawn.room.controller.id, long_range: false, working: false, boosted: false};
     var name = find.creepNames[Math.floor(Math.random() * find.creepNames.length)] + ' ' + spawn.name + Game.time;
     var retVal = spawn.spawnCreep(body, name, {memory: mem});
 

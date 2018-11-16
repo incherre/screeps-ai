@@ -1,24 +1,13 @@
 /*
 This is the controller for the automated trading portion of my screeps AI.
 The practical maximum of the energy costs is 2 * amount_traded.
-
-Some stuff:
-{
-    let terminal = Game.spawns['Spawn1'].room.terminal;
-    let resource = Object.keys(terminal.store)[1];
-    let amount = terminal.store[resource];
-    let highestOrder = _.max(Game.market.getAllOrders({type: ORDER_BUY, resourceType: resource}), (obj) => {return obj.price;});
-    let ret = Game.market.deal(highestOrder.id, Math.min(amount, highestOrder.amount), terminal.room.name);
-    if(ret == OK){
-        console.log('You just gained ' + (Math.min(amount, highestOrder.amount) * highestOrder.price) + ' Credits');
-    }
-}
 */
 
 // ***** Options *****
 var cpuThreshold = 3;
 var sellThreshold = 8000;
 var maxPerTick = 10;
+var buyList = [[RESOURCE_UTRIUM, 0.55, 3000, 'W6N17'], [RESOURCE_KEANIUM, 0.55, 3000, 'E3S4']];
 // ***** End *****
 
 var _getTerminals = function() {
@@ -34,7 +23,7 @@ var _getTerminals = function() {
 }
 
 var _shouldTrade = function() {
-    return Game.time % 11 == 0 && _getTerminals().length > 0 && Game.cpu.getUsed() < (Game.cpu.limit - cpuThreshold);
+    return Game.time % 11 == 0 && Game.cpu.getUsed() < (Game.cpu.limit - cpuThreshold) && _getTerminals().length > 0;
 }
 
 var _sellHighestPrice = function(resource, terminal) {
@@ -75,15 +64,50 @@ var _sell = function(soFar) {
 }
 
 var _buy = function(soFar) {
+    var bought = soFar;
     if(soFar < maxPerTick) {
         var lowestTokenOrder = _.min(Game.market.getAllOrders({type: ORDER_SELL, resourceType: SUBSCRIPTION_TOKEN}), (obj) => {return obj.price;});
         
         if(lowestTokenOrder.price <= Game.market.credits) {
             if(Game.market.deal(lowestTokenOrder.id, 1) == OK) {
                  Game.notify('Bought a subscription token!', 10);
+                 bought++;
+            }
+        }
+        
+        for(var [resource, maxPrice, targetAmount, targetRoomName] of buyList) {
+            if(bought >= maxPerTick) {
+                break;
+            }
+            
+            var room = Game.rooms[targetRoomName];
+            if(!room || !room.terminal) {
+                continue;
+            }
+            
+            var currentAmount = 0;
+            if(room.terminal.store[resource]) {
+                currentAmount = room.terminal.store[resource];
+            }
+            
+            if(currentAmount >= targetAmount) {
+                continue;
+            }
+            
+            var lowestOrder = _.min(Game.market.getAllOrders({type: ORDER_SELL, resourceType: resource}), (obj) => {return obj.price;});
+            
+            if(!lowestOrder || lowestOrder.price > maxPrice) {
+                continue;
+            }
+            
+            var amount = Math.min(lowestOrder.amount, targetAmount - currentAmount);
+            if(Game.market.deal(lowestOrder.id, amount, targetRoomName) == OK) {
+                console.log("Bought " + amount + " " + resource + " for $" + lowestOrder.price + " per unit, $" + (lowestOrder.price * amount) + " total.");
+                bought++;
             }
         }
     }
+    return bought;
 }
 
 var _trade = function() {
