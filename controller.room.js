@@ -184,7 +184,7 @@ var _controlLabs = function(room) {
         minerals[mineralType].push(labs[i]);
     }
     
-    if(room.name == 'W6N17') {
+    if(room.name == 'W6N17' && room.terminal && (!room.terminal.store[RESOURCE_UTRIUM_LEMERGITE] || room.terminal.store[RESOURCE_UTRIUM_LEMERGITE] < 3000)) {
         _runReaction(minerals, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM);
     }
     

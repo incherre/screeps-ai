@@ -16,7 +16,7 @@ var controllerRange = 2;
 var find = require('manager.roomInfo');
 const roomLabTypes = {
     'E1S7': [RESOURCE_GHODIUM, RESOURCE_HYDROGEN, RESOURCE_OXYGEN],
-    'E3S4': [RESOURCE_ZYNTHIUM, RESOURCE_KEANIUM, RESOURCE_UTRIUM_LEMERGITE],
+    'E3S4': [RESOURCE_UTRIUM_LEMERGITE, RESOURCE_ZYNTHIUM, RESOURCE_KEANIUM],
     'E7S3': [RESOURCE_ZYNTHIUM],
     'W6N17': [RESOURCE_LEMERGIUM, RESOURCE_UTRIUM],
 };
@@ -108,6 +108,18 @@ var _run = function(creep) {
                 }
             }
             
+            if(target == null) {
+                let labs = find.getLabs(creep.room);
+                for(let i in labs) {
+                    if(labs[i].mineralAmount > 0 && labProducts.indexOf(labs[i].mineralType) >= 0 && creep.room.terminal && 
+                    (!creep.room.terminal.store.hasOwnProperty(labs[i].mineralType) || creep.room.terminal.store[labs[i].mineralType] < 3000)) {
+                        target = labs[i];
+                        resource = labs[i].mineralType;
+                        break;
+                    }
+                }
+            }
+            
             if(target == null && creep.room.terminal) {
                 for(let i in labTypes) {
                     if(creep.room.terminal.store.hasOwnProperty(labTypes[i])) {
@@ -117,18 +129,6 @@ var _run = function(creep) {
                             resource = labTypes[i];
                             break;
                         }
-                    }
-                }
-            }
-            
-            if(target == null) {
-                let labs = find.getLabs(creep.room);
-                for(let i in labs) {
-                    if(labs[i].mineralAmount > 0 && labProducts.indexOf(labs[i].mineralType) >= 0 && creep.room.terminal && 
-                    (!creep.room.terminal.store.hasOwnProperty(labs[i].mineralType) || creep.room.terminal.store[labs[i].mineralType] < 3000)) {
-                        target = labs[i];
-                        resource = labs[i].mineralType;
-                        break;
                     }
                 }
             }
