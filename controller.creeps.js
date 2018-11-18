@@ -24,13 +24,9 @@ var _controlCreeps = function() {
         }
     }
     
-    let timeBefore = Game.cpu.getUsed();
-    let count = 0;
     for(let name in Game.creeps) {
         _controlSingleCreep(Game.creeps[name]);
-        count++;
     }
-    // console.log("Creeps took " + ((Game.cpu.getUsed() - timeBefore) / count).toFixed(2) + " CPU on average");
 }
 
 var _controlSingleCreep = function(creep) {
