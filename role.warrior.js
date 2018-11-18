@@ -54,6 +54,9 @@ var _run = function(creep) {
             creep.moveTo(power);
         }
     }
+    else if(flag) {
+        creep.moveTo(flag);
+    }
 }
 
 var _make = function(spawn, energy_limit) {
