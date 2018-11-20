@@ -29,9 +29,9 @@ var _shouldTrade = function() {
 var _sellHighestPrice = function(resource, terminal) {
     var myAmount = terminal.store[resource];
     var highestOrder = _.max(Game.market.getAllOrders({type: ORDER_BUY, resourceType: resource}), (obj) => {return obj.price;});
-    var retVal = Game.market.deal(highestOrder.id, Math.min(myAmount, highestOrder.amount), terminal.room.name);
+    var retVal = Game.market.deal(highestOrder.id, Math.min(myAmount, highestOrder.amount, sellThreshold), terminal.room.name);
     if(retVal == OK) {
-        console.log('You just gained ' + (Math.min(myAmount, highestOrder.amount) * highestOrder.price).toFixed(2) + ' Credits!');
+        console.log('You just gained ' + (Math.min(myAmount, highestOrder.amount, sellThreshold) * highestOrder.price).toFixed(2) + ' Credits!');
     }
     return retVal;
 }
@@ -44,7 +44,7 @@ var _emptyTerminal = function(terminal, soFar) {
             break;
         }
         let resource = thingsToSell[i];
-        if(terminal.store[resource] >= sellThreshold) {
+        if(terminal.store[resource] >= sellThreshold * 2) {
             if(_sellHighestPrice(resource, terminal) == OK){sold += 1;}
         }
     }
