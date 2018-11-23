@@ -10,7 +10,7 @@ export class MarketManager extends EmpireManager {
     public static maxPriceEntries = 200;
     public static shortTerm = 50;
     public static decayRate = 0.95;
-    public static recordFrequency = 10;
+    public static recordFrequency = 150;
 
     public static type = 'market';
     public static dealLimit = 10;
