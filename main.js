@@ -1,13 +1,18 @@
 /*
 Directions for use:
--Every room needs a flag with primary color white and secondary color yellow for extension placement.
--Every room will produce warriors that will go to a flag with both primary and secondary color red if it exists.
--If there is a flag called 'raid' (this name is defined in the raider role) anywhere in the world, the colonies will produce raiders that walk to it.
--If there is a flag called 'heal' (this name is defined in the raider role) anywhere in the world, the raiders will walk to it if injured.
--If there is a flag called 'claim' (this name is defined in the claimer role) anywhere in the world, the colonies will produce claimers to claim the room the flag is in.
+-Every main room needs a flag with primary color white and secondary color yellow for extension placement.
 -Every structure besides extensions and extractors must be placed manually.
--Creeps of the miner role will not be spawned until a terminal is built.
+-Creeps of the miner role will not be spawned until a terminal is built. (Terminal should be built near the mineral)
 -Link pairs must be added by id strings in the room controller module.
+-Sharing minerals between rooms is controlled by the resourcePairs array in the main loop.
+-Buying resources is controlled by the buyList array in the market controller
+-Lab reactions per room are controlled in the _controlLabs function in the room controller
+-The roomLabTypes and roomLabProducts objects in the courier role control what it put into and taken out of labs per room
+-The targets array in the ldh role controls remote mining rooms and dropoff points
+-The targets array in the reserver role controls which rooms will be reserved to increase the capacity of the sources for ldhs
+-_target and _portal in the pioneer role control which room will be claimed
+-The boostRooms array in the upgrader and waller roles controls which rooms are allowed to opportunistically boost those creeps
+-If there is a flag with the name "power" warriors will be spawned and will try to harvest a powerbank in the same room as the flag
 */
 
 var creepControl = require('controller.creeps');
