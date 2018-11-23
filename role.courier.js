@@ -42,6 +42,17 @@ var _getLabWith = function(room, resource) {
     return backup;
 }
 
+var _getPowerSpawn = function(room) {
+    if(!room.hasOwnProperty('POWER_SPAWN')) {
+        room.POWER_SPAWN = null;
+        var powerSpawns = _.filter(find.getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_POWER_SPAWN && structure.my);});
+        if(powerSpawns.length > 0) {
+            room.POWER_SPAWN = powerSpawns[0];
+        }
+    }
+    return room.POWER_SPAWN;
+}
+
 var _run = function(creep) {
     if(!creep.memory.working && _.sum(creep.carry) == 0) {
         creep.memory.working = true;
@@ -94,6 +105,13 @@ var _run = function(creep) {
         
         if(target == null) {
             target = creep.pos.findClosestByRange(find.getContainerEnergy(creep.room), {filter: (container) => {return container.store[RESOURCE_ENERGY] >= resourceThreshold || creep.pos.inRangeTo(container, resourceRange);}});
+        }
+        
+        var powerSpawn = _getPowerSpawn(creep.room);
+        if(target == null && find.getFillables(creep.room).length == 0 && powerSpawn && powerSpawn.power == 0 && creep.room.storage && creep.room.storage.store[RESOURCE_POWER]) {
+            // if there's no target, and nothing needs filling, and the power spawn exists and is empty, and the storage exists and has power, then it should get some power for the power spawn
+            target = creep.room.storage;
+            resource = RESOURCE_POWER;
         }
         
         if(target == null && find.getFillables(creep.room).length == 0) {
@@ -161,6 +179,9 @@ var _run = function(creep) {
         if(resource == RESOURCE_ENERGY) {
             target = creep.pos.findClosestByRange(find.getFillables(creep.room));
         }
+        else if(resource == RESOURCE_POWER) {
+            target = _getPowerSpawn(creep.room);
+        }
         else if(labTypes.indexOf(resource) >= 0) {
             target = _getLabWith(creep.room, resource);
             if(target == null || target.mineralAmount > (target.mineralCapacity * 0.75)) {
@@ -176,7 +197,7 @@ var _run = function(creep) {
         }
 
         if(target == null) {
-            if(creep.pos.inRangeTo(creep.room.controller, controllerRange)) {
+            if(creep.room.controller && creep.pos.inRangeTo(creep.room.controller, controllerRange)) {
                 creep.drop(resource);
             }
             else {

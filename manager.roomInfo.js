@@ -45,7 +45,6 @@ var _creepFilter = {
     'upgrader': {roomSpecific: true, valid: (creep) => {return true;}},
     'warrior': {roomSpecific: true, valid: (creep) => {return true;}},
     'healer': {roomSpecific: false, valid: (creep) => {return true;}},
-    'claimer': {roomSpecific: false, valid: (creep) => {return true;}},
     'protector': {roomSpecific: false, valid: (creep) => {return true;}},
     'ldh': {roomSpecific: false, valid: (creep) => {return true;}},
     'reserver': {roomSpecific: false, valid: (creep) => {return true;}},
@@ -163,7 +162,8 @@ var _getFillables = function(room) {
         if(room.FILLABLES.length == 0) {
             room.FILLABLES = _.filter(_getStructures(room), (structure) => {
                 return (structure.structureType == STRUCTURE_LINK && (structure.energyCapacity - structure.energy) > 1 && structure.my) ||
-                       (structure.structureType == STRUCTURE_LAB && structure.energy < structure.energyCapacity && structure.my);
+                       (structure.structureType == STRUCTURE_LAB && structure.energy < structure.energyCapacity && structure.my) ||
+                       (structure.structureType == STRUCTURE_POWER_SPAWN && structure.energy < structure.energyCapacity && structure.my);
             });
             
             if(room.terminal != undefined && room.terminal.store[RESOURCE_ENERGY] < room.terminal.storeCapacity / 15) {
