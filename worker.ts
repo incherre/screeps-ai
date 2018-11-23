@@ -8,15 +8,19 @@ import { profile } from "./Profiler/Profiler";
 
 @profile
 export class WorkerCreep {
+    // inter-tick variables
     public parent: Colony;
-    public creep: Creep;
+    public creepId: string;
     public job: Job;
+
+    // single-tick variables
+    public creep: Creep | undefined;
     public moved: boolean;
     public worked: boolean;
 
     constructor (creep: Creep, parent: Colony) {
         this.parent = parent;
-        this.creep = creep;
+        this.creepId = creep.id;
         if(jobTypes[creep.memory.jobType]) {
             this.job = jobTypes[creep.memory.jobType](creep.memory.jobInfo);
         }
@@ -28,7 +32,52 @@ export class WorkerCreep {
         this.worked = false;
     }
 
+    public tickInit(): void {
+        if(!Game.creeps[this.creepId]) {
+            // OH NO, creep is probably dead
+            return;
+        }
+
+        this.creep = Game.creeps[this.creepId];
+    }
+
+    public work(): void {
+        if(this.worked || !this.creep || this.creep.spawning) {
+            return;
+        }
+        this.worked = true;
+
+        if(this.job.ttr <= 0) {
+            this.job.ttr = 0;
+            this.creep.memory.path = undefined;
+            if(!this.job.recalculateTarget(this.creep)) {
+                this.job = new IdleJob();
+            }
+        }
+
+        const creepPos = this.creep.pos;
+        const targetPos = this.job.target;
+        if(targetPos && targetPos.getRangeTo(creepPos) <= this.job.targetRange) {
+            this.job.do(this.creep);
+        }
+        else if(targetPos && this.creep.fatigue === 0 && this.moveTo(targetPos) === OK) {
+            this.job.ttr--;
+        }
+
+        this.save();
+    }
+
+    public cleanup(): void {
+        this.creep = undefined;
+        this.moved = false;
+        this.worked = false;
+    }
+
     public getOutOfTheWay(incomingWorker: WorkerCreep, swapAllowed: boolean = true): void {
+        if(!this.creep || !incomingWorker.creep) {
+            return;
+        }
+
         // see if we can move as we are supposed to
         this.work();
 
@@ -85,6 +134,10 @@ export class WorkerCreep {
     }
 
     private moveByPath(path: PathStep[]): CreepMoveReturnCode | ERR_NOT_FOUND | ERR_INVALID_ARGS {
+        if(!this.creep) {
+            return ERR_INVALID_ARGS;
+        }
+
         // first, find the spot that the creep wants to move to
         let targetPos: RoomPosition | null = null;
         for(const step of path) {
@@ -121,6 +174,10 @@ export class WorkerCreep {
     }
 
     private moveTo(targetPos: RoomPosition): CreepMoveReturnCode | ERR_NOT_FOUND | ERR_INVALID_ARGS {
+        if(!this.creep) {
+            return ERR_INVALID_ARGS;
+        }
+
         // record that we intend to move
         this.moved = true;
 
@@ -165,7 +222,7 @@ export class WorkerCreep {
                     return false;
                 }
 
-                if(roomName === this.creep.pos.roomName) {
+                if(this.creep && roomName === this.creep.pos.roomName) {
                     for(const creep of this.creep.pos.findInRange(FIND_CREEPS, 1)) {
                         matrix.set(creep.pos.x, creep.pos.y, 0xff);
                     }
@@ -191,7 +248,7 @@ export class WorkerCreep {
         if(retVal === OK) {
             if(path.length === 0 || (this.creep.pos.x === path[path.length - 1].x && this.creep.pos.y === path[path.length - 1].y)) {
                 // if the creep is at the end of the path, delete it so a new one will be generated
-                this.creep.memory.path = null;
+                this.creep.memory.path = undefined;
             }
 
             // draw the path (more nicely than the default, I might add)
@@ -215,35 +272,11 @@ export class WorkerCreep {
         return retVal;
     }
 
-    public work(): void {
-        if(this.worked || this.creep.spawning) {
-            return;
-        }
-        this.worked = true;
-
-        if(this.job.ttr <= 0) {
-            this.job.ttr = 0;
-            this.creep.memory.path = null;
-            if(!this.job.recalculateTarget(this.creep)) {
-                this.job = new IdleJob();
-            }
-        }
-
-        const creepPos = this.creep.pos;
-        const targetPos = this.job.target;
-        if(targetPos && targetPos.getRangeTo(creepPos) <= this.job.targetRange) {
-            this.job.do(this.creep);
-        }
-        else if(targetPos && this.creep.fatigue === 0 && this.moveTo(targetPos) === OK) {
-            this.job.ttr--;
-        }
-
-        this.save();
-    }
-
     public save(): void {
-        this.creep.memory.jobType = this.job.getJobType();
-        this.creep.memory.jobInfo = this.job.getJobInfo();
+        if(this.creep) {
+            this.creep.memory.jobType = this.job.getJobType();
+            this.creep.memory.jobInfo = this.job.getJobInfo();
+        }
     }
 }
 

@@ -10,31 +10,72 @@ import { profile } from "./Profiler/Profiler";
 
 @profile
 export class Colony {
+    // inter-tick variables
     public empire: Empire;
-    public capital: Room;
-    public farms: string[];
-    public structures: Map<StructureConstant, Structure[]>;
+    public capitalName: string;
+    public remotes: string[];
+    public managers: Map<string, Manager>;
+    public workers: WorkerCreep[];
+    public threatLevel: number;
 
-    public managers: {[key: string]: Manager};
-    public requests: {[key: string]: ScreepsRequest[]};
-    public workers: {[key: string]: WorkerCreep};
+    // single-tick variables
+    public capital: Room | undefined;
+    public structures: Map<StructureConstant, Structure[]>;
+    public workersByLocation: Map<string, WorkerCreep>;
+    public requests: Map<string, ScreepsRequest[]>;
 
     constructor (empire: Empire, capital: Room, creeps: Creep[]) {
-        // set the central room & global empire
-        this.capital = capital;
+        // set the central room name & global empire
+        this.capitalName = capital.name;
         this.empire = empire;
+        this.threatLevel = 0;
 
         // set the names of nearby farms
-        this.farms = [];
+        this.remotes = [];
         for(const roomName of getAdjacentRooms(capital.name)) {
             if(Memory.rooms[roomName] && Memory.rooms[roomName].parent === capital.name) {
-                this.farms.push(roomName);
+                this.remotes.push(roomName);
             }
         }
 
-        // sort the structures
+        // initialize managers
+        this.managers = new Map<string, Manager>();
+        for(const key of Object.keys(managerTypes)) {
+            this.managers.set(key, managerTypes[key](this));
+        }
+
+        // initialize and distribute the workers
+        this.workers = [];
+        for(const creep of creeps) {
+            if(creep.memory.managerType in this.managers) {
+                const worker = new WorkerCreep(creep, this);
+                const manager = this.managers.get(creep.memory.managerType);
+                if(manager) {
+                    manager.workers.push(worker);
+                }
+                this.workers.push(worker);
+            }
+        }
+
+        // init empty members
         this.structures = new Map<StructureConstant, Structure[]>();
-        const structures = capital.find(FIND_STRUCTURES, {filter: (structure: any) => !(structure instanceof OwnedStructure) || (structure as OwnedStructure).my});
+        this.requests = new Map<string, ScreepsRequest[]>();
+        this.workersByLocation = new Map<string, WorkerCreep>();
+    }
+
+    public tickInit(): void {
+        // init capital
+        if(!Game.rooms[this.capitalName]) {
+            // OH NO! room was probably killed...
+            return;
+        }
+
+        this.capital = Game.rooms[this.capitalName];
+
+        // sort the structures
+        const structures = this.capital.find(FIND_STRUCTURES, {
+            filter: (structure: any) => !(structure instanceof OwnedStructure) || (structure as OwnedStructure).my
+        });
         for(const struct of structures) {
             let structList = this.structures.get(struct.structureType);
             if(!structList) {
@@ -45,21 +86,15 @@ export class Colony {
             structList.push(struct);
         }
 
-        // initialize managers
-        this.managers = {};
-        this.requests = {};
-        for(const key of Object.keys(managerTypes)) {
-            this.managers[key] = managerTypes[key](this);
+        // map out the workers
+        for(const worker of this.workers) {
+            worker.tickInit();
+            this.addWorkerLoc(worker);
         }
 
-        // initialize and distribute the workers
-        this.workers = {};
-        for(const creep of creeps) {
-            if(creep.memory.managerType in this.managers) {
-                const worker = new WorkerCreep(creep, this);
-                this.managers[creep.memory.managerType].workers.push(worker);
-                this.addWorker(worker);
-            }
+        // init managers
+        for(const manager of this.managers.values()) {
+            manager.tickInit();
         }
     }
 
@@ -67,18 +102,20 @@ export class Colony {
         const empireRequests: EmpireRequest[] = [];
 
         // generate any manager requests
-        for(const manager in this.managers) {
-            const newRequests = this.managers[manager].generateRequests();
+        for(const manager of this.managers.values()) {
+            const newRequests = manager.generateRequests();
             for(const request of newRequests) {
                 if(request instanceof EmpireRequest) {
                     empireRequests.push(request);
                 }
                 else {
                     const type = request.getType();
-                    if(!this.requests[type]){
-                        this.requests[type] = [];
+                    let requestList = this.requests.get(type);
+                    if(!requestList){
+                        requestList = [];
+                        this.requests.set(type, requestList);
                     }
-                    this.requests[type].push(request);
+                    requestList.push(request);
                 }
             }
         }
@@ -88,25 +125,52 @@ export class Colony {
 
     public run(): void {
         // run the managers, to decide what the creep tasks are, and what buildings will do
-        for(const manager in this.managers) {
-            this.managers[manager].manage();
+        for(const manager of this.managers.values()) {
+            manager.manage();
         }
 
         // run the creep tasks
-        for(const posString in this.workers) {
-            this.workers[posString].work();
+        for(const worker of this.workers) {
+            worker.work();
         }
     }
 
-    private addWorker(worker: WorkerCreep): void {
+    public cleanup(): void {
+        this.capital = undefined;
+        this.structures.clear();
+        this.workersByLocation.clear();
+        this.requests.clear();
+
+        // clean workers
+        for(const worker of this.workers) {
+            worker.cleanup();
+        }
+
+        // clean managers
+        for(const manager of this.managers.values()) {
+            manager.cleanup();
+        }
+    }
+
+    public addWorker(newWorker: WorkerCreep): void {
+        this.workers.push(newWorker);
+    }
+
+    private addWorkerLoc(worker: WorkerCreep): void {
+        if(!worker.creep) {
+            // can't have a location without a body
+            return;
+        }
+    
         const posString: string = [worker.creep.pos.x, worker.creep.pos.y, worker.creep.pos.roomName].join();
-        this.workers[posString] = worker;
+        this.workersByLocation.set(posString, worker);
     }
 
     public getWorker(pos: RoomPosition): WorkerCreep | null {
         const posString: string = [pos.x, pos.y, pos.roomName].join();
-        if(this.workers[posString]) {
-            return this.workers[posString];
+        const worker = this.workersByLocation.get(posString);
+        if(worker) {
+            return worker;
         }
         else {
             return null;
