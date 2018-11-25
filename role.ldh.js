@@ -31,23 +31,27 @@ var _run = function(creep) {
 	}
 	
 	if(creep.memory.working) {
+	    var source = Game.getObjectById(creep.memory.source.id);
 	    if(creep.memory.source.room != creep.room.name) {
-	        creep.moveTo(new RoomPosition(25, 25, creep.memory.source.room), {costCallback: find.avoidSourceKeepersCallback, maxRooms: 2});
+	        creep.moveTo(new RoomPosition(25, 25, creep.memory.source.room), {costCallback: find.avoidSourceKeepersCallback, maxRooms: 2, range: 23});
 	    }
 	    else if(creep.pos.findInRange(FIND_TOMBSTONES, 1, {filter: (stone) => {return stone.store[RESOURCE_ENERGY] > 0;}}).length > 0) {
 	        creep.withdraw(creep.pos.findInRange(FIND_TOMBSTONES, 1, {filter: (stone) => {return stone.store[RESOURCE_ENERGY] > 0;}})[0], RESOURCE_ENERGY);
-	        creep.moveTo(Game.getObjectById(creep.memory.source.id));
+	        creep.moveTo(source, {range: 1});
 	    }
 	    else if(creep.pos.findInRange(FIND_DROPPED_RESOURCES, 1, {filter: (resource) => {return resource.resouceType == RESOURCE_ENERGY;}}).length > 0) {
 	        creep.pickup(creep.pos.findInRange(FIND_DROPPED_RESOURCES, 1, {filter: (resource) => {return resource.resouceType == RESOURCE_ENERGY;}})[0]);
-	        creep.moveTo(Game.getObjectById(creep.memory.source.id));
+	        creep.moveTo(source, {range: 1});
 	    }
 	    else if(creep.pos.findInRange(FIND_HOSTILE_STRUCTURES, 1).length > 0) {
 	        creep.dismantle(creep.pos.findInRange(FIND_HOSTILE_STRUCTURES, 1)[0]);
-	        creep.moveTo(Game.getObjectById(creep.memory.source.id));
+	        creep.moveTo(source, {range: 1});
 	    }
-	    else if(creep.harvest(Game.getObjectById(creep.memory.source.id)) == ERR_NOT_IN_RANGE) {
-	        creep.moveTo(Game.getObjectById(creep.memory.source.id));
+	    else if(!creep.pos.isNearTo(source)) {
+	        creep.moveTo(source, {range: 1});
+	    }
+	    else {
+	        creep.harvest(source);
 	    }
 	}
 	else {

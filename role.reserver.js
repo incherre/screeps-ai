@@ -12,11 +12,11 @@ var find = require('manager.roomInfo');
 
 var _run = function(creep) {
     if(creep.memory.target != creep.room.name) {
-        creep.moveTo(new RoomPosition(25, 25, creep.memory.target), {ignoreRoads: true, costCallback: find.avoidSourceKeepersCallback});
+        creep.moveTo(new RoomPosition(25, 25, creep.memory.target), {ignoreRoads: true, costCallback: find.avoidSourceKeepersCallback, range: 23});
     }
     else {
         if(creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-            creep.moveTo(creep.room.controller, {maxRooms: 3});
+            creep.moveTo(creep.room.controller, {maxRooms: 3, range: 1});
         }
     }
 }
