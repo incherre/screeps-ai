@@ -13,6 +13,7 @@ import { profile } from "../Profiler/Profiler";
 
 @profile
 export class MineralManager extends Manager {
+    // static parameters
     public static type: string = 'mineral';
     public static mineralRCL: number = 6;
     public static pickupThreshold: number = 500;
@@ -20,6 +21,10 @@ export class MineralManager extends Manager {
     public static terminalAmount: number = 5000;
 
     public generateRequests(): ScreepsRequest[] {
+        if(!this.parent.capital) {
+            return [];
+        }
+
         const requests: ScreepsRequest[] = [];
 
         if(this.parent.capital.controller && this.parent.capital.controller.level >= MineralManager.mineralRCL) {
@@ -27,7 +32,7 @@ export class MineralManager extends Manager {
             let actualNumber = this.workers.length;
 
             for(const worker of this.workers) {
-                if(creepNearDeath(worker.creep, this.parent.capital.name)) {
+                if(!worker.creep || creepNearDeath(worker.creep, this.parent.capital.name)) {
                     actualNumber--;
                 }
             }
@@ -75,7 +80,7 @@ export class MineralManager extends Manager {
     }
 
     public manage(): void {
-        if(!this.parent.capital.controller || this.parent.capital.controller.level < MineralManager.mineralRCL) {
+        if(!this.parent.capital || !this.parent.capital.controller || this.parent.capital.controller.level < MineralManager.mineralRCL) {
             return;
         }
 

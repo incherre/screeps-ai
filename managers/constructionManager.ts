@@ -13,17 +13,26 @@ import { profile } from "../Profiler/Profiler";
 
 @profile
 export class ConstructionManager extends Manager {
+    // static parameters
     public static type = 'construction';
     public static siteFrequency = 53;
     public static refillRatio = 0.5;
     public static targetSites = 5;
     public static targetWorkers = 2;
 
+    constructor (parent: Colony) {
+        super(parent);
+    }
+
     public generateRequests(): ScreepsRequest[] {
+        if(!this.parent.capital) {
+            return [];
+        }
+
         const requests: ScreepsRequest[] = [];
         let siteCount = this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES).length;
         if(this.parent.capital.storage) {
-            for(const roomName of this.parent.farms) {
+            for(const roomName of this.parent.remotes) {
                 if(Game.rooms[roomName]) {
                     siteCount += Game.rooms[roomName].find(FIND_MY_CONSTRUCTION_SITES).length;
                 }
@@ -34,6 +43,10 @@ export class ConstructionManager extends Manager {
         let actualNumber = this.workers.length;
 
         for(const worker of this.workers) {
+            if(!worker.creep) {
+                continue;
+            }
+
             const ttl = worker.creep.ticksToLive;
             if(ttl && ttl < 50) {
                 actualNumber--;
@@ -50,7 +63,101 @@ export class ConstructionManager extends Manager {
         return requests;
     }
 
-    public placeSites(): void {
+    public manage(): void {
+        if(!this.parent.capital) {
+            return;
+        }
+
+        if(Game.time % ConstructionManager.siteFrequency === 0) {
+            this.placeSites()
+        }
+
+        const unpairedSites: Set<string> = new Set<string>();
+        let sites: ConstructionSite[] = this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES);
+
+        if(this.parent.capital.storage) {
+            for(const roomName of this.parent.remotes) {
+                if(Game.rooms[roomName]) {
+                    sites = sites.concat(Game.rooms[roomName].find(FIND_MY_CONSTRUCTION_SITES));
+                }
+            }
+        }
+
+        for(const site of sites) {
+            unpairedSites.add(site.id);
+        }
+
+        const idleWorkers: WorkerCreep[] = [];
+    
+        for(const worker of this.workers) {
+            if(!worker.creep) {
+                continue;
+            }
+
+            if(worker.job instanceof IdleJob) {
+                idleWorkers.push(worker);
+            }
+            else if(worker.job instanceof ConstructJob) {
+                const site = (worker.job as ConstructJob).site;
+                const ttl = worker.creep.ticksToLive;
+                if(ttl && ttl >= 50 && site) {
+                    unpairedSites.delete(site.id);
+                }
+            }
+        }
+
+        for(const siteId of unpairedSites.values()) {
+            if(idleWorkers.length > 0) {
+                const worker = idleWorkers.pop();
+                const site = Game.getObjectById(siteId);
+                if(worker && site instanceof ConstructionSite) {
+                    worker.job = new ConstructJob(site);
+                }
+            }
+            else {
+                break;
+            }
+        }
+
+        if(sites.length > 0) {
+            for(let i = 0; i < this.workers.length; i++) {
+                if(this.workers[i].job instanceof IdleJob) {
+                    this.workers[i].job = new ConstructJob(sites[i % sites.length]);
+                }
+            }
+        }
+        else {
+            let i = 0;
+            while(i < this.workers.length) {
+                const worker = this.workers[i];
+                if(!worker.creep) {
+                    i++;
+                    continue;
+                }
+
+                if(worker.job instanceof IdleJob) {
+                    // if we have nothing more to build for the moment, give the workers to the repair manager
+                    this.workers[i] = this.workers[this.workers.length - 1];
+                    this.workers.pop();
+                    
+                    worker.creep.memory.managerType = RepairManager.type;
+                    const repairManager = this.parent.managers.get(RepairManager.type);
+                    if(repairManager) {
+                        repairManager.addWorker(worker);
+                    }
+                }
+                else {
+                    i++;
+                }
+            }
+        }
+    }
+
+    private placeSites(): void {
+        if(!this.parent.capital) {
+            return;
+        }
+
         // first, set the controller level
         let controllerLevel: number;
         if(this.parent.capital.controller) {
@@ -86,7 +193,7 @@ export class ConstructionManager extends Manager {
             }
 
             if(this.parent.capital.storage) {
-                for(const roomName of this.parent.farms) {
+                for(const roomName of this.parent.remotes) {
                     if(Game.rooms[roomName]) {
                         sources = sources.concat(Game.rooms[roomName].find(FIND_SOURCES));
                     }
@@ -211,75 +318,5 @@ export class ConstructionManager extends Manager {
             // place ramparts over the base
             sites += placeBaseRamparts(this.parent.capital, ConstructionManager.targetSites - sites);
         }
-
-    }
-
-    public manage(): void {
-        if(Game.time % ConstructionManager.siteFrequency === 0) {
-            this.placeSites()
-        }
-
-        const unpairedSites: Set<string> = new Set<string>();
-        let sites: ConstructionSite[] = this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES);
-
-        if(this.parent.capital.storage) {
-            for(const roomName of this.parent.farms) {
-                if(Game.rooms[roomName]) {
-                    sites = sites.concat(Game.rooms[roomName].find(FIND_MY_CONSTRUCTION_SITES));
-                }
-            }
-        }
-
-        for(const site of sites) {
-            unpairedSites.add(site.id);
-        }
-
-        const idleWorkers: WorkerCreep[] = [];
-    
-        for(const worker of this.workers) {
-            if(worker.job instanceof IdleJob) {
-                idleWorkers.push(worker);
-            }
-            else if(worker.job instanceof ConstructJob) {
-                const site = (worker.job as ConstructJob).site;
-                const ttl = worker.creep.ticksToLive;
-                if(ttl && ttl >= 50 && site) {
-                    unpairedSites.delete(site.id);
-                }
-            }
-        }
-
-        for(const siteId of unpairedSites.values()) {
-            if(idleWorkers.length > 0) {
-                const worker = idleWorkers.pop();
-                const site = Game.getObjectById(siteId);
-                if(worker && site instanceof ConstructionSite) {
-                    worker.job = new ConstructJob(site);
-                }
-            }
-            else {
-                break;
-            }
-        }
-
-        if(sites.length > 0) {
-            for(let i = 0; i < this.workers.length; i++) {
-                if(this.workers[i].job instanceof IdleJob) {
-                    this.workers[i].job = new ConstructJob(sites[i % sites.length]);
-                }
-            }
-        }
-        else {
-            for(const worker of this.workers) {
-                if(worker.job instanceof IdleJob) {
-                    // if we have nothing more to build for the moment, give the workers to the repair manager
-                    worker.creep.memory.managerType = RepairManager.type;
-                }
-            }
-        }
-    }
-
-    constructor (parent: Colony) {
-        super(parent);
     }
 }

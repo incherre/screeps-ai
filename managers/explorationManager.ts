@@ -13,10 +13,15 @@ import { profile } from "../Profiler/Profiler";
 
 @profile
 export class ExplorationManager extends Manager {
+    // static parameters
     public static type = 'explore';
     public static refreshRate = 9000;
 
     public generateRequests(): ScreepsRequest[] {
+        if(!this.parent.capital) {
+            return [];
+        }
+
         const requests: ScreepsRequest[] = [];
         const controller = this.parent.capital.controller;
         let scoutNumber = 0;
@@ -42,13 +47,17 @@ export class ExplorationManager extends Manager {
     }
 
     public manage(): void {
+        if(!this.parent.capital) {
+            return;
+        }
+
         let observer: StructureObserver | undefined;
         const observers = this.parent.structures.get(STRUCTURE_OBSERVER);
         if(observers) {
             observer = _.find(observers) as StructureObserver;
         }
 
-        const visionRequests = this.parent.requests[VisionRequest.type];
+        const visionRequests = this.parent.requests.get(VisionRequest.type);
         let visionRequest = null;
         const visionRequired: Set<string> = new Set<string>();
     
@@ -154,12 +163,7 @@ export class ExplorationManager extends Manager {
         for(const roomName of adjacentRooms) {
             const info = getRoomInfo(roomName);
             if(info && !info.owner) {
-                if(!Memory.rooms[roomName]) {
-                    Memory.rooms[roomName] = {parent: this.parent.capital.name, seed: null, lab: null, petals: null, needsVision: false};
-                }
-                else {
-                    Memory.rooms[roomName].parent = this.parent.capital.name;
-                }
+                Memory.rooms[roomName].parent = this.parent.capital.name;
             }
             else if(info && info.owner && info.owner !== getOwnName() && Memory.rooms[roomName]) {
                 delete Memory.rooms[roomName];

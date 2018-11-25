@@ -14,13 +14,18 @@ import { profile } from "../Profiler/Profiler";
 
 @profile
 export class TransportManager extends Manager {
+    // static parameters
     public static type = 'transport';
 
     public generateRequests(): ScreepsRequest[] {
+        if(!this.parent.capital) {
+            return [];
+        }
+
         const requests: ScreepsRequest[] = [];
         let transportNumber = 1 + this.parent.capital.find(FIND_SOURCES).length;
         if(this.parent.capital.storage) {
-            for(const roomName of this.parent.farms) {
+            for(const roomName of this.parent.remotes) {
                 if(Game.rooms[roomName]) {
                     transportNumber += 1 + Game.rooms[roomName].find(FIND_SOURCES).length;
                 }
@@ -30,6 +35,10 @@ export class TransportManager extends Manager {
         let actualNumber = this.workers.length;
 
         for(const worker of this.workers) {
+            if(!worker.creep) {
+                continue;
+            }
+
             const ttl = worker.creep.ticksToLive;
             if(ttl && ttl < 50) {
                 actualNumber--;
@@ -49,6 +58,10 @@ export class TransportManager extends Manager {
     }
 
     public manage(): void {
+        if(!this.parent.capital) {
+            return;
+        }
+
         const hungryContainers: Map<ResourceConstant, Set<string>> = new Map<ResourceConstant, Set<string>>();
         const fullContainers: Map<ResourceConstant, Set<string>> = new Map<ResourceConstant, Set<string>>();
         const resourcesGettingGot: Set<ResourceConstant> = new Set<ResourceConstant>();
@@ -60,7 +73,7 @@ export class TransportManager extends Manager {
         // calculate all the things that need to get stuff, and what sort of activities are in progress
 
         // deal with other managers requesting stuff
-        const dropoffRequests: ScreepsRequest[] = this.parent.requests[DropoffRequest.type];
+        const dropoffRequests: ScreepsRequest[] | undefined = this.parent.requests.get(DropoffRequest.type);
         if(dropoffRequests) {
             shuffle(dropoffRequests);
             for(const i in dropoffRequests) {
@@ -79,7 +92,7 @@ export class TransportManager extends Manager {
         }
 
         // deal with other managers giving stuff
-        const pickupRequests: ScreepsRequest[] = this.parent.requests[PickupRequest.type];
+        const pickupRequests: ScreepsRequest[] | undefined = this.parent.requests.get(PickupRequest.type);
         if(pickupRequests) {
             shuffle(pickupRequests);
             for(const i in pickupRequests) {
@@ -97,9 +110,13 @@ export class TransportManager extends Manager {
         }
 
         // use the information about creeps to find creeps in need of work, and remove some requests
-        for(const i in this.workers) {
-            if(this.workers[i].job instanceof IdleJob) {
-                const idleCreep = this.workers[i].creep;
+        for(const worker of this.workers) {
+            if(!worker.creep) {
+                continue;
+            }
+
+            if(worker.job instanceof IdleJob) {
+                const idleCreep = worker.creep;
                 if(Object.keys(idleCreep.carry).length > 1) {
                     // full with something that's not energy
                     const resource: ResourceConstant = _.max(Object.keys(idleCreep.carry), (resourceType: ResourceConstant) => {
@@ -117,12 +134,12 @@ export class TransportManager extends Manager {
 
                     const workerList = idleFull.get(resource);
                     if(workerList) {
-                        workerList.push(this.workers[i]);
+                        workerList.push(worker);
                     }
                 }
                 else if(idleCreep.carry.energy > 0 && idleCreep.carry.energy < idleCreep.carryCapacity) {
                     // has some energy
-                    idlePartFull.push(this.workers[i]);
+                    idlePartFull.push(worker);
                 }
                 else if(idleCreep.carry.energy > 0 && idleCreep.carry.energy === idleCreep.carryCapacity) {
                     // full with energy
@@ -132,18 +149,18 @@ export class TransportManager extends Manager {
 
                     const workerList = idleFull.get(RESOURCE_ENERGY);
                     if(workerList) {
-                        workerList.push(this.workers[i]);
+                        workerList.push(worker);
                     }
                 }
                 else {
                     // only one key in carry, must be energy; energy not greater than 0, must be 0 :. carry must be empty
-                    idleEmpty.push(this.workers[i]);
+                    idleEmpty.push(worker);
                 }
             }
-            else if(this.workers[i].job instanceof PickupJob) {
+            else if(worker.job instanceof PickupJob) {
                 // the resource is being gotten
-                const container =  (this.workers[i].job as PickupJob).container;
-                const resourceType = (this.workers[i].job as PickupJob).resourceType;
+                const container =  (worker.job as PickupJob).container;
+                const resourceType = (worker.job as PickupJob).resourceType;
                 if(container) {
                     resourcesGettingGot.add(resourceType);
                     const resourceSet = fullContainers.get(resourceType);
@@ -155,10 +172,10 @@ export class TransportManager extends Manager {
                     }
                 }
             }
-            else if(this.workers[i].job instanceof DropoffJob) {
+            else if(worker.job instanceof DropoffJob) {
                 // it's delivering it
-                const container = (this.workers[i].job as DropoffJob).container;
-                const resourceType = (this.workers[i].job as DropoffJob).resourceType;
+                const container = (worker.job as DropoffJob).container;
+                const resourceType = (worker.job as DropoffJob).resourceType;
                 const resourceSet = hungryContainers.get(resourceType);
                 
                 if(resourceSet && container) {
@@ -334,6 +351,10 @@ function getAndRemoveClosest(creeps: WorkerCreep[], pos: RoomPosition): WorkerCr
 
     for(let i = 0; i < creeps.length; i++) {
         const creep = creeps[i].creep;
+        if(!creep) {
+            continue;
+        }
+
         let dist;
         if(creep.pos.roomName === pos.roomName) {
             dist = creep.pos.getRangeTo(pos);

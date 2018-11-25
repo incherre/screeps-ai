@@ -7,8 +7,8 @@ export class IdleJob extends Job {
     public static type: string = 'idle';
 
     public recalculateTarget(creep: Creep): boolean {
-        this.ttr = 0;
-        return false;
+        this.ttr = 1;
+        return true;
     }
 
     public getJobType(): string {

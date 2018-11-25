@@ -10,11 +10,16 @@ import { profile } from "../Profiler/Profiler";
 
 @profile
 export class UpgradeManager extends Manager {
+    // static parameters
     public static type = 'upgrade';
     public static refillRatio = 0.5;
     public static capacityConstant = .3;
 
     public generateRequests(): ScreepsRequest[] {
+        if(!this.parent.capital) {
+            return [];
+        }
+
         const requests: ScreepsRequest[] = [];
         let upgradeNumber = 1;
         if(this.parent.capital.controller && this.parent.capital.controller.level <= 4) {
@@ -33,6 +38,10 @@ export class UpgradeManager extends Manager {
         let actualNumber = this.workers.length;
 
         for(const worker of this.workers) {
+            if(!worker.creep) {
+                continue;
+            }
+
             const ttl = worker.creep.ticksToLive;
             if(ttl && ttl < 50) {
                 actualNumber--;
@@ -55,6 +64,10 @@ export class UpgradeManager extends Manager {
     }
 
     public manage(): void {
+        if(!this.parent.capital) {
+            return;
+        }
+
         for(const i in this.workers) {
             if(this.workers[i].job instanceof IdleJob && this.parent.capital.controller) {
                 this.workers[i].job = new UpgradeJob(this.parent.capital.controller);

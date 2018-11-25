@@ -86,6 +86,19 @@ export class Colony {
             structList.push(struct);
         }
 
+        // remove invalid workers
+        let i = 0;
+        while(i < this.workers.length) {
+            if(!Game.getObjectById(this.workers[i].creepId)) {
+                // move the last one to here and pop
+                this.workers[i] = this.workers[this.workers.length - 1];
+                this.workers.pop();
+            }
+            else {
+                i++;
+            }
+        }
+
         // map out the workers
         for(const worker of this.workers) {
             worker.tickInit();
@@ -152,8 +165,25 @@ export class Colony {
         }
     }
 
-    public addWorker(newWorker: WorkerCreep): void {
-        this.workers.push(newWorker);
+    public addWorker(newOne: Creep | WorkerCreep): void {
+        let newWorker = null;
+        let creep: Creep | null = null;
+        if(newOne instanceof Creep) {
+            newWorker = new WorkerCreep(newOne, this);
+            creep = newOne;
+        }
+        else if(newOne instanceof WorkerCreep) {
+            newWorker = newOne;
+            creep = Game.getObjectById(newOne.creepId);
+        }
+
+        if(newWorker && creep) {
+            this.workers.push(newWorker);
+            const manager = this.managers.get(creep.memory.managerType);
+            if(manager) {
+                manager.addWorker(newWorker);
+            }
+        }
     }
 
     private addWorkerLoc(worker: WorkerCreep): void {

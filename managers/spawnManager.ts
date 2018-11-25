@@ -11,10 +11,15 @@ import { profile } from "../Profiler/Profiler";
 
 @profile
 export class SpawnManager extends Manager {
+    // static parameters
     public static type: string = 'spawn';
     public static minSpawnEnergy: number = 100;
 
     public generateRequests(): ScreepsRequest[] {
+        if(!this.parent.capital) {
+            return [];
+        }
+
         const requests: ScreepsRequest[] = [];
 
         let buildings: Structure[] = [];
@@ -38,19 +43,32 @@ export class SpawnManager extends Manager {
     }
 
     public manage(): void {
-        const requests: ScreepsRequest[] = this.parent.requests[SpawnRequest.type];
+        if(!this.parent.capital) {
+            return;
+        }
 
-        if(!requests) { return; }
+        let requests: ScreepsRequest[] | undefined = this.parent.requests.get(SpawnRequest.type);
+
+        if(!requests) {
+            requests = [];
+        }
         shuffle(requests);
 
         let energy: number = this.parent.capital.energyAvailable;
         const energyMax: number = this.parent.capital.energyCapacityAvailable;
         const spawns = this.parent.structures.get(STRUCTURE_SPAWN);
-        if(energy >= SpawnManager.minSpawnEnergy && spawns) {
+        if(spawns) {
             for(const building of spawns) {
-                if(building instanceof StructureSpawn && requests.length > 0 && !building.spawning) {
+                if(!(building instanceof Spawn)) {
+                    continue;
+                }
+
+                if(building.spawning && building.spawning.remainingTime === 1) {
+                    this.parent.addWorker(Game.creeps[building.spawning.name]);
+                }
+                else if(requests.length > 0 && energy >= SpawnManager.minSpawnEnergy) {
                     const request = popMostImportant(requests) as SpawnRequest;
-                    const memory = {jobType: BusyJob.type, jobInfo: '', colonyRoom: this.parent.capital.name, managerType: request.requester, path: null};
+                    const memory = {jobType: BusyJob.type, jobInfo: '', colonyRoom: this.parent.capital.name, managerType: request.requester, path: undefined};
                     const body = request.creepFunction(energy, energyMax);
                     const name = building.name + '-' + Game.time;
                     

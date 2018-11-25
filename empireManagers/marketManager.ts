@@ -7,6 +7,7 @@ import { profile } from "../Profiler/Profiler";
 
 @profile
 export class MarketManager extends EmpireManager {
+    // static parameters
     public static maxPriceEntries = 200;
     public static shortTerm = 50;
     public static decayRate = 0.95;
@@ -15,6 +16,7 @@ export class MarketManager extends EmpireManager {
     public static type = 'market';
     public static dealLimit = 10;
 
+    // single-tick variables
     public dealsThisTick: number;
 
     constructor(parent: Empire) {
@@ -68,6 +70,10 @@ export class MarketManager extends EmpireManager {
         }
     }
 
+    public cleanup(): void {
+        this.dealsThisTick = 0;
+    }
+
     private recordMarketData(): void {
         if(!Memory.marketHistory) {
             Memory.marketHistory = {};
@@ -75,11 +81,14 @@ export class MarketManager extends EmpireManager {
 
         // first, get all the minerals we should keep track of
         const mineralsOfInterest = new Set<MineralConstant>();
-        for(const roomName in this.parent.colonies) {
-            const room = this.parent.colonies[roomName].capital;
-            const mineral = _.find(room.find(FIND_MINERALS));
+        for(const colony of this.parent.colonies.values()) {
+            const room = colony.capital;
+            if(!room) {
+                continue;
+            }
 
-            if(mineral) {
+            const mineral = _.find(room.find(FIND_MINERALS));
+            if(mineral instanceof Mineral) {
                 mineralsOfInterest.add(mineral.mineralType);
             }
         }
