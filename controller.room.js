@@ -70,6 +70,17 @@ var _controlRoom = function(room) {
     if(Game.time % 5 == 0) {
         _controlLabs(room);
     }
+    
+    if(Game.time % 151 == 0) {
+        var nukes = room.find(FIND_NUKES);
+        if(!room.memory.notified && nukes.length > 0) {
+            Game.notify("Incoming nuke/s detected in room " + room.name, 10);
+            room.memory.notified = true;
+        }
+        else if(room.memory.notified && nukes.length == 0) {
+            room.memory.notified = false;
+        }
+    }
 }
 
 // *** Spawning ***
