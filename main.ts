@@ -15,4 +15,6 @@ export const loop = ErrorMapper.wrapLoop(() => {
   empire.generateRequests(); // everyone ask for things
   
   empire.run(); // everyone do things
+
+  empire.cleanup(); // prepare things for the next tick
 });

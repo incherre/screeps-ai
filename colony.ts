@@ -47,7 +47,7 @@ export class Colony {
         // initialize and distribute the workers
         this.workers = [];
         for(const creep of creeps) {
-            if(creep.memory.managerType in this.managers) {
+            if(this.managers.has(creep.memory.managerType)) {
                 const worker = new WorkerCreep(creep, this);
                 const manager = this.managers.get(creep.memory.managerType);
                 if(manager) {

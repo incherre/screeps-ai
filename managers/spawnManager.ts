@@ -15,6 +15,29 @@ export class SpawnManager extends Manager {
     public static type: string = 'spawn';
     public static minSpawnEnergy: number = 100;
 
+    // inter-tick variables
+    public namesToAdd: string[];
+
+    constructor (parent: Colony) {
+        super(parent);
+        this.namesToAdd = [];
+    }
+
+    public tickInit(): void {
+        super.tickInit();
+
+        const namesStillToAdd = [];
+        for(const name of this.namesToAdd) {
+            if(Game.creeps[name]) {
+                this.parent.addWorker(Game.creeps[name]);
+            }
+            else {
+                namesStillToAdd.push(name);
+            }
+        }
+        this.namesToAdd = namesStillToAdd;
+    }
+
     public generateRequests(): ScreepsRequest[] {
         if(!this.parent.capital) {
             return [];
@@ -63,10 +86,7 @@ export class SpawnManager extends Manager {
                     continue;
                 }
 
-                if(building.spawning && building.spawning.remainingTime === 1) {
-                    this.parent.addWorker(Game.creeps[building.spawning.name]);
-                }
-                else if(requests.length > 0 && energy >= SpawnManager.minSpawnEnergy) {
+                if(!building.spawning && requests.length > 0 && energy >= SpawnManager.minSpawnEnergy) {
                     const request = popMostImportant(requests) as SpawnRequest;
                     const memory = {jobType: BusyJob.type, jobInfo: '', colonyRoom: this.parent.capital.name, managerType: request.requester, path: undefined};
                     const body = request.creepFunction(energy, energyMax);
@@ -74,6 +94,7 @@ export class SpawnManager extends Manager {
                     
                     const status = building.spawnCreep(body, name, {'memory': memory});
                     if(status === OK) {
+                        this.namesToAdd.push(name);
                         for(const j in body) {
                             energy -= BODYPART_COST[body[j]];
                         }
@@ -81,9 +102,5 @@ export class SpawnManager extends Manager {
                 }
             }
         }
-    }
-
-    constructor (parent: Colony) {
-        super(parent);
     }
 }

@@ -30,9 +30,9 @@ export const spawnTypes: Record<BodyType, (energyLimit: number, maxEnergy: numbe
         let soFar = 0;
         const body: BodyPartConstant[] = [];
         while(soFar + energyPerRound <= energyLimit && body.length + partsPerRound <= maxParts) {
+            soFar += energyPerRound;
             body.push(CARRY);
             body.push(MOVE);
-            soFar += energyPerRound;
         }
         return body;
     },
@@ -79,8 +79,8 @@ export const spawnTypes: Record<BodyType, (energyLimit: number, maxEnergy: numbe
         let soFar = 0;
         const body: BodyPartConstant[] = [];
         while(soFar + BODYPART_COST[baseBody[body.length % baseBody.length]] <= energyLimit && body.length < maxParts) {
-            body.push(baseBody[body.length % baseBody.length]);
             soFar += BODYPART_COST[baseBody[body.length % baseBody.length]];
+            body.push(baseBody[body.length % baseBody.length]);
         }
 
         if(body.length < minParts) {
@@ -101,8 +101,8 @@ export const spawnTypes: Record<BodyType, (energyLimit: number, maxEnergy: numbe
         let soFar = 0;
         const body: BodyPartConstant[] = [];
         while(soFar + BODYPART_COST[baseBody[body.length % baseBody.length]] <= energyLimit && body.length < maxParts) {
-            body.push(baseBody[body.length % baseBody.length]);
             soFar += BODYPART_COST[baseBody[body.length % baseBody.length]];
+            body.push(baseBody[body.length % baseBody.length]);
         }
 
         if(body.length < minParts) {
@@ -125,10 +125,10 @@ export const spawnTypes: Record<BodyType, (energyLimit: number, maxEnergy: numbe
         let soFar = 0;
         const body: BodyPartConstant[] = [];
         while(soFar + energyPerRound <= energyLimit && body.length + partsPerRound <= maxParts) {
+            soFar += energyPerRound;
             body.push(WORK);
             body.push(CARRY);
             body.push(MOVE);
-            soFar += energyPerRound;
         }
         return body;
     },
@@ -142,9 +142,9 @@ export const spawnTypes: Record<BodyType, (energyLimit: number, maxEnergy: numbe
         let soFar = 0;
         const body: BodyPartConstant[] = [];
         while(soFar + energyPerRound <= energyLimit && body.length + partsPerRound <= maxParts) {
+            soFar += energyPerRound;
             body.push(CLAIM);
             body.push(MOVE);
-            soFar += energyPerRound;
         }
         return body;
     },

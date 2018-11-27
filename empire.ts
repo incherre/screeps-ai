@@ -88,7 +88,7 @@ export class Empire {
                 manager.tickInit();
             }
 
-            // initialise colonies
+            // initialize colonies
             for(const colony of this.colonies.values()) {
                 colony.tickInit();
             }

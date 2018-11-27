@@ -163,6 +163,10 @@ export class ExplorationManager extends Manager {
         for(const roomName of adjacentRooms) {
             const info = getRoomInfo(roomName);
             if(info && !info.owner) {
+                if(!Memory.rooms[roomName]) {
+                    Memory.rooms[roomName] = {} as RoomMemory;
+                }
+                
                 Memory.rooms[roomName].parent = this.parent.capital.name;
             }
             else if(info && info.owner && info.owner !== getOwnName() && Memory.rooms[roomName]) {

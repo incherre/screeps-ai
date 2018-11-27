@@ -33,12 +33,13 @@ export class WorkerCreep {
     }
 
     public tickInit(): void {
-        if(!Game.creeps[this.creepId]) {
+        const creep = Game.getObjectById(this.creepId);
+        if(!(creep instanceof Creep)) {
             // OH NO, creep is probably dead
             return;
         }
 
-        this.creep = Game.creeps[this.creepId];
+        this.creep = creep;
     }
 
     public work(): void {
@@ -301,11 +302,14 @@ function standardCallback(roomName: string): false | CostMatrix {
     }
     else if(Game.rooms[roomName]) {
         costs = new PathFinder.CostMatrix(); // generate and cache
-        for(const structure of Game.rooms[roomName].find(FIND_STRUCTURES)) {
+        let obstacles: Array<Structure | ConstructionSite> = Game.rooms[roomName].find(FIND_STRUCTURES);
+        obstacles = obstacles.concat(Game.rooms[roomName].find(FIND_MY_CONSTRUCTION_SITES))
+
+        for(const structure of obstacles) {
             if (structure.structureType === STRUCTURE_ROAD) {
                 // Favor roads over swamp and wall (if there are roads over those things)
                 costs.set(structure.pos.x, structure.pos.y, 1);
-            } else if (structure.structureType !== STRUCTURE_CONTAINER && (structure.structureType !== STRUCTURE_RAMPART || !structure.my)) {
+            } else if (structure.structureType !== STRUCTURE_CONTAINER && (structure.structureType !== STRUCTURE_RAMPART || !(structure as StructureRampart).my)) {
                 // Can't walk through non-walkable buildings
                 costs.set(structure.pos.x, structure.pos.y, 0xff);
             }
