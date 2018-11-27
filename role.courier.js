@@ -6,10 +6,8 @@ Once a courier is full, it should take the energy to fillable structures.
 
 // ***** Options *****
 var maxCourierParts = 14;
-var resourceThreshold = 100;
-var resourceRange = 1;
 var roadThresh = 30;
-var energyMin = 12;
+var rangeMultiple = 1.2;
 var controllerRange = 2;
 // ***** End *****
 
@@ -54,7 +52,8 @@ var _getPowerSpawn = function(room) {
 }
 
 var _run = function(creep) {
-    if(!creep.memory.working && _.sum(creep.carry) == 0) {
+    var carrySum = _.sum(creep.carry);
+    if(!creep.memory.working && carrySum == 0) {
         creep.memory.working = true;
         creep.room.visual.text("🔍", creep.pos);
 	}
@@ -62,7 +61,7 @@ var _run = function(creep) {
 	    creep.memory.working = true;
         creep.room.visual.text("🔍", creep.pos);
 	}
-	else if(creep.memory.working && _.sum(creep.carry) == creep.carryCapacity) {
+	else if(creep.memory.working && carrySum == creep.carryCapacity) {
 	    creep.memory.working = false;
 	    creep.room.visual.text("🔋", creep.pos);
 	}
@@ -95,7 +94,7 @@ var _run = function(creep) {
         }
         
         if(target == null) {
-            energy = _.filter(find.getGroundEnergy(creep.room), (resource) => {return !resource.pos.inRangeTo(creep.room.controller, controllerRange) && resource.amount > energyMin && (resource.amount >= resourceThreshold || creep.pos.inRangeTo(resource, resourceRange));});
+            energy = _.filter(find.getGroundEnergy(creep.room), (resource) => {return !resource.pos.inRangeTo(creep.room.controller, controllerRange) && resource.amount > (resource.pos.getRangeTo(creep) * rangeMultiple);});
         }
         
         if(target == null && energy.length > 0) {
@@ -104,7 +103,12 @@ var _run = function(creep) {
         }
         
         if(target == null) {
-            target = creep.pos.findClosestByRange(find.getContainerEnergy(creep.room), {filter: (container) => {return container.store[RESOURCE_ENERGY] >= resourceThreshold || creep.pos.inRangeTo(container, resourceRange);}});
+            target = creep.pos.findClosestByRange(find.getContainerEnergy(creep.room), {filter: (container) => {return container.creep || (container.store[RESOURCE_ENERGY] >= (creep.carryCapacity - carrySum));}});
+        }
+        
+        const terminalEnergyThreshold = (TERMINAL_CAPACITY / 15) + (creep.carryCapacity - carrySum);
+        if(target == null && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] < 10000 && creep.room.terminal && creep.room.terminal.store[RESOURCE_ENERGY] > terminalEnergyThreshold) {
+            target = creep.room.terminal;
         }
         
         var powerSpawn = _getPowerSpawn(creep.room);
@@ -150,6 +154,10 @@ var _run = function(creep) {
                     }
                 }
             }
+        }
+        
+        if(target == null && creep.room.terminal && creep.room.terminal.store[RESOURCE_ENERGY] > terminalEnergyThreshold) {
+            target = creep.room.terminal;
         }
         
         if(target == null && find.getFillables(creep.room).length > 0) {
