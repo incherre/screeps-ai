@@ -18,6 +18,10 @@ var _run = function(creep) {
         if(creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
             creep.moveTo(creep.room.controller, {maxRooms: 3, range: 1});
         }
+
+        if(creep.room.controller.sign) {
+            creep.signController(creep.room.controller, "");
+        }
     }
 }
 

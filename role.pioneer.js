@@ -37,6 +37,10 @@ var _run = function(creep) {
         if(creep.claimController(creep.room.controller) == ERR_NOT_IN_RANGE) {
             creep.moveTo(creep.room.controller);
         }
+        
+        if(creep.room.controller.sign) {
+            creep.signController(creep.room.controller, "");
+        }
     }
     else {
         if(creep.memory.working) {
