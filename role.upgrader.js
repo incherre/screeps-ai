@@ -7,6 +7,7 @@ Once an upgrader is full, it should use the energy to upgrade the room controlle
 // ***** Options *****
 var maxUpgraderParts = 10;
 var capacityConstant = .3;
+var grindGCL = false;
 
 var ttlThreshold = 1400;
 var boostType = RESOURCE_GHODIUM_ACID;
@@ -59,8 +60,16 @@ var _run = function(creep) {
 	}
 
 	if(creep.memory.working) {
-        creep.upgradeController(creep.room.controller);
-        creep.moveTo(creep.room.controller, {maxRooms: 1});
+	    if(grindGCL || creep.room.controller.level < 8) {
+	       creep.upgradeController(creep.room.controller);
+	    }
+	    else if(Game.time % 99 == 0) {
+            creep.upgradeController(creep.room.controller);
+	    }
+	    
+	    if(!creep.pos.isNearTo(creep.room.controller)) {
+            creep.moveTo(creep.room.controller, {maxRooms: 1, range: 1});
+	    }
     }
     else {
         var target1 = creep.pos.findClosestByRange(find.getGroundEnergy(creep.room));
@@ -87,6 +96,15 @@ var _run = function(creep) {
 var _make = function(spawn, energy_limit) {
     var numOfPart = Math.floor(energy_limit / 200);
     if(numOfPart > maxUpgraderParts){numOfPart = maxUpgraderParts;}
+    
+    if(spawn.room.controller.level == 8) {
+        if(grindGCL) {
+            numOfPart = 15;
+        }
+        else {
+            numOfPart = 1;
+        }
+    }
 
     var body = [];
     for(let i = 0; i < numOfPart; i++) {
@@ -114,7 +132,10 @@ var _make = function(spawn, energy_limit) {
 
 var _shouldMake = function(room) {
     var target = 0;
-    if(room.controller.level <= 3) {
+    if(room.controller.level == 8) {
+        target = 1;
+    }
+    else if(room.controller.level <= 3) {
         target = room.controller.level;
     }
     else if(room.storage != undefined && room.storage.store[RESOURCE_ENERGY] > (room.storage.storeCapacity * upperCapacityConstant)) {
@@ -125,10 +146,6 @@ var _shouldMake = function(room) {
     }
     else {
         target = 1;
-    }
-    
-    if(room.controller.level == 8) {
-        target = Math.min(Math.ceil(15 / maxUpgraderParts), target);
     }
 
     return find.getRole(room, 'upgrader').length < target;
