@@ -189,6 +189,9 @@ var _run = function(creep) {
         }
         else if(resource == RESOURCE_POWER) {
             target = _getPowerSpawn(creep.room);
+            if(target && target.power == target.powerCapacity) {
+                target = creep.room.storage;
+            }
         }
         else if(labTypes.indexOf(resource) >= 0) {
             target = _getLabWith(creep.room, resource);

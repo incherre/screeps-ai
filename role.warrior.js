@@ -40,7 +40,10 @@ var _run = function(creep) {
         creep.moveTo(flag);
     }
     else if(creep.getActiveBodyparts(ATTACK) == 0 && powerBanks.length > 0) {
-        creep.moveTo(25, 25);
+        const powerBank = powerBanks[0];
+        if(creep.pos.getRangeTo(powerBank) <= 2) {
+            creep.moveTo(25, 25);
+        }
     }
     else if(powerBanks.length > 0) {
         const powerBank = powerBanks[0];
@@ -48,7 +51,7 @@ var _run = function(creep) {
             creep.moveTo(powerBank);
         }
     }
-    else if(powers.length > 0) {
+    else if(powers.length > 0 && creep.ticksToLive > 150) {
         const power = creep.pos.findClosestByRange(powers);
         if(creep.pickup(power) == ERR_NOT_IN_RANGE) {
             creep.moveTo(power);
@@ -112,6 +115,10 @@ var _shouldMake = function(room) {
     }
 
     if(Game.map.getRoomLinearDistance(room.name, flag.pos.roomName) > 2) {
+        return false;
+    }
+    
+    if(Memory.HEALER_REQUESTS && Memory.HEALER_REQUESTS.indexOf(flag.pos.roomName) != -1) {
         return false;
     }
     
