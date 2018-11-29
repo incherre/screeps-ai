@@ -10,7 +10,7 @@ var capacityConstant = .3;
 
 var ttlThreshold = 1400;
 var boostType = RESOURCE_GHODIUM_ACID;
-var boostRooms = ['E1S7'];
+var boostRooms = ['W6N17'];
 // ***** End *****
 
 var upperCapacityConstant = Math.min(1 - ((1 - capacityConstant) / 2), capacityConstant * 2);
