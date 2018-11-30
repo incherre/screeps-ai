@@ -82,21 +82,10 @@ var _controlRoom = function(room) {
         }
     }
     
-    var powerSpawn = _getPowerSpawn(room);
+    var powerSpawn = find.getPowerSpawn(room);
     if(powerSpawn && powerSpawn.energy > POWER_SPAWN_ENERGY_RATIO && powerSpawn.power > 0 && room.storage && room.storage.store[RESOURCE_ENERGY] > (STORAGE_CAPACITY * 0.3)) {
         powerSpawn.processPower();
     }
-}
-
-var _getPowerSpawn = function(room) {
-    if(!room.hasOwnProperty('POWER_SPAWN')) {
-        room.POWER_SPAWN = null;
-        var powerSpawns = _.filter(find.getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_POWER_SPAWN && structure.my);});
-        if(powerSpawns.length > 0) {
-            room.POWER_SPAWN = powerSpawns[0];
-        }
-    }
-    return room.POWER_SPAWN;
 }
 
 // *** Spawning ***

@@ -24,33 +24,6 @@ const roomLabProducts = {
     'E3S4': [RESOURCE_GHODIUM],
 };
 
-var _getLabWith = function(room, resource) {
-    let labs = find.getLabs(room);
-    let backup = null;
-    
-    for(let i in labs) {
-        if(labs[i].mineralAmount == 0) {
-            backup = labs[i];
-        }
-        else if(labs[i].mineralType == resource) {
-            return labs[i];
-        }
-    }
-    
-    return backup;
-}
-
-var _getPowerSpawn = function(room) {
-    if(!room.hasOwnProperty('POWER_SPAWN')) {
-        room.POWER_SPAWN = null;
-        var powerSpawns = _.filter(find.getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_POWER_SPAWN && structure.my);});
-        if(powerSpawns.length > 0) {
-            room.POWER_SPAWN = powerSpawns[0];
-        }
-    }
-    return room.POWER_SPAWN;
-}
-
 var _run = function(creep) {
     var carrySum = _.sum(creep.carry);
     if(!creep.memory.working && carrySum == 0) {
@@ -111,7 +84,7 @@ var _run = function(creep) {
             target = creep.room.terminal;
         }
         
-        var powerSpawn = _getPowerSpawn(creep.room);
+        var powerSpawn = find.getPowerSpawn(creep.room);
         if(target == null && find.getFillables(creep.room).length == 0 && powerSpawn && powerSpawn.power == 0 && creep.room.storage && creep.room.storage.store[RESOURCE_POWER]) {
             // if there's no target, and nothing needs filling, and the power spawn exists and is empty, and the storage exists and has power, then it should get some power for the power spawn
             target = creep.room.storage;
@@ -145,7 +118,7 @@ var _run = function(creep) {
             if(target == null && creep.room.terminal) {
                 for(let i in labTypes) {
                     if(creep.room.terminal.store.hasOwnProperty(labTypes[i])) {
-                        let lab = _getLabWith(creep.room, labTypes[i]);
+                        let lab = find.getLabWith(creep.room, labTypes[i]);
                         if(lab != null && lab.mineralAmount < (lab.mineralCapacity * 0.75)) {
                             target = creep.room.terminal;
                             resource = labTypes[i];
@@ -188,13 +161,13 @@ var _run = function(creep) {
             target = creep.pos.findClosestByRange(find.getFillables(creep.room));
         }
         else if(resource == RESOURCE_POWER) {
-            target = _getPowerSpawn(creep.room);
+            target = find.getPowerSpawn(creep.room);
             if(target && target.power == target.powerCapacity) {
                 target = creep.room.storage;
             }
         }
         else if(labTypes.indexOf(resource) >= 0) {
-            target = _getLabWith(creep.room, resource);
+            target = find.getLabWith(creep.room, resource);
             if(target == null || target.mineralAmount > (target.mineralCapacity * 0.75)) {
                 target = creep.room.terminal;
             }

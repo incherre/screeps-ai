@@ -384,6 +384,33 @@ var _avoidSourceKeepersCallback = function(roomName, costMatrix) {
     }
 }
 
+var _getLabWith = function(room, resource) {
+    let labs = _getLabs(room);
+    let backup = null;
+    
+    for(let i in labs) {
+        if(labs[i].mineralAmount == 0) {
+            backup = labs[i];
+        }
+        else if(labs[i].mineralType == resource) {
+            return labs[i];
+        }
+    }
+    
+    return backup;
+}
+
+var _getPowerSpawn = function(room) {
+    if(!room.hasOwnProperty('POWER_SPAWN')) {
+        room.POWER_SPAWN = null;
+        var powerSpawns = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_POWER_SPAWN && structure.my);});
+        if(powerSpawns.length > 0) {
+            room.POWER_SPAWN = powerSpawns[0];
+        }
+    }
+    return room.POWER_SPAWN;
+}
+
 module.exports = {
     getMyCreeps: _getMyCreeps,
     getHostileCreeps: _getHostileCreeps,
@@ -415,5 +442,7 @@ module.exports = {
     getRole: _getRole,
     addRole: _addRole,
     creepNames: _creepNames,
-    avoidSourceKeepersCallback: _avoidSourceKeepersCallback
+    avoidSourceKeepersCallback: _avoidSourceKeepersCallback,
+    getLabWith: _getLabWith,
+    getPowerSpawn: _getPowerSpawn,
 };

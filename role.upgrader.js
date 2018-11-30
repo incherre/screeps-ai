@@ -17,26 +17,9 @@ var boostRooms = ['W6N17'];
 var upperCapacityConstant = Math.min(1 - ((1 - capacityConstant) / 2), capacityConstant * 2);
 var find = require('manager.roomInfo');
 
-// copied from courier, just as a temporary measure
-var _getLabWith = function(room, resource) {
-    let labs = find.getLabs(room);
-    let backup = null;
-    
-    for(let i in labs) {
-        if(labs[i].mineralAmount == 0) {
-            backup = labs[i];
-        }
-        else if(labs[i].mineralType == resource) {
-            return labs[i];
-        }
-    }
-    
-    return backup;
-}
-
 var _run = function(creep) {
     if(creep.ticksToLive > ttlThreshold && !creep.memory.boosted && boostRooms.includes(creep.room.name)) {
-        var lab = _getLabWith(creep.room, boostType);
+        var lab = find.getLabWith(creep.room, boostType);
         if(lab && lab.mineralAmount > creep.getActiveBodyparts(WORK) * LAB_BOOST_MINERAL) {
             var retVal = lab.boostCreep(creep);
             if(retVal == OK) {
