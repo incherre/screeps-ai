@@ -412,6 +412,28 @@ var _getPowerSpawn = function(room) {
     return room.POWER_SPAWN;
 }
 
+var _getNuker = function(room) {
+    if(!room.hasOwnProperty('NUKER')) {
+        room.NUKER = null;
+        var nukers = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_NUKER && structure.my);});
+        if(nukers.length > 0) {
+            room.NUKER = nukers[0];
+        }
+    }
+    return room.NUKER;
+}
+
+var _getObserver = function(room) {
+    if(!room.hasOwnProperty('OBSERVER')) {
+        room.OBSERVER = null;
+        var observers = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_OBSERVER && structure.my);});
+        if(observers.length > 0) {
+            room.OBSERVER = observers[0];
+        }
+    }
+    return room.OBSERVER;
+}
+
 module.exports = {
     getMyCreeps: _getMyCreeps,
     getHostileCreeps: _getHostileCreeps,
@@ -446,4 +468,6 @@ module.exports = {
     avoidSourceKeepersCallback: _avoidSourceKeepersCallback,
     getLabWith: _getLabWith,
     getPowerSpawn: _getPowerSpawn,
+    getNuker: _getNuker,
+    getObserver: _getObserver,
 };
