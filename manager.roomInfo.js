@@ -160,10 +160,11 @@ var _getFillables = function(room) {
                     structure.energy < structure.energyCapacity;
         });
         if(room.FILLABLES.length == 0) {
+            const collectiveCapacity = _.sum(_getRole(room, 'courier'), (creep) => {return creep.carryCapacity - _.sum(creep.carry);});
             room.FILLABLES = _.filter(_getStructures(room), (structure) => {
-                return (structure.structureType == STRUCTURE_LINK && (structure.energyCapacity - structure.energy) > 1 && structure.my) ||
-                       (structure.structureType == STRUCTURE_LAB && structure.energy < structure.energyCapacity && structure.my) ||
-                       (structure.structureType == STRUCTURE_POWER_SPAWN && structure.energy < structure.energyCapacity && structure.my);
+                return structure.energy < structure.energyCapacity && structure.my && (structure.structureType == STRUCTURE_LINK || structure.structureType == STRUCTURE_LAB ||
+                       (structure.structureType == STRUCTURE_POWER_SPAWN && structure.energy <= (structure.power * POWER_SPAWN_ENERGY_RATIO)) ||
+                       (structure.structureType == STRUCTURE_NUKER && room.storage && room.storage.store.energy > (STORAGE_CAPACITY * 0.3) + collectiveCapacity));
             });
             
             if(room.terminal != undefined && room.terminal.store[RESOURCE_ENERGY] < room.terminal.storeCapacity / 15) {

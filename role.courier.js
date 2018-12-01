@@ -162,7 +162,7 @@ var _run = function(creep) {
         }
         else if(resource == RESOURCE_POWER) {
             target = find.getPowerSpawn(creep.room);
-            if(target && target.power == target.powerCapacity) {
+            if(target && target.power > target.powerCapacity / 10) {
                 target = creep.room.storage;
             }
         }
@@ -172,7 +172,14 @@ var _run = function(creep) {
                 target = creep.room.terminal;
             }
         }
-        else if(labProducts.indexOf(resource) >= 0) {
+        else if(resource == RESOURCE_GHODIUM) {
+            target = find.getNuker(creep.room);
+            if(target && target.ghodium == target.ghodiumCapacity) {
+                target = creep.room.terminal;
+            }
+        }
+        
+        if(target == null && labProducts.indexOf(resource) >= 0) {
             target = creep.room.terminal;
         }
         
