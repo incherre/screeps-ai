@@ -20,21 +20,17 @@ var roomControl = require('controller.room');
 var trading = require('controller.market');
 var find = require('manager.roomInfo');
 
-// copied from courier, just as a temporary measure
-var _getLabWith = function(room, resource) {
-    let labs = find.getLabs(room);
-    let backup = null;
-    
-    for(let i in labs) {
-        if(labs[i].mineralAmount == 0) {
-            backup = labs[i];
-        }
-        else if(labs[i].mineralType == resource) {
-            return labs[i];
+global.sendEnergyTo = function(targetRoomName) {
+    let amount = 0;
+    for(const roomName in Game.rooms) {
+        const terminal = Game.rooms[roomName].terminal;
+        if(roomName != targetRoomName && terminal && terminal.my && terminal.store[RESOURCE_ENERGY] > (TERMINAL_CAPACITY / 30)) {
+            if(terminal.send(RESOURCE_ENERGY, Math.floor(terminal.store[RESOURCE_ENERGY] / 2), targetRoomName) == OK) {
+                amount += Math.floor(terminal.store[RESOURCE_ENERGY] / 2);
+            }
         }
     }
-    
-    return backup;
+    return amount;
 }
 
 var logStuff = function() {
@@ -80,7 +76,7 @@ module.exports.loop = function () {
         for(var [destRoomName, resource, sourceRoomName] of resourcePairs) {
             var room1 = Game.rooms[sourceRoomName];
             var room2 = Game.rooms[destRoomName];
-            var lab = _getLabWith(room2, resource);
+            var lab = find.getLabWith(room2, resource);
             var amountInRoom = 0;
 
             if(lab) {
