@@ -28,7 +28,7 @@ var _run = function(creep) {
     
     const flag = Game.flags[flagName];
     const homeStorage = Game.getObjectById(creep.memory.home).room.storage;
-    const powerBanks = creep.room.find(FIND_STRUCTURES, {filter: (struct) => {return struct.structureType == STRUCTURE_POWER_BANK;}});
+    const powerBank = find.getPowerBank(creep.room);
     const powers = creep.room.find(FIND_DROPPED_RESOURCES, {filter: (resource) => {return resource.resourceType == RESOURCE_POWER;}});
 
     if(_.sum(creep.carry) > 0 && homeStorage) {
@@ -39,14 +39,13 @@ var _run = function(creep) {
     else if(creep.room.name != flag.pos.roomName) {
         creep.moveTo(flag);
     }
-    else if(creep.getActiveBodyparts(ATTACK) == 0 && powerBanks.length > 0) {
-        const powerBank = powerBanks[0];
+    else if(creep.getActiveBodyparts(ATTACK) == 0 && powerBank) {
         if(creep.pos.getRangeTo(powerBank) <= 2) {
-            creep.moveTo(25, 25);
+            const dir = powerBank.pos.getDirectionTo(creep);
+            creep.move(dir);
         }
     }
-    else if(powerBanks.length > 0) {
-        const powerBank = powerBanks[0];
+    else if(powerBank) {
         if(creep.attack(powerBank) == ERR_NOT_IN_RANGE) {
             creep.moveTo(powerBank);
         }
@@ -63,7 +62,7 @@ var _run = function(creep) {
 }
 
 var _make = function(spawn, energy_limit) {
-    const bodyCost = BODYPART_COST[MOVE] + BODYPART_COST[MOVE] + BODYPART_COST[CARRY] + BODYPART_COST[ATTACK]
+    const bodyCost = BODYPART_COST[MOVE] + BODYPART_COST[MOVE] + BODYPART_COST[CARRY] + BODYPART_COST[ATTACK];
     var numOfPart = Math.floor(energy_limit / bodyCost);
     if(numOfPart > maxWarriorParts){numOfPart = maxWarriorParts;}
 
@@ -98,7 +97,7 @@ var _make = function(spawn, energy_limit) {
         if(!Memory.HEALER_REQUESTS) {
             Memory.HEALER_REQUESTS = [];
         }
-        Memory.HEALER_REQUESTS.unshift(Game.flags[flagName].pos.roomName);
+        Memory.HEALER_REQUESTS.unshift(flagName);
         
         return total;
     }
@@ -118,7 +117,7 @@ var _shouldMake = function(room) {
         return false;
     }
     
-    if(Memory.HEALER_REQUESTS && Memory.HEALER_REQUESTS.indexOf(flag.pos.roomName) != -1) {
+    if(Memory.HEALER_REQUESTS && Memory.HEALER_REQUESTS.indexOf(flagName) != -1) {
         return false;
     }
     

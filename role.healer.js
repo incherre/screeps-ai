@@ -4,7 +4,7 @@ A healer should go to the room specified by healFlag and heal the friendly creep
 */
 
 // ***** Options *****
-var maxHealerParts = 25;
+var maxHealerParts = 12;
 var warriorFlagName = 'power';
 // ***** End *****
 
@@ -17,9 +17,28 @@ var _run = function(creep) {
     }
 
     var targets = _.filter(find.getHurtCreeps(creep.room), (hurtCreep) => {return hurtCreep.name != creep.name;});
+    var targetName = creep.memory.target;
+    
+    if(targetName == warriorFlagName) {
+        // handle when the healer is power harvesting
+        if(Game.flags.hasOwnProperty(warriorFlagName)) {
+            targetName = Game.flags[warriorFlagName].pos.roomName;
+        }
+        else if(Game.getObjectById(creep.memory.home)) {
+            // if there's no power flag, go home and recycle
+            targetName = Game.getObjectById(creep.memory.home).pos.roomName;
+            if(creep.room.name == targetName) {
+                var recSpawn = creep.pos.findClosestByRange(find.getSpawns(creep.room));
+        		if(recSpawn && recSpawn.recycleCreep(creep) == ERR_NOT_IN_RANGE) {
+        		    creep.moveTo(recSpawn, {maxRooms: 1, range: 1});
+        		    return;
+        		}
+            }
+        }
+    }
 
-    if(creep.room.name != creep.memory.target) {
-        creep.moveTo(new RoomPosition(25, 25, creep.memory.target), {costCallback: find.avoidSourceKeepersCallback});
+    if(creep.room.name != targetName) {
+        creep.moveTo(new RoomPosition(25, 25, targetName), {costCallback: find.avoidSourceKeepersCallback, range: 23});
         if(creep.hits < creep.hitsMax) {
             creep.heal(creep);
         }
@@ -27,7 +46,7 @@ var _run = function(creep) {
     else if(targets.length > 0) {
         var target = creep.pos.findClosestByRange(find.getHurtCreeps(creep.room))
 
-        creep.moveTo(target);
+        creep.moveTo(target, {costCallback: find.avoidPowerBankCallback, range: 1});
         if(creep.pos.isNearTo(target)) {
             creep.heal(target);
         }
@@ -39,20 +58,30 @@ var _run = function(creep) {
         creep.heal(creep);
         let protector = creep.pos.findClosestByRange(find.getRole(creep.room, 'protector'));
         if(protector) {
-            creep.moveTo(protector);
+            creep.moveTo(protector, {range: 2});
         }
+    }
+    else if(creep.memory.target == warriorFlagName && Game.flags.hasOwnProperty(warriorFlagName)) {
+        creep.moveTo(Game.flags[warriorFlagName], {range: 4});
     }
     else {
         let protector = creep.pos.findClosestByRange(find.getRole(creep.room, 'protector'));
         if(protector) {
-            creep.moveTo(protector);
+            creep.moveTo(protector, {range: 2});
         }
     }
 }
 
 var _make = function(spawn, energy_limit) {
+    const healerRoom = Memory.HEALER_REQUESTS[Memory.HEALER_REQUESTS.length - 1];
+    var max = maxHealerParts;
+    if(healerRoom == warriorFlagName) {
+        // make bigger healers when harvesting power
+        max = 25;
+    }
+    
     var numOfPart = Math.floor(energy_limit / 300);
-    if(numOfPart > maxHealerParts){numOfPart = maxHealerParts;}
+    if(numOfPart > max){numOfPart = max;}
 
     var body = [];
     for(let i = 0; i < numOfPart; i++) {
@@ -62,7 +91,6 @@ var _make = function(spawn, energy_limit) {
         body.push(HEAL);
     }
 
-    const healerRoom = Memory.HEALER_REQUESTS[Memory.HEALER_REQUESTS.length - 1];
     var mem = {role: 'healer', home: spawn.room.controller.id, long_range: true, notify: true, target: healerRoom};
     var name = find.creepNames[Math.floor(Math.random() * find.creepNames.length)] + ' ' + spawn.name + Game.time;
     var retVal = spawn.spawnCreep(body, name, {memory: mem});
@@ -86,10 +114,14 @@ var _shouldMake = function(room) {
         Memory.HEALER_REQUESTS = [];
     }
     
-    if(Game.flags.hasOwnProperty(warriorFlagName) && Memory.HEALER_REQUESTS.length > 0) {
+    if(Memory.HEALER_REQUESTS.length > 0) {
         const topRequest = Memory.HEALER_REQUESTS[Memory.HEALER_REQUESTS.length - 1];
-        if(topRequest == Game.flags[warriorFlagName].pos.roomName) {
-            return Game.map.getRoomLinearDistance(room.name, Memory.HEALER_REQUESTS[Memory.HEALER_REQUESTS.length - 1]) <= 2;
+        if(topRequest == warriorFlagName && Game.flags.hasOwnProperty(warriorFlagName)) {
+            return Game.map.getRoomLinearDistance(room.name, Game.flags[warriorFlagName].pos.roomName) <= 2;
+        }
+        else if(topRequest == warriorFlagName) {
+            Memory.HEALER_REQUESTS.pop();
+            return false;
         }
     }
     

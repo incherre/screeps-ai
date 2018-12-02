@@ -401,6 +401,38 @@ var _getLabWith = function(room, resource) {
     return backup;
 }
 
+var _getPowerBank = function(room) {
+    if(!room.hasOwnProperty('POWER_BANK')) {
+        room.POWER_BANK = null;
+        var powerBanks = _.filter(_getStructures(room), (structure) => {return structure.structureType == STRUCTURE_POWER_BANK;});
+        if(powerBanks.length > 0) {
+            room.POWER_BANK = powerBanks[0];
+        }
+    }
+    return room.POWER_BANK;
+}
+
+var _avoidPowerBankCallback = function(roomName, costMatrix) {
+    if(Game.rooms.hasOwnProperty(roomName)) {
+        if(!Game.rooms[roomName].controller) {
+            var powerBank = _getPowerBank(Game.rooms[roomName]);
+            if(powerBank) {
+                let x = powerBank.pos.x;
+                let y = powerBank.pos.y;
+                for(let dx = -1; dx <= 1; dx++) {
+                    if(x + dx >= 0 && x + dx < 50) {
+                        for(let dy = -1; dy <= 1; dy++) {
+                            if(y + dy >= 0 && y + dy < 50) {
+                                costMatrix.set(x + dx, y + dy, 255);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 var _getPowerSpawn = function(room) {
     if(!room.hasOwnProperty('POWER_SPAWN')) {
         room.POWER_SPAWN = null;
@@ -467,6 +499,8 @@ module.exports = {
     creepNames: _creepNames,
     avoidSourceKeepersCallback: _avoidSourceKeepersCallback,
     getLabWith: _getLabWith,
+    getPowerBank: _getPowerBank,
+    avoidPowerBankCallback: _avoidPowerBankCallback,
     getPowerSpawn: _getPowerSpawn,
     getNuker: _getNuker,
     getObserver: _getObserver,
