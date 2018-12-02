@@ -73,12 +73,12 @@ var _controlRoom = function(room) {
     
     if(Game.time % 151 == 0) {
         var nukes = room.find(FIND_NUKES);
-        if(!room.memory.notified && nukes.length > 0) {
+        if(!room.memory.nukeNotified && nukes.length > 0) {
             Game.notify("Incoming nuke/s detected in room " + room.name, 10);
-            room.memory.notified = true;
+            room.memory.nukeNotified = true;
         }
-        else if(room.memory.notified && nukes.length == 0) {
-            room.memory.notified = false;
+        else if(room.memory.nukeNotified && nukes.length == 0) {
+            room.memory.nukeNotified = false;
         }
     }
     
@@ -100,9 +100,7 @@ var _spawnCreeps = function(room) {
     }
     else { // regular spawning
         var energyMax = room.energyCapacityAvailable;
-        for(let i in spawns) {
-            energyMax -= _spawnSingleCreep(spawns[i], energyMax);
-        }
+        _spawnSingleCreep(spawns[0], energyMax); // only *start* spawing one creep per room per tick
     }
 }
 
