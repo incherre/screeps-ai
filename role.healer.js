@@ -44,7 +44,7 @@ var _run = function(creep) {
         }
     }
     else if(targets.length > 0) {
-        var target = creep.pos.findClosestByRange(find.getHurtCreeps(creep.room))
+        var target = _.min(targets, (hurtCreep) => {return (hurtCreep.hits / hurtCreep.hitsMax) * Math.pow(creep.pos.getRangeTo(hurtCreep), 0.43);});
 
         creep.moveTo(target, {costCallback: find.avoidPowerBankCallback, range: 1});
         if(creep.pos.isNearTo(target)) {
