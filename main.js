@@ -13,6 +13,7 @@ Directions for use:
 -_target and _portal in the pioneer role control which room will be claimed
 -The boostRooms array in the upgrader and waller roles controls which rooms are allowed to opportunistically boost those creeps
 -If there is a flag with the name "power" warriors will be spawned and will try to harvest a powerbank in the same room as the flag
+-Use the parameters in the room controller to specify what room will look for power, when, and where
 */
 
 var creepControl = require('controller.creeps');

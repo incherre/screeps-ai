@@ -35,6 +35,13 @@ var linkPairs = [
     //nada
 ];
 //*/
+
+const powerRoomName = 'E1S7';
+const powerMinThreshold = 15000;
+const powerTimes = [13, 3]; // [start, end], range in hours, UTC
+const powerCheckingRooms = ['E0S6', 'E0S7', 'W0S6', 'E0S5', 'W0S7', 'W0S5', 'E0S8', 'W0S8'];
+const powerFlag = 'power';
+const harvestAutomatically = true;
 // ***** End *****
 
 var _controlEstablishedRooms = function() {
@@ -85,6 +92,91 @@ var _controlRoom = function(room) {
     var powerSpawn = find.getPowerSpawn(room);
     if(powerSpawn && powerSpawn.energy > POWER_SPAWN_ENERGY_RATIO && powerSpawn.power > 0 && room.storage && room.storage.store[RESOURCE_ENERGY] > (STORAGE_CAPACITY * 0.3)) {
         powerSpawn.processPower();
+    }
+    
+    _lookForPower(room);
+}
+
+var _lookForPower = function(room) {
+    if(room.name != powerRoomName || !room.storage || powerCheckingRooms.length == 0 || powerTimes.length != 2) {
+        return;
+    }
+    
+    if(Game.flags.hasOwnProperty(powerFlag)) {
+        if(Memory.powerNotified) {
+            Memory.powerNotified = false;
+        }
+        const flag = Game.flags[powerFlag];
+        const observer = find.getObserver(room);
+        if(flag.room) {
+            // check if it's over
+            const structures = flag.room.lookForAt(LOOK_STRUCTURES, flag);
+            const resources = flag.room.lookForAt(LOOK_RESOURCES, flag);
+            if(structures.length == 0 && resources.length == 0) {
+                flag.remove();
+            }
+        }
+        else if(observer) {
+            // get vision
+            observer.observeRoom(flag.pos.roomName);
+        }
+        return;
+    }
+    
+    if(Game.time % 150 > powerCheckingRooms.length) {
+        // only check every 150 ticks
+        return;
+    }
+    
+    const now = (new Date()).getUTCHours();
+    const inTimeRange = (powerTimes[0] < powerTimes[1]) ? (now >= powerTimes[0] && now <= powerTimes[1]) : (now >= powerTimes[0] || now <= powerTimes[1]);
+    const observer = find.getObserver(room);
+    if((!inTimeRange && !harvestAutomatically) || !observer || (room.storage.store[RESOURCE_POWER] && room.storage.store[RESOURCE_POWER] > powerMinThreshold)) {
+        return;
+    }
+
+    let lookRoom = null;
+    for(let i = 0; i < powerCheckingRooms.length; i++) {
+        if(Game.rooms[powerCheckingRooms[i]]) {
+            lookRoom = Game.rooms[powerCheckingRooms[i]];
+            observer.observeRoom(powerCheckingRooms[(i + 1) % powerCheckingRooms.length]);
+        }
+    }
+    
+    if(!lookRoom) {
+        observer.observeRoom(powerCheckingRooms[0]);
+        return;
+    }
+    
+    const powerBanks = lookRoom.find(FIND_STRUCTURES, {filter: (struct) => {return struct.structureType == STRUCTURE_POWER_BANK;}});
+    for(const powerBank of powerBanks) {
+        let freeSpaceCount = 0;
+        const terrain = lookRoom.getTerrain();
+        for(let dx = -1; dx <= 1; dx++) {
+            for(let dy = -1; dy <= 1; dy++) {
+                if((dx != 0 || dy != 0) && terrain.get(powerBank.pos.x + dx, powerBank.pos.y + dy) != TERRAIN_MASK_WALL) {
+                    freeSpaceCount++;
+                }
+            }
+        }
+        
+        let powerThreshold = 4000;
+        if(room.storage.store[RESOURCE_POWER] > powerThreshold * 2) {
+            powerThreshold = Math.floor(room.storage.store[RESOURCE_POWER] / 2);
+        }
+        
+        if(powerBank.ticksToDecay > 4500 && powerBank.power > powerThreshold && freeSpaceCount >= 4) {
+            console.log("Power bank with " + powerBank.power + " power found in " + lookRoom.name);
+
+            if(!Memory.powerNotified && !harvestAutomatically) {
+                Game.notify("Good power bank found in " + lookRoom.name + " at " + Game.time);
+                Memory.powerNotified = true;
+            }
+            
+            if(harvestAutomatically && Game.cpu.bucket >= 8500 && room.storage.store[RESOURCE_ENERGY] > STORAGE_CAPACITY * 0.25) {
+                powerBank.pos.createFlag(powerFlag, COLOR_RED);
+            }
+        }
     }
 }
 
