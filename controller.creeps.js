@@ -33,16 +33,11 @@ var _controlSingleCreep = function(creep) {
     if(creep.fatigue > 0 || creep.spawning) {
         return;
     }
-    else if(!creep.memory.long_range && (!creep.room.controller || creep.room.controller.id != creep.memory.home)) {
+    else if(creep.memory.home && !creep.memory.long_range && (!creep.room.controller || creep.room.controller.id != creep.memory.home)) {
         creep.moveTo(Game.getObjectById(creep.memory.home), {range: 10});
     }
-    else {
-        for(let key in roles) {
-            if(key == creep.memory.role) {
-                roles[key].run(creep);
-                break;
-            }
-        }
+    else if(creep.memory.role && roles[creep.memory.role]){
+        roles[creep.memory.role].run(creep);
     }
 }
 
