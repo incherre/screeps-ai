@@ -5,6 +5,7 @@ A healer should go to the room specified by healFlag and heal the friendly creep
 
 // ***** Options *****
 var maxHealerParts = 12;
+var powerHealerMax = 17;
 var warriorFlagName = 'power';
 // ***** End *****
 
@@ -77,7 +78,7 @@ var _make = function(spawn, energy_limit) {
     var max = maxHealerParts;
     if(healerRoom == warriorFlagName) {
         // make bigger healers when harvesting power
-        max = 25;
+        max = powerHealerMax;
     }
     
     var numOfPart = Math.floor(energy_limit / 300);
