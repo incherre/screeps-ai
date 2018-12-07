@@ -129,6 +129,14 @@ var _run = function(creep) {
             }
         }
         
+        if(target == null) {
+            let nuker = find.getNuker(creep.room);
+            if(nuker && nuker.ghodium < nuker.ghodiumCapacity && creep.room.terminal && creep.room.terminal.store[RESOURCE_GHODIUM]) {
+                target = creep.room.terminal;
+                resource = RESOURCE_GHODIUM;
+            }
+        }
+        
         if(target == null && creep.room.terminal && creep.room.terminal.store[RESOURCE_ENERGY] > terminalEnergyThreshold) {
             target = creep.room.terminal;
         }
@@ -169,7 +177,15 @@ var _run = function(creep) {
         else if(labTypes.indexOf(resource) >= 0) {
             target = find.getLabWith(creep.room, resource);
             if(target == null || target.mineralAmount > (target.mineralCapacity * 0.75)) {
-                target = creep.room.terminal;
+                if(resource == RESOURCE_GHODIUM) {
+                    target = find.getNuker(creep.room);
+                    if(!target || target.ghodium == target.ghodiumCapacity) {
+                        target = creep.room.terminal;
+                    }
+                }
+                else {
+                    target = creep.room.terminal;
+                }
             }
         }
         else if(resource == RESOURCE_GHODIUM) {
