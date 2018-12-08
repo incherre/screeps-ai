@@ -37,7 +37,7 @@ var linkPairs = [
 //*/
 
 const powerRoomName = 'E1S7';
-const powerMinThreshold = 15000;
+const powerMinThreshold = 20000;
 const powerTimes = [13, 3]; // [start, end], range in hours, UTC
 const powerCheckingRooms = ['E0S6', 'E0S7', 'W0S6', 'E0S5', 'W0S7', 'W0S5', 'E0S8', 'W0S8'];
 const powerFlag = 'power';
@@ -160,7 +160,7 @@ var _lookForPower = function(room) {
             }
         }
         
-        let powerThreshold = 4000;
+        let powerThreshold = 2400;
         if(room.storage.store[RESOURCE_POWER] > powerThreshold * 2) {
             powerThreshold = Math.floor(room.storage.store[RESOURCE_POWER] / 2);
         }
