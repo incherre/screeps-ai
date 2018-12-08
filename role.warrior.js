@@ -62,16 +62,20 @@ var _run = function(creep) {
 }
 
 var _make = function(spawn, energy_limit) {
+    const flag = Game.flags[flagName];
+    const stillAttacking = flag && (!flag.room || flag.pos.lookFor(LOOK_STRUCTURES).length > 0);
     const bodyCost = BODYPART_COST[MOVE] + BODYPART_COST[MOVE] + BODYPART_COST[CARRY] + BODYPART_COST[ATTACK];
     var numOfPart = Math.floor(energy_limit / bodyCost);
     if(numOfPart > maxWarriorParts){numOfPart = maxWarriorParts;}
 
     var body = [];
-    for(let i = 0; i < numOfPart; i++) {
-        body.push(MOVE);
-    }
-    for(let i = 0; i < numOfPart; i++) {
-        body.push(ATTACK);
+    if(stillAttacking) {
+        for(let i = 0; i < numOfPart; i++) {
+            body.push(MOVE);
+        }
+        for(let i = 0; i < numOfPart; i++) {
+            body.push(ATTACK);
+        }
     }
     for(let i = 0; i < numOfPart; i++) {
         body.push(CARRY);
@@ -97,7 +101,11 @@ var _make = function(spawn, energy_limit) {
         if(!Memory.HEALER_REQUESTS) {
             Memory.HEALER_REQUESTS = [];
         }
-        Memory.HEALER_REQUESTS.unshift(flagName);
+        
+        if(stillAttacking) {
+            // only send new healers if there is still a power bank
+            Memory.HEALER_REQUESTS.unshift(flagName);
+        }
         
         return total;
     }
