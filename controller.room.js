@@ -98,7 +98,7 @@ var _controlRoom = function(room) {
 }
 
 var _lookForPower = function(room) {
-    if(room.name != powerRoomName || !room.storage || powerCheckingRooms.length == 0 || powerTimes.length != 2) {
+    if(room.name != powerRoomName || !room.storage || !room.terminal || powerCheckingRooms.length == 0 || powerTimes.length != 2) {
         return;
     }
     
@@ -131,7 +131,7 @@ var _lookForPower = function(room) {
     const now = (new Date()).getUTCHours();
     const inTimeRange = (powerTimes[0] < powerTimes[1]) ? (now >= powerTimes[0] && now <= powerTimes[1]) : (now >= powerTimes[0] || now <= powerTimes[1]);
     const observer = find.getObserver(room);
-    if((!inTimeRange && !harvestAutomatically) || !observer || (room.storage.store[RESOURCE_POWER] && room.storage.store[RESOURCE_POWER] > powerMinThreshold)) {
+    if((!inTimeRange && !harvestAutomatically) || !observer || (room.terminal.store[RESOURCE_POWER] && room.terminal.store[RESOURCE_POWER] > powerMinThreshold)) {
         return;
     }
 
@@ -160,9 +160,9 @@ var _lookForPower = function(room) {
             }
         }
         
-        let powerThreshold = 2400;
-        if(room.storage.store[RESOURCE_POWER] > powerThreshold * 2) {
-            powerThreshold = Math.floor(room.storage.store[RESOURCE_POWER] / 2);
+        let powerThreshold = 1200;
+        if(room.terminal.store[RESOURCE_POWER] > powerThreshold * 2) {
+            powerThreshold = Math.floor(room.terminal.store[RESOURCE_POWER] / 2);
         }
         
         if(powerBank.ticksToDecay > 4500 && powerBank.power > powerThreshold && freeSpaceCount >= 4) {

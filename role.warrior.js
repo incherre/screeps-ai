@@ -27,7 +27,7 @@ var _run = function(creep) {
     }
     
     const flag = Game.flags[flagName];
-    const homeStorage = Game.getObjectById(creep.memory.home).room.storage;
+    const homeStorage = Game.getObjectById(creep.memory.home).room.terminal;
     const powerBank = find.getPowerBank(creep.room);
     const powers = creep.room.find(FIND_DROPPED_RESOURCES, {filter: (resource) => {return resource.resourceType == RESOURCE_POWER;}});
 

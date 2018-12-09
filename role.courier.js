@@ -24,6 +24,19 @@ const roomLabProducts = {
     'E3S4': [RESOURCE_GHODIUM],
 };
 
+var _powerCarryTotal = function(room) {
+    if(!room.hasOwnProperty('POWER_CARRY_TOTAL')) {
+        let total = 0;
+        for(let creep of find.getRole(room, 'courier')) {
+            if(creep.carry[RESOURCE_POWER]) {
+                total += creep.carry[RESOURCE_POWER];
+            }
+        }
+        room.POWER_CARRY_TOTAL = total;
+    }
+    return room.POWER_CARRY_TOTAL;
+}
+
 var _run = function(creep) {
     var carrySum = _.sum(creep.carry);
     if(!creep.memory.working && carrySum == 0) {
@@ -34,7 +47,7 @@ var _run = function(creep) {
 	    creep.memory.working = true;
         creep.room.visual.text("🔍", creep.pos);
 	}
-	else if(creep.memory.working && carrySum == creep.carryCapacity) {
+	else if(creep.memory.working && (carrySum == creep.carryCapacity || creep.carry[RESOURCE_POWER])) {
 	    creep.memory.working = false;
 	    creep.room.visual.text("🔋", creep.pos);
 	}
@@ -85,9 +98,9 @@ var _run = function(creep) {
         }
         
         var powerSpawn = find.getPowerSpawn(creep.room);
-        if(target == null && find.getFillables(creep.room).length == 0 && powerSpawn && powerSpawn.power == 0 && creep.room.storage && creep.room.storage.store[RESOURCE_POWER]) {
-            // if there's no target, and nothing needs filling, and the power spawn exists and is empty, and the storage exists and has power, then it should get some power for the power spawn
-            target = creep.room.storage;
+        if(target == null && find.getFillables(creep.room).length == 0 && powerSpawn && powerSpawn.power < 20 && creep.room.terminal && creep.room.terminal.store[RESOURCE_POWER] && _powerCarryTotal(creep.room) < POWER_SPAWN_POWER_CAPACITY) {
+            // if there's no target, and nothing needs filling, and the power spawn exists and is empty, and the terminal exists and has power, and no other courier is getting power, then it should get some power for the power spawn
+            target = creep.room.terminal;
             resource = RESOURCE_POWER;
         }
         
@@ -150,9 +163,13 @@ var _run = function(creep) {
             if(ground) {
                 ret = creep.pickup(target);
             }
-            else {
+            else if(resource == RESOURCE_POWER) {
+                ret = creep.withdraw(target, resource, POWER_SPAWN_POWER_CAPACITY);
+            }
+            else{
                 ret = creep.withdraw(target, resource);
             }
+
             if(ret == ERR_NOT_IN_RANGE) {
                 creep.moveTo(target, {ignoreRoads: true, swampCost: 2, maxRooms: 1});
             }
@@ -170,8 +187,8 @@ var _run = function(creep) {
         }
         else if(resource == RESOURCE_POWER) {
             target = find.getPowerSpawn(creep.room);
-            if(target && target.power > target.powerCapacity / 10) {
-                target = creep.room.storage;
+            if(!target || target.power > target.powerCapacity / 10) {
+                target = creep.room.terminal;
             }
         }
         else if(labTypes.indexOf(resource) >= 0) {

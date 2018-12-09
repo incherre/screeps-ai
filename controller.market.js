@@ -8,6 +8,7 @@ var cpuThreshold = 3;
 var sellThreshold = 8000;
 var maxPerTick = 10;
 var buyList = [[RESOURCE_UTRIUM, 0.675, 3000, 'W6N17'], [RESOURCE_KEANIUM, 0.675, 3000, 'E3S4']];
+var dontSellList = [RESOURCE_POWER, RESOURCE_ENERGY];
 // ***** End *****
 
 var _getTerminals = function() {
@@ -37,7 +38,7 @@ var _sellHighestPrice = function(resource, terminal) {
 }
 
 var _emptyTerminal = function(terminal, soFar) {
-    var thingsToSell = _.filter(Object.keys(terminal.store), (resource) => {return resource != RESOURCE_ENERGY;});
+    var thingsToSell = _.filter(Object.keys(terminal.store), (resource) => {return !dontSellList.includes(resource);});
     var sold = soFar;
     for(let i in thingsToSell) {
         if(sold >= maxPerTick) {
