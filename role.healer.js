@@ -39,7 +39,7 @@ var _run = function(creep) {
     }
 
     if(creep.room.name != targetName) {
-        creep.moveTo(new RoomPosition(25, 25, targetName), {costCallback: find.avoidSourceKeepersCallback, range: 23});
+        creep.moveTo(new RoomPosition(25, 25, targetName), {costCallback: find.avoidSourceKeepersCallback, range: 23, reusePath: 20});
         if(creep.hits < creep.hitsMax) {
             creep.heal(creep);
         }

@@ -16,11 +16,11 @@ var _run = function(creep) {
     if(!Game.flags.hasOwnProperty(flagName) && _.sum(creep.carry) == 0) {
         const room = Game.getObjectById(creep.memory.home).room;
         if(room.name != creep.room.name) {
-            creep.moveTo(room.controller);
+            creep.moveTo(room.controller, {range: 10, reusePath: 20});
         }
         else {
             const spawn = creep.pos.findClosestByRange(find.getSpawns(creep.room));
-            creep.moveTo(spawn);
+            creep.moveTo(spawn, {range: 1});
             spawn.recycleCreep(creep);
         }
         return;
@@ -33,11 +33,11 @@ var _run = function(creep) {
 
     if(_.sum(creep.carry) > 0 && homeStorage) {
         if(creep.transfer(homeStorage, RESOURCE_POWER) == ERR_NOT_IN_RANGE) {
-            creep.moveTo(homeStorage);
+            creep.moveTo(homeStorage, {range: 1});
         }
     }
     else if(creep.room.name != flag.pos.roomName) {
-        creep.moveTo(flag);
+        creep.moveTo(flag, {range: 1, reusePath: 20});
     }
     else if(creep.getActiveBodyparts(ATTACK) == 0 && powerBank) {
         if(creep.pos.getRangeTo(powerBank) <= 2) {
@@ -47,17 +47,17 @@ var _run = function(creep) {
     }
     else if(powerBank) {
         if(creep.attack(powerBank) == ERR_NOT_IN_RANGE) {
-            creep.moveTo(powerBank);
+            creep.moveTo(powerBank, {range: 1});
         }
     }
     else if(powers.length > 0 && creep.ticksToLive > 150) {
         const power = creep.pos.findClosestByRange(powers);
         if(creep.pickup(power) == ERR_NOT_IN_RANGE) {
-            creep.moveTo(power);
+            creep.moveTo(power, {range: 1});
         }
     }
     else if(flag) {
-        creep.moveTo(flag);
+        creep.moveTo(flag, {range: 1});
     }
 }
 
