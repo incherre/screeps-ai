@@ -164,7 +164,7 @@ var _run = function(creep) {
                 ret = creep.pickup(target);
             }
             else if(resource == RESOURCE_POWER) {
-                ret = creep.withdraw(target, resource, POWER_SPAWN_POWER_CAPACITY);
+                ret = creep.withdraw(target, resource, Math.min(POWER_SPAWN_POWER_CAPACITY, creep.room.terminal.store[RESOURCE_POWER]));
             }
             else{
                 ret = creep.withdraw(target, resource);
