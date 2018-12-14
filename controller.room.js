@@ -165,7 +165,7 @@ var _lookForPower = function(room) {
             powerThreshold = Math.floor(room.terminal.store[RESOURCE_POWER] / 2);
         }
         
-        if(powerBank.ticksToDecay > 4500 && powerBank.power > powerThreshold && freeSpaceCount >= 4) {
+        if(powerBank.ticksToDecay > 4150 && powerBank.power > powerThreshold && freeSpaceCount >= 3) {
             console.log("Power bank with " + powerBank.power + " power found in " + lookRoom.name);
 
             if(!Memory.powerNotified && !harvestAutomatically) {
