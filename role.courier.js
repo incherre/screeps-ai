@@ -162,6 +162,16 @@ var _run = function(creep) {
             var ret;
             if(ground) {
                 ret = creep.pickup(target);
+                if(ret == OK && creep.room.hasOwnProperty('GROUND_ENERGY')) {
+                    // prevent several couriers targeting the same energy in the same tick
+                    for(let i = 0; i < creep.room.GROUND_ENERGY.length; i++) {
+                        if(creep.room.GROUND_ENERGY[i].id == target.id) {
+                            creep.room.GROUND_ENERGY[i] = creep.room.GROUND_ENERGY[creep.room.GROUND_ENERGY.length - 1];
+                            creep.room.GROUND_ENERGY.pop();
+                            break;
+                        }
+                    }
+                }
             }
             else if(resource == RESOURCE_POWER) {
                 ret = creep.withdraw(target, resource, Math.min(POWER_SPAWN_POWER_CAPACITY, creep.room.terminal.store[RESOURCE_POWER]));
