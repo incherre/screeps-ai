@@ -64,11 +64,20 @@ var _controlRoom = function(room) {
     _spawnCreeps(room);
     _controlTowers(room);
     
-    if(find.getTowers(room).length == 0 && !room.controller.safeMode && room.controller.safeModeAvailable > 0 && !room.controller.safeModeCooldown) {
-        var enemies = find.getHostileCreeps(room);
-        if(enemies.length > 0) {
+    if(find.getTowers(room).length == 0 && find.getHostileCreeps(room).length > 0) {
+        if(!room.controller.safeMode && room.controller.safeModeAvailable > 0 && !room.controller.safeModeCooldown) {
             room.controller.activateSafeMode();
             Game.notify("Activated Safe Mode in new room " + room.name, 10);
+        }
+        else {
+            if(!Memory.PROTECTOR_REQUESTS) {
+                Memory.PROTECTOR_REQUESTS = [];
+            }
+            
+            if(Memory.PROTECTOR_REQUESTS.indexOf(room.name) == -1) {
+                Memory.PROTECTOR_REQUESTS.unshift(room.name);
+                Game.notify("⚠️ No towers, no Safe Modes, and attackers detected in " + room.name + "! ⚠️", 10);
+            }
         }
     }
     
@@ -81,7 +90,7 @@ var _controlRoom = function(room) {
     if(Game.time % 151 == 0) {
         var nukes = room.find(FIND_NUKES);
         if(!room.memory.nukeNotified && nukes.length > 0) {
-            Game.notify("Incoming nuke/s detected in room " + room.name, 10);
+            Game.notify("☢️ Incoming nuke/s detected in room " + room.name, 10);
             room.memory.nukeNotified = true;
         }
         else if(room.memory.nukeNotified && nukes.length == 0) {
