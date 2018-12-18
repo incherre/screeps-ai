@@ -46,7 +46,7 @@ var _run = function(creep) {
 	    if(grindGCL || creep.room.controller.level < 8) {
 	       creep.upgradeController(creep.room.controller);
 	    }
-	    else if(Game.time % 99 == 0) {
+	    else if(creep.room.controller.ticksToDowngrade <= CONTROLLER_DOWNGRADE[creep.room.controller.level] - CONTROLLER_DOWNGRADE_RESTORE) {
             creep.upgradeController(creep.room.controller);
 	    }
 	    
