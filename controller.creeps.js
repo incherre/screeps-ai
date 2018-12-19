@@ -25,7 +25,13 @@ var _controlCreeps = function() {
     }
     
     for(let name in Game.creeps) {
-        _controlSingleCreep(Game.creeps[name]);
+        try {
+            _controlSingleCreep(Game.creeps[name]);
+        }
+        catch(err) {
+            console.log(err.name + ": " + err.message);
+            Game.notify(err.name + ": " + err.message, 60 * 24); // only send error notifications every 24 hours
+        }
     }
 }
 
