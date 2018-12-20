@@ -9,6 +9,8 @@ var maxCourierParts = 14;
 var roadThresh = 30;
 var rangeMultiple = 1.2;
 var controllerRange = 2;
+var capacityConstant = .3; // should be set the same as the one in controller.room
+var powerFillConstant = 0.25;
 // ***** End *****
 
 var find = require('manager.roomInfo');
@@ -88,6 +90,16 @@ var _run = function(creep) {
             ground = true;
         }
         
+        var powerSpawn = find.getPowerSpawn(creep.room);
+        var powerNeeded = find.getFillables(creep.room).length == 0 && powerSpawn && (powerSpawn.power + _powerCarryTotal(creep.room)) < (powerFillConstant * POWER_SPAWN_POWER_CAPACITY) && creep.room.terminal && creep.room.terminal.store[RESOURCE_POWER];
+        // if nothing needs filling, the power spawn exists and is empty, the terminal exists and has power, and no other courier is getting power, then it should get some power for the power spawn
+        
+        if(target == null && powerNeeded && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] > (capacityConstant * STORAGE_CAPACITY) + POWER_SPAWN_ENERGY_CAPACITY) {
+            // if the storage is filling up, get power a little sooner than you would otherwise
+            target = creep.room.terminal;
+            resource = RESOURCE_POWER;
+        }
+        
         if(target == null) {
             target = creep.pos.findClosestByRange(find.getContainerEnergy(creep.room), {filter: (container) => {return container.creep || (container.store[RESOURCE_ENERGY] >= (creep.carryCapacity - carrySum));}});
         }
@@ -97,9 +109,8 @@ var _run = function(creep) {
             target = creep.room.terminal;
         }
         
-        var powerSpawn = find.getPowerSpawn(creep.room);
-        if(target == null && find.getFillables(creep.room).length == 0 && powerSpawn && powerSpawn.power < 20 && creep.room.terminal && creep.room.terminal.store[RESOURCE_POWER] && _powerCarryTotal(creep.room) < POWER_SPAWN_POWER_CAPACITY) {
-            // if there's no target, and nothing needs filling, and the power spawn exists and is empty, and the terminal exists and has power, and no other courier is getting power, then it should get some power for the power spawn
+        if(target == null && powerNeeded) {
+            // normal time to get power
             target = creep.room.terminal;
             resource = RESOURCE_POWER;
         }
@@ -197,7 +208,7 @@ var _run = function(creep) {
         }
         else if(resource == RESOURCE_POWER) {
             target = find.getPowerSpawn(creep.room);
-            if(!target || target.power > target.powerCapacity / 10) {
+            if(!target || target.power > target.powerCapacity * (1 - powerFillConstant)) {
                 target = creep.room.terminal;
             }
         }

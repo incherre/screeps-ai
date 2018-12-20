@@ -42,6 +42,7 @@ const powerTimes = [13, 3]; // [start, end], range in hours, UTC
 const powerCheckingRooms = ['E0S6', 'E0S7', 'W0S6', 'E0S5', 'W0S7', 'W0S5', 'E0S8', 'W0S8'];
 const powerFlag = 'power';
 const harvestAutomatically = true;
+const capacityConstant = .3; // should be set the same as the one in role.courier
 // ***** End *****
 
 var _controlEstablishedRooms = function() {
@@ -99,7 +100,7 @@ var _controlRoom = function(room) {
     }
     
     var powerSpawn = find.getPowerSpawn(room);
-    if(powerSpawn && powerSpawn.energy > POWER_SPAWN_ENERGY_RATIO && powerSpawn.power > 0 && room.storage && room.storage.store[RESOURCE_ENERGY] > (STORAGE_CAPACITY * 0.3)) {
+    if(powerSpawn && powerSpawn.energy > POWER_SPAWN_ENERGY_RATIO && powerSpawn.power > 0 && room.storage && room.storage.store[RESOURCE_ENERGY] > (STORAGE_CAPACITY * capacityConstant)) {
         powerSpawn.processPower();
     }
     
