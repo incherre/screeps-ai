@@ -9,8 +9,10 @@ var maxWallerParts = 10;
 var ttlThreshold = 1400;
 var boostType = RESOURCE_LEMERGIUM_ACID;
 var boostRooms = [];
+var capacityConstant = .9;
 // ***** End *****
 
+var upperCapacityConstant = Math.min(1 - ((1 - capacityConstant) / 2), capacityConstant * 2);
 var find = require('manager.roomInfo');
 
 var _obstacles = function(roomName, costMatrix) {
@@ -116,8 +118,17 @@ var _make = function(spawn, energy_limit) {
 
 var _shouldMake = function(room) {
     var target = 0;
+    var storageFill = room.storage ? _.sum(room.storage.store) : 0;
     if(find.getRepairableWalls(room).length > 0) {
-        target = 1;
+        if(storageFill >= STORAGE_CAPACITY * upperCapacityConstant) {
+            target = 3;
+        }
+        else if(storageFill >= STORAGE_CAPACITY * capacityConstant) {
+            target = 2;
+        }
+        else {
+            target = 1;
+        }
     }
     else {
         target = 0;
