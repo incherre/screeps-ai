@@ -310,8 +310,8 @@ var _controlLabs = function(room) {
     }
     
     if(room.name == 'E1S7') {
-        _runReaction(minerals, RESOURCE_HYDROGEN, RESOURCE_GHODIUM);
-        _runReaction(minerals, RESOURCE_HYDROXIDE, RESOURCE_GHODIUM_HYDRIDE);
+        _runReaction(minerals, RESOURCE_HYDROGEN, RESOURCE_LEMERGIUM);
+        _runReaction(minerals, RESOURCE_HYDROXIDE, RESOURCE_LEMERGIUM_HYDRIDE);
         _runReaction(minerals, RESOURCE_HYDROGEN, RESOURCE_OXYGEN);
     }
 }

@@ -74,7 +74,8 @@ module.exports.loop = function () {
     if(Game.time % 13 == 0) {
         var resourcePairs = [ // destination, resource type, source
             ['E1S7', RESOURCE_OXYGEN, 'E3S4'], ['E3S4', RESOURCE_ZYNTHIUM, 'E7S3'], ['E3S4', RESOURCE_UTRIUM_LEMERGITE, 'W6N17'],
-            ['E1S7', RESOURCE_GHODIUM, 'E3S4'], ['W6N17', RESOURCE_GHODIUM_ACID, 'E1S7'], ['E7S3', RESOURCE_POWER, 'E1S7']
+            ['W6N17', RESOURCE_POWER, 'E1S7'], ['E7S3', RESOURCE_POWER, 'E1S7'], ['E3S4', RESOURCE_POWER, 'E1S7'],
+            ['E1S7', RESOURCE_LEMERGIUM, 'W6N17'], ['E3S4', RESOURCE_LEMERGIUM_ACID, 'E1S7']
         ];
         
         for(var [destRoomName, resource, sourceRoomName] of resourcePairs) {

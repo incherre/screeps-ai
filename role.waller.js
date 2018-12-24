@@ -8,7 +8,7 @@ Once a waller is full, it should use the energy to repair walls and ramparts.
 var maxWallerParts = 10;
 var ttlThreshold = 1400;
 var boostType = RESOURCE_LEMERGIUM_ACID;
-var boostRooms = [];
+var boostRooms = ['E3S4'];
 var capacityConstant = .9;
 // ***** End *****
 

@@ -11,7 +11,7 @@ var grindGCL = false;
 
 var ttlThreshold = 1400;
 var boostType = RESOURCE_GHODIUM_ACID;
-var boostRooms = ['W6N17'];
+var boostRooms = [];
 // ***** End *****
 
 var upperCapacityConstant = Math.min(1 - ((1 - capacityConstant) / 2), capacityConstant * 2);

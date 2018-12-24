@@ -7,7 +7,7 @@ The practical maximum of the energy costs is 2 * amount_traded.
 var cpuThreshold = 3;
 var sellThreshold = 8000;
 var maxPerTick = 10;
-var buyList = [[RESOURCE_UTRIUM, 0.675, 3000, 'W6N17'], [RESOURCE_KEANIUM, 0.675, 3000, 'E3S4']];
+var buyList = [[RESOURCE_UTRIUM, 0.5, 3000, 'W6N17'], [RESOURCE_KEANIUM, 0.5, 3000, 'E3S4']];
 var dontSellList = [RESOURCE_POWER, RESOURCE_ENERGY];
 // ***** End *****
 
