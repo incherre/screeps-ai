@@ -7,8 +7,9 @@ The practical maximum of the energy costs is 2 * amount_traded.
 var cpuThreshold = 3;
 var sellThreshold = 8000;
 var maxPerTick = 10;
-var buyList = [[RESOURCE_UTRIUM, 0.5, 3000, 'W6N17'], [RESOURCE_KEANIUM, 0.5, 3000, 'E3S4']];
+var buyList = [[RESOURCE_UTRIUM, 0.6, 3000, 'W6N17'], [RESOURCE_KEANIUM, 0.6, 3000, 'E3S4']];
 var dontSellList = [RESOURCE_POWER, RESOURCE_ENERGY];
+var minSellPrice = 0.2;
 // ***** End *****
 
 var _getTerminals = function() {
@@ -30,6 +31,11 @@ var _shouldTrade = function() {
 var _sellHighestPrice = function(resource, terminal) {
     var myAmount = terminal.store[resource];
     var highestOrder = _.max(Game.market.getAllOrders({type: ORDER_BUY, resourceType: resource}), (obj) => {return obj.price;});
+    
+    if(highestOrder.price < minSellPrice) { // don't sell if the best order is still bad
+        return ERR_NOT_ENOUGH_RESOURCES;
+    }
+    
     var retVal = Game.market.deal(highestOrder.id, Math.min(myAmount, highestOrder.amount, sellThreshold), terminal.room.name);
     if(retVal == OK) {
         console.log('You just gained ' + (Math.min(myAmount, highestOrder.amount, sellThreshold) * highestOrder.price).toFixed(2) + ' Credits!');
