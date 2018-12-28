@@ -34,6 +34,22 @@ global.sendEnergyTo = function(targetRoomName) {
     return amount;
 }
 
+var shuffle = function(array) {
+    let index = array.length - 1;
+    let temp;
+    let randI;
+    
+    while(index > 0) {
+        randI = Math.floor(Math.random() * (index + 1));
+        
+        temp = array[randI];
+        array[randI] = array[index];
+        array[index] = temp;
+        
+        index -= 1;
+    }
+}
+
 var logStuff = function() {
     if(!Memory.stats){ Memory.stats = {}; }
     Memory.stats['cpu.getUsed'] = Game.cpu.getUsed();
@@ -77,6 +93,8 @@ module.exports.loop = function () {
             ['W6N17', RESOURCE_POWER, 'E1S7'], ['E7S3', RESOURCE_POWER, 'E1S7'], ['E3S4', RESOURCE_POWER, 'E1S7'],
             ['E1S7', RESOURCE_LEMERGIUM, 'W6N17'], ['E3S4', RESOURCE_LEMERGIUM_ACID, 'E1S7']
         ];
+        
+        shuffle(resourcePairs); // makes distribution more fair
         
         for(var [destRoomName, resource, sourceRoomName] of resourcePairs) {
             var room1 = Game.rooms[sourceRoomName];
