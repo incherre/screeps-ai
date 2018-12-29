@@ -94,6 +94,8 @@ module.exports.loop = function () {
             ['E1S7', RESOURCE_LEMERGIUM, 'W6N17'], ['E3S4', RESOURCE_LEMERGIUM_ACID, 'E1S7']
         ];
         
+        var sent = {};
+        
         shuffle(resourcePairs); // makes distribution more fair
         
         for(var [destRoomName, resource, sourceRoomName] of resourcePairs) {
@@ -105,16 +107,23 @@ module.exports.loop = function () {
             if(lab) {
                 amountInRoom = lab.mineralAmount;
             }
+            
+            var resourceRoomIdentifier = resource + "-" + sourceRoomName;
+            if(!sent[resourceRoomIdentifier]) {
+                sent[resourceRoomIdentifier] = 0;
+            }
         
             if(room1.terminal != undefined && room2.terminal != undefined && room1.terminal.store[resource] != undefined && room1.terminal.cooldown == 0) {
                 if(room2.terminal.store[resource] != undefined) {
                     amountInRoom += room2.terminal.store[resource];
                 }
     
-                var amount = Math.min(LAB_MINERAL_CAPACITY - amountInRoom, room1.terminal.store[resource]);
+                var amount = Math.min(LAB_MINERAL_CAPACITY - amountInRoom, (room1.terminal.store[resource] - sent[resourceRoomIdentifier]));
                 
                 if(amount > 500) {
                     room1.terminal.send(resource, amount, room2.name);
+                    
+                    sent[resourceRoomIdentifier] = sent[resourceRoomIdentifier] + amount;
                 }
             }
         }
