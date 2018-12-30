@@ -6,8 +6,10 @@ A pioneer should attempt to build a spawn in a new room.
 // ***** Options *****
 var maxPioneerParts = 11; // the maximum number of parts a pioneer can have
 var maxPioneers = 4;
-var _target = 'W6N17'; // W6N17 // set to undefined to turn off
-var _portal = 'E5S5'; // set to undefined to turn off
+var claimFlag = "claim";
+var portalFlag = "portal";
+var _target = Game.flags[claimFlag] ? Game.flags[claimFlag].pos.roomName : undefined;
+var _portal = Game.flags[portalFlag] ? Game.flags[portalFlag].pos.roomName : undefined;
 // ***** End *****
 
 var find = require('manager.roomInfo');

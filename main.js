@@ -1,7 +1,7 @@
 /*
 Directions for use:
 -Every main room needs a flag with primary color white and secondary color yellow for extension placement.
--Every structure besides extensions and extractors must be placed manually.
+-Every structure besides extensions and extractors must be placed manually. Towers are expecially important.
 -Creeps of the miner role will not be spawned until a terminal is built. (Terminal should be built near the mineral)
 -Link pairs must be added by id strings in the room controller module.
 -Sharing minerals between rooms is controlled by the resourcePairs array in the main loop.
@@ -10,7 +10,7 @@ Directions for use:
 -The roomLabTypes and roomLabProducts objects in the courier role control what it put into and taken out of labs per room
 -The targets array in the ldh role controls remote mining rooms and dropoff points
 -The targets array in the reserver role controls which rooms will be reserved to increase the capacity of the sources for ldhs
--_target and _portal in the pioneer role control which room will be claimed
+-If there is a flag called "claim", pioneers will be created to claim and build in that room. They will first go through the portal in the room with a flag named "portal" if it exists.
 -The boostRooms array in the upgrader and waller roles controls which rooms are allowed to opportunistically boost those creeps
 -If there is a flag with the name "power" warriors will be spawned and will try to harvest a powerbank in the same room as the flag
 -Use the parameters in the room controller to specify what room will look for power, when, and where
