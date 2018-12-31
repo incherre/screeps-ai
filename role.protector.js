@@ -20,7 +20,7 @@ var _run = function(creep) {
     }
     
     if(creep.memory.target != creep.room.name) {
-	    creep.moveTo(new RoomPosition(25, 25, creep.memory.target), {costCallback: find.avoidSourceKeepersCallback});
+	    creep.moveTo(new RoomPosition(25, 25, creep.memory.target), {range: 23, costCallback: find.avoidSourceKeepersCallback});
 	}
     else {
         var enemy = creep.pos.findClosestByRange(find.getHostileCreeps(creep.room));
@@ -35,11 +35,16 @@ var _run = function(creep) {
         }
         else {
             const spawn = creep.pos.findClosestByRange(find.getSpawns(creep.room));
-            if(creep.room.name == 'E7S3' && spawn && spawn.recycleCreep(creep) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(spawn);
+            if(spawn && spawn.recycleCreep(creep) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(spawn, {range: 1});
             }
-            else {
+            else if(creep.pos.getRangeTo(creep.room.controller) > 4) {
                 creep.moveTo(creep.room.controller, {range: 4});
+            }
+            else if(creep.pos.lookFor(LOOK_STRUCTURES).length > 0) {
+                // don't stand on roads
+                const dirs = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
+                creep.move(dirs[Math.floor(Math.random() * dirs.length)]);
             }
         }
     }
