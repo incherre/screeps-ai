@@ -195,6 +195,11 @@ var _run = function(creep) {
                 creep.moveTo(target, {ignoreRoads: true, swampCost: 2, maxRooms: 1});
             }
         }
+        else if(creep.pos.lookFor(LOOK_STRUCTURES).length > 0) {
+            // don't stand on roads
+            const dirs = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
+            creep.move(dirs[Math.floor(Math.random() * dirs.length)]);
+        }
     }
     else {
         var resource = RESOURCE_ENERGY;
