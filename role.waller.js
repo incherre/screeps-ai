@@ -65,6 +65,11 @@ var _run = function(creep) {
             if(creep.repair(Game.getObjectById(creep.memory.target)) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(Game.getObjectById(creep.memory.target), {costCallback: _obstacles, maxRooms: 1});
 			}
+			else if(creep.pos.lookFor(LOOK_STRUCTURES).length > 0) {
+                // don't stand on roads
+                const dirs = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
+                creep.move(dirs[Math.floor(Math.random() * dirs.length)]);
+            }
         }
         else { // otherwise, upgrade
             if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
@@ -121,7 +126,7 @@ var _shouldMake = function(room) {
     var storageFill = room.storage ? _.sum(room.storage.store) : 0;
     if(find.getRepairableWalls(room).length > 0) {
         if(storageFill >= STORAGE_CAPACITY * upperCapacityConstant) {
-            target = 3;
+            target = 4;
         }
         else if(storageFill >= STORAGE_CAPACITY * capacityConstant) {
             target = 2;
