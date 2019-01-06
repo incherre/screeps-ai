@@ -10,6 +10,7 @@ var maxPerTick = 10;
 var buyList = [[RESOURCE_UTRIUM, 0.6, 3000, 'W6N17'], [RESOURCE_KEANIUM, 0.6, 3000, 'E3S4']];
 var dontSellList = [RESOURCE_POWER, RESOURCE_ENERGY];
 var minSellPrice = 0.2;
+var creditRatio = 0.95;
 // ***** End *****
 
 var _getTerminals = function() {
@@ -75,7 +76,7 @@ var _buy = function(soFar) {
     if(soFar < maxPerTick) {
         var lowestTokenOrder = _.min(Game.market.getAllOrders({type: ORDER_SELL, resourceType: SUBSCRIPTION_TOKEN}), (obj) => {return obj.price;});
         
-        if(lowestTokenOrder.price <= Game.market.credits) {
+        if(lowestTokenOrder.price <= (Game.market.credits * creditRatio)) {
             if(Game.market.deal(lowestTokenOrder.id, 1) == OK) {
                  Game.notify('Bought a subscription token!', 10);
                  bought++;
