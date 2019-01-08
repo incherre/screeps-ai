@@ -52,6 +52,11 @@ var shuffle = function(array) {
 
 var logStuff = function() {
     if(!Memory.stats){ Memory.stats = {}; }
+    if(Memory.stats.logTime && Date.now() - Memory.stats.logTime < 55000) {
+        return;
+    }
+    
+    Memory.stats.logTime = Date.now();
     Memory.stats['cpu.getUsed'] = Game.cpu.getUsed();
     Memory.stats['cpu.limit'] = Game.cpu.limit;
     Memory.stats['cpu.bucket'] = Game.cpu.bucket;
@@ -80,7 +85,10 @@ var logStuff = function() {
 }
 
 module.exports.loop = function () {
-    creepControl.controlCreeps();
+    if(Game.cpu.bucket > 20) {
+        creepControl.controlCreeps();
+    }
+    
     roomControl.controlEstablishedRooms();
 
     if(trading.shouldTrade()) {

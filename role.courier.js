@@ -6,7 +6,7 @@ Once a courier is full, it should take the energy to fillable structures.
 
 // ***** Options *****
 var maxCourierParts = 14;
-var roadThresh = 30;
+var groundThresh = 500;
 var rangeMultiple = 1.2;
 var controllerRange = 2;
 var capacityConstant = .3; // should be set the same as the one in controller.room
@@ -288,7 +288,8 @@ var _make = function(spawn, energy_limit) {
 }
 
 var _shouldMake = function(room) {
-    if(find.getRoads(room).length > roadThresh) {
+    const groundSum = _.sum(find.getGroundEnergy(room), (r) => {return r.amount;});
+    if(groundSum >= groundThresh) {
         return find.getRole(room, 'courier').length < (find.getRole(room, 'harvester').length + 2);
     }
     else {

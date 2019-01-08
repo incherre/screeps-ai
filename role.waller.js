@@ -81,21 +81,27 @@ var _run = function(creep) {
         var target = find.getClosestStore(creep);
         if(target != null) {
             if(creep.withdraw(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target, {costCallback: _obstacles, maxRooms: 1});
+                creep.moveTo(target, {maxRooms: 1});
             }
         }
         else {
             target = creep.pos.findClosestByRange(find.getGroundEnergy(creep.room));
             if(creep.pickup(target) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target, {costCallback: _obstacles, maxRooms: 1});
+                creep.moveTo(target, {maxRooms: 1});
             }
         }
     }
 }
 
 var _make = function(spawn, energy_limit) {
+    var storageFill = spawn.room.storage ? _.sum(spawn.room.storage.store) : 0;
     var numOfPart = Math.floor(energy_limit / 200);
-    if(numOfPart > maxWallerParts){numOfPart = maxWallerParts;}
+    if(storageFill >= STORAGE_CAPACITY * capacityConstant && numOfPart > 16) {
+        numOfPart = 16;
+    }
+    else if(storageFill < STORAGE_CAPACITY * capacityConstant && numOfPart > maxWallerParts){
+        numOfPart = maxWallerParts;
+    }
 
     var body = [];
     for(let i = 0; i < numOfPart; i++) {
@@ -126,7 +132,7 @@ var _shouldMake = function(room) {
     var storageFill = room.storage ? _.sum(room.storage.store) : 0;
     if(find.getRepairableWalls(room).length > 0) {
         if(storageFill >= STORAGE_CAPACITY * upperCapacityConstant) {
-            target = 4;
+            target = 3;
         }
         else if(storageFill >= STORAGE_CAPACITY * capacityConstant) {
             target = 2;
