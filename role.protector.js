@@ -10,6 +10,12 @@ var maxProtectorParts = 8;
 
 var find = require('manager.roomInfo');
 
+var default_whitelist = [];
+if(!Memory.WHITELIST) {
+    Memory.WHITELIST = default_whitelist;
+}
+var whitelist = Memory.WHITELIST; // TODO: remove attackers from whitelist
+
 var _run = function(creep) {
     if(creep.memory.canCall < 0 && !creep.spawning) {
         creep.memory.canCall = 0;
@@ -27,6 +33,11 @@ var _run = function(creep) {
         
         if(enemy == null) {
             enemy = creep.pos.findClosestByRange(creep.room.find(FIND_HOSTILE_CREEPS));
+        }
+        
+        // don't attack, even if they're unlucky and end up in the room after an NPC attack
+        if(enemy && whitelist.includes(enemy.owner.username)) {
+            enemy = null;
         }
 
         if(enemy != null) {
