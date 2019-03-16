@@ -14,7 +14,6 @@ var default_whitelist = [];
 if(!Memory.WHITELIST) {
     Memory.WHITELIST = default_whitelist;
 }
-var whitelist = Memory.WHITELIST; // TODO: remove attackers from whitelist
 
 var _run = function(creep) {
     if(creep.memory.canCall < 0 && !creep.spawning) {
@@ -36,7 +35,7 @@ var _run = function(creep) {
         }
         
         // don't attack, even if they're unlucky and end up in the room after an NPC attack
-        if(enemy && whitelist.includes(enemy.owner.username)) {
+        if(enemy && Memory.WHITELIST.includes(enemy.owner.username)) {
             enemy = null;
         }
 

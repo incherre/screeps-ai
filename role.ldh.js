@@ -16,6 +16,31 @@ var targets = [
 
 var find = require('manager.roomInfo');
 
+var _checkIfAttackedByAlly = function(containedRoom) {
+    if(!Memory.WHITELIST || Memory.WHITELIST.length <= 0 || containedRoom.ALREADY_CHECKED_ATTACKED) {
+        // make sure there is at least one ally and that we haven't already checked this tick
+        return;
+    }
+    containedRoom.ALREADY_CHECKED_ATTACKED = true;
+
+    const attackEvents = _.filter(containedRoom.getEventLog(), (event) => {
+        return event.event == EVENT_ATTACK && event.data.targetId && Game.getObjectById(event.data.targetId).my;
+    });
+    
+    for(let i in attackEvents) {
+        const attacker = Game.getObjectById(attackEvents[i].objectId);
+        if(attacker && attacker.owner && attacker.owner.username) {
+            const allyId = Memory.WHITELIST.indexOf(attacker.owner.username);
+            
+            if(allyId >= 0) {
+                Game.notify("User \"" + attacker.owner.username + "\" was removed from the ally list for bad behavior.");
+                Memory.WHITELIST[allyId] = Memory.WHITELIST[Memory.WHITELIST.length - 1];
+                Memory.WHITELIST.pop();
+            }
+        }
+    }
+}
+
 var _run = function(creep) {
     if(creep.memory.canCall > 0) {
         creep.memory.canCall--;
@@ -98,6 +123,7 @@ var _run = function(creep) {
             if(Memory.PROTECTOR_REQUESTS.indexOf(creep.memory.source.room) == -1) {
                 Memory.PROTECTOR_REQUESTS.unshift(creep.memory.source.room);
                 creep.memory.canCall = 150;
+                _checkIfAttackedByAlly(creep.room);
             }
 	    }
 	}
