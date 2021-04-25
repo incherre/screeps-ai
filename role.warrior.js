@@ -1,7 +1,7 @@
 /*
 This is the AI for the warrior role.
 A warrior should go to a flag.
-Once a warrior is in the same room as it's flag, if there are enemy creeps, it will attack them
+Once a warrior is in the same room as it's flag, it will harvest a powerbank.
 */
 
 // ***** Options *****
@@ -24,6 +24,10 @@ var _run = function(creep) {
             spawn.recycleCreep(creep);
         }
         return;
+    }
+    
+    if(creep.ticksToLive == 1490) {
+        creep.notifyWhenAttacked(false);
     }
     
     const flag = Game.flags[flagName];

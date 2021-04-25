@@ -90,6 +90,12 @@ var _run = function(creep) {
             ground = true;
         }
         
+        if(target == null && creep.room.terminal && creep.room.terminal.store[RESOURCE_OPS]) {
+            // Remove the ops that got maliciously sent to my terminal
+            target = creep.room.terminal;
+            resource = RESOURCE_OPS;
+        }
+        
         var powerSpawn = find.getPowerSpawn(creep.room);
         var powerNeeded = find.getFillables(creep.room).length == 0 && powerSpawn && (powerSpawn.power + _powerCarryTotal(creep.room)) < (powerFillConstant * POWER_SPAWN_POWER_CAPACITY) && creep.room.terminal && creep.room.terminal.store[RESOURCE_POWER];
         // if nothing needs filling, the power spawn exists and is empty, the terminal exists and has power, and no other courier is getting power, then it should get some power for the power spawn
@@ -203,8 +209,14 @@ var _run = function(creep) {
     }
     else {
         var resource = RESOURCE_ENERGY;
-        if(creep.room.storage && Object.keys(creep.carry).length > 1) {
-            resource = _.filter(Object.keys(creep.carry), (resource) => {return resource != RESOURCE_ENERGY;})[0];
+        if(creep.carry[RESOURCE_OPS]) {
+            // Drop those ops that some antagonist filled my terminal with.
+            creep.drop(RESOURCE_OPS);
+        }
+
+        var nonEnergyResources = _.filter(Object.keys(creep.carry), (resource) => {return resource != RESOURCE_ENERGY;});
+        if(creep.room.storage && nonEnergyResources.length > 0) {
+            resource = nonEnergyResources[0];
         }
 
         var target = null;

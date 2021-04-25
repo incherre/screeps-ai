@@ -88,6 +88,9 @@ module.exports.loop = function () {
     if(Game.cpu.bucket > 20) {
         creepControl.controlCreeps();
     }
+    else {
+        console.log("Skipped a creep tick on tick " + Game.time);
+    }
     
     roomControl.controlEstablishedRooms();
 

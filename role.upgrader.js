@@ -7,7 +7,7 @@ Once an upgrader is full, it should use the energy to upgrade the room controlle
 // ***** Options *****
 var maxUpgraderParts = 10;
 var capacityConstant = .3;
-var grindGCL = false;
+var grindGCL = true;
 
 var ttlThreshold = 1400;
 var boostType = RESOURCE_GHODIUM_ACID;

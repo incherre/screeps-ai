@@ -26,7 +26,7 @@ var _getTerminals = function() {
 }
 
 var _shouldTrade = function() {
-    return Game.time % 11 == 0 && Game.cpu.getUsed() < (Game.cpu.limit - cpuThreshold) && _getTerminals().length > 0;
+    return Game.time % 43 == 0 && Game.cpu.getUsed() < (Game.cpu.limit - cpuThreshold) && _getTerminals().length > 0;
 }
 
 var _sellHighestPrice = function(resource, terminal) {

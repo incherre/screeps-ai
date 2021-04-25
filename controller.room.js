@@ -363,6 +363,10 @@ var _operateTower = function(tower){
 
 // *** Building ***
 var _buildSomething = function(room) {
+    if((room.controller.level == 8 && Game.time % 211 != 0) || Game.cpu.bucket < 100) { // Don't spend the CPU
+        return;
+    }
+    
     if(find.getConstructionSites(room).length > 0) { // we like only one construction site at a time.
         return;
     }

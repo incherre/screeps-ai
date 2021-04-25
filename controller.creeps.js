@@ -29,8 +29,9 @@ var _controlCreeps = function() {
             _controlSingleCreep(Game.creeps[name]);
         }
         catch(err) {
-            console.log(err.name + ": " + err.message);
-            Game.notify(err.name + ": " + err.message, 60 * 24); // only send error notifications every 24 hours
+            let log = err.name + ": " + err.message + " at " + err.stack;
+            console.log(log);
+            Game.notify(log, 60 * 24); // only send error notifications every 24 hours
         }
     }
 }

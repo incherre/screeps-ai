@@ -247,14 +247,15 @@ var _getGroundEnergy = function(room) {
 
 var _getGroundMinerals = function(room) {
     if(!room.hasOwnProperty('GROUND_MINERALS')) {
-        room.GROUND_MINERALS = room.find(FIND_DROPPED_RESOURCES, {filter: (resource) => {return resource.resourceType != RESOURCE_ENERGY;}})
+        room.GROUND_MINERALS = room.find(FIND_DROPPED_RESOURCES, {filter: (resource) => {return resource.resourceType != RESOURCE_ENERGY && resource.resourceType != RESOURCE_OPS;}})
     }
     return room.GROUND_MINERALS;
 }
 
 var _getTombstoneMinerals = function(room) {
     if(!room.hasOwnProperty('TOMBSTONE_MINERALS')) {
-        room.TOMBSTONE_MINERALS = room.find(FIND_TOMBSTONES, {filter: (stone) => {return Object.keys(stone.store).length > 1;}})
+        room.TOMBSTONE_MINERALS = room.find(FIND_TOMBSTONES, {filter: (stone) => {return Object.keys(stone.store).length > 1;}});
+        room.TOMBSTONE_MINERALS = room.TOMBSTONE_MINERALS.concat(room.find(FIND_RUINS, {filter: (ruin) => {return Object.keys(ruin.store).length > 1;}}));
     }
     return room.TOMBSTONE_MINERALS;
 }
