@@ -30,8 +30,8 @@ var _powerCarryTotal = function(room) {
     if(!room.hasOwnProperty('POWER_CARRY_TOTAL')) {
         let total = 0;
         for(let creep of find.getRole(room, 'courier')) {
-            if(creep.carry[RESOURCE_POWER]) {
-                total += creep.carry[RESOURCE_POWER];
+            if(creep.store[RESOURCE_POWER]) {
+                total += creep.store[RESOURCE_POWER];
             }
         }
         room.POWER_CARRY_TOTAL = total;
@@ -40,16 +40,19 @@ var _powerCarryTotal = function(room) {
 }
 
 var _run = function(creep) {
-    var carrySum = _.sum(creep.carry);
+    var carrySum = _.sum(creep.store);
+    var nonEnergyResources = _.filter(Object.keys(creep.store), (resource) => {return resource != RESOURCE_ENERGY;});
+    var mineralsOnGround = find.getTombstoneMinerals(creep.room).length + find.getGroundMinerals(creep.room).length;
+    var shouldCollectMinerals = find.getHostileCreeps(creep.room).length == 0 && creep.room.storage && mineralsOnGround > 0; // avoid going near battles just to collect stuff, only pick it up if there's a place to put it
     if(!creep.memory.working && carrySum == 0) {
         creep.memory.working = true;
         creep.room.visual.text("🔍", creep.pos);
 	}
-	else if(!creep.memory.working && !creep.room.storage && creep.carry[RESOURCE_ENERGY] == 0) {
+	else if(!creep.memory.working && !creep.room.storage && creep.store[RESOURCE_ENERGY] == 0) {
 	    creep.memory.working = true;
         creep.room.visual.text("🔍", creep.pos);
 	}
-	else if(creep.memory.working && (carrySum == creep.carryCapacity || creep.carry[RESOURCE_POWER])) {
+	else if(creep.memory.working && (carrySum == creep.store.getCapacity() || (nonEnergyResources.length > 0 && !shouldCollectMinerals))) {
 	    creep.memory.working = false;
 	    creep.room.visual.text("🔋", creep.pos);
 	}
@@ -70,14 +73,19 @@ var _run = function(creep) {
         var ground = false;
         var resource = RESOURCE_ENERGY;
         
-        if(find.getHostileCreeps(creep.room).length == 0 && creep.room.storage) { // avoid going near battles just to collect stuff, only pick it up if there's a place to put it
+        if(shouldCollectMinerals) {
             if(find.getGroundMinerals(creep.room).length > 0) {
                 target = creep.pos.findClosestByRange(find.getGroundMinerals(creep.room));
                 ground = true;
             }
             else if(find.getTombstoneMinerals(creep.room).length > 0) {
                 target = creep.pos.findClosestByRange(find.getTombstoneMinerals(creep.room));
-                resource = _.filter(Object.keys(target.store), (resource) => {return resource != RESOURCE_ENERGY;})[0];
+                if (target == null) {
+                    console.log(creep.name, "could not find any target in list: ")
+                    console.log(find.getTombstoneMinerals(creep.room));
+                } else {
+                    resource = _.filter(Object.keys(target.store), (resource) => {return resource != RESOURCE_ENERGY && resource != RESOURCE_OPS;})[0];
+                }
             }
         }
         
@@ -107,10 +115,10 @@ var _run = function(creep) {
         }
         
         if(target == null) {
-            target = creep.pos.findClosestByRange(find.getContainerEnergy(creep.room), {filter: (container) => {return container.creep || (container.store[RESOURCE_ENERGY] >= (creep.carryCapacity - carrySum));}});
+            target = creep.pos.findClosestByRange(find.getContainerEnergy(creep.room), {filter: (container) => {return container.creep || (container.store[RESOURCE_ENERGY] >= (creep.store.getCapacity() - carrySum));}});
         }
         
-        const terminalEnergyThreshold = (TERMINAL_CAPACITY / 15) + (creep.carryCapacity - carrySum);
+        const terminalEnergyThreshold = (TERMINAL_CAPACITY / 15) + (creep.store.getCapacity() - carrySum);
         if(target == null && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] < 10000 && creep.room.terminal && creep.room.terminal.store[RESOURCE_ENERGY] > terminalEnergyThreshold) {
             target = creep.room.terminal;
         }
@@ -136,7 +144,7 @@ var _run = function(creep) {
             if(target == null) {
                 let labs = find.getLabs(creep.room);
                 for(let i in labs) {
-                    if(labs[i].mineralAmount > (creep.carryCapacity - carrySum) && labProducts.indexOf(labs[i].mineralType) >= 0 && creep.room.terminal && 
+                    if(labs[i].mineralAmount > (creep.store.getCapacity() - carrySum) && labProducts.indexOf(labs[i].mineralType) >= 0 && creep.room.terminal && 
                     (!creep.room.terminal.store.hasOwnProperty(labs[i].mineralType) || creep.room.terminal.store[labs[i].mineralType] < 3000)) {
                         target = labs[i];
                         resource = labs[i].mineralType;
@@ -209,12 +217,11 @@ var _run = function(creep) {
     }
     else {
         var resource = RESOURCE_ENERGY;
-        if(creep.carry[RESOURCE_OPS]) {
+        if(creep.store[RESOURCE_OPS]) {
             // Drop those ops that some antagonist filled my terminal with.
             creep.drop(RESOURCE_OPS);
         }
 
-        var nonEnergyResources = _.filter(Object.keys(creep.carry), (resource) => {return resource != RESOURCE_ENERGY;});
         if(creep.room.storage && nonEnergyResources.length > 0) {
             resource = nonEnergyResources[0];
         }

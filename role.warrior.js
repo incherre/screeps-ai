@@ -13,7 +13,7 @@ var warriorCount = 4;
 var find = require('manager.roomInfo');
 
 var _run = function(creep) {
-    if(!Game.flags.hasOwnProperty(flagName) && _.sum(creep.carry) == 0) {
+    if(!Game.flags.hasOwnProperty(flagName) && _.sum(creep.store) == 0) {
         const room = Game.getObjectById(creep.memory.home).room;
         if(room.name != creep.room.name) {
             creep.moveTo(room.controller, {range: 10, reusePath: 20});

@@ -160,7 +160,7 @@ var _getFillables = function(room) {
                     structure.energy < structure.energyCapacity;
         });
         if(room.FILLABLES.length == 0) {
-            const collectiveCapacity = _.sum(_getRole(room, 'courier'), (creep) => {return creep.carryCapacity - _.sum(creep.carry);});
+            const collectiveCapacity = _.sum(_getRole(room, 'courier'), (creep) => {return creep.store.getCapacity() - _.sum(creep.store);});
             room.FILLABLES = _.filter(_getStructures(room), (structure) => {
                 return structure.energy < structure.energyCapacity && structure.my && (structure.structureType == STRUCTURE_LINK || structure.structureType == STRUCTURE_LAB ||
                        (structure.structureType == STRUCTURE_POWER_SPAWN && structure.energy <= (structure.power * POWER_SPAWN_ENERGY_RATIO)) ||

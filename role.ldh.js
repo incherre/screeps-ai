@@ -50,11 +50,11 @@ var _run = function(creep) {
         creep.memory.canCall--;
     }
 
-    if(!creep.memory.working && creep.carry.energy == 0) {
+    if(!creep.memory.working && creep.store[RESOURCE_ENERGY] == 0) {
         creep.memory.working = true;
         creep.room.visual.text("⚡", creep.pos);
 	}
-	else if(creep.memory.working && creep.carry.energy == creep.carryCapacity) {
+	else if(creep.memory.working && creep.store[RESOURCE_ENERGY] == creep.store.getCapacity()) {
 	    creep.memory.working = false;
 	    creep.room.visual.text("🔋", creep.pos);
 	}

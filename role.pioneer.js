@@ -15,10 +15,10 @@ var _portal = Game.flags[portalFlag] ? Game.flags[portalFlag].pos.roomName : und
 var find = require('manager.roomInfo');
 
 var _run = function(creep) {
-    if(creep.memory.working && creep.carry.energy == 0) {
+    if(creep.memory.working && creep.store[RESOURCE_ENERGY] == 0) {
         creep.memory.working = false;
 	}
-	else if(!creep.memory.working && creep.carry.energy == creep.carryCapacity) {
+	else if(!creep.memory.working && creep.store[RESOURCE_ENERGY] == creep.store.getCapacity()) {
 	    creep.memory.working = true;
 	}
 	
