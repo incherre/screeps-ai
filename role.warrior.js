@@ -35,7 +35,7 @@ var _run = function(creep) {
     const powerBank = find.getPowerBank(creep.room);
     const powers = creep.room.find(FIND_DROPPED_RESOURCES, {filter: (resource) => {return resource.resourceType == RESOURCE_POWER;}});
 
-    if(_.sum(creep.carry) > 0 && homeStorage) {
+    if(_.sum(creep.store) > 0 && homeStorage) {
         if(creep.transfer(homeStorage, RESOURCE_POWER) == ERR_NOT_IN_RANGE) {
             creep.moveTo(homeStorage, {range: 1});
         }
