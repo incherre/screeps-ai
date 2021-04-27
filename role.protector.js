@@ -38,6 +38,10 @@ var _run = function(creep) {
         if(enemy && Memory.WHITELIST.includes(enemy.owner.username)) {
             enemy = null;
         }
+        
+        if(enemy == null) {
+            enemy = creep.pos.findClosestByRange(creep.room.find(FIND_HOSTILE_STRUCTURES));
+        }
 
         if(enemy != null) {
             creep.attack(enemy);

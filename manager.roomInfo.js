@@ -136,6 +136,13 @@ var _getStructures = function(room) {
     return room.STRUCTURES;
 }
 
+var _getHostileStructures = function(room) {
+    if(!room.hasOwnProperty('HOSTILE_STRUCTURES')) {
+        room.HOSTILE_STRUCTURES = room.find(FIND_HOSTILE_STRUCTURES);
+    }
+    return room.HOSTILE_STRUCTURES;
+}
+
 var _getSpawns = function(room) {
     if(!room.hasOwnProperty('SPAWNS')) {
         room.SPAWNS = _.filter(_getStructures(room), (structure) => {return (structure.structureType == STRUCTURE_SPAWN && structure.my);});
@@ -467,11 +474,19 @@ var _getObserver = function(room) {
     return room.OBSERVER;
 }
 
+var _getMyUsername = function() {
+    if(!Memory.MY_USERNAME) {
+        Memory.MY_USERNAME = _.find(Game.creeps).owner.username;
+    }
+    return Memory.MY_USERNAME;
+}
+
 module.exports = {
     getMyCreeps: _getMyCreeps,
     getHostileCreeps: _getHostileCreeps,
     getHurtCreeps: _getHurtCreeps,
     getStructures: _getStructures,
+    getHostileStructures: _getHostileStructures,
     getSpawns: _getSpawns,
     getAvailableSpawns: _getAvailableSpawns,
     getFillables: _getFillables,
@@ -505,4 +520,5 @@ module.exports = {
     getPowerSpawn: _getPowerSpawn,
     getNuker: _getNuker,
     getObserver: _getObserver,
+    getMyUsername: _getMyUsername,
 };

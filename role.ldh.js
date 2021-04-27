@@ -123,16 +123,17 @@ var _run = function(creep) {
 	    }
 	}
 	
-	if(creep.hits < creep.hitsMax && creep.memory.canCall == 0 && creep.memory.source.room == creep.room.name) {
+	var hasHostileStructures = find.getHostileStructures(creep.room).length > 0;
+	if((creep.hits < creep.hitsMax || hasHostileStructures) && creep.memory.canCall == 0 && creep.memory.source.room == creep.room.name) {
 	    var attacks = _.filter(creep.room.getEventLog(), (event) => {return event.event == EVENT_ATTACK && event.data.targetId == creep.id;});
-	    if(attacks.length > 0) {
+	    if(attacks.length > 0 || hasHostileStructures) {
 	        if(!Memory.PROTECTOR_REQUESTS) {
                 Memory.PROTECTOR_REQUESTS = [];
             }
-            
+
             if(Memory.PROTECTOR_REQUESTS.indexOf(creep.memory.source.room) == -1) {
                 Memory.PROTECTOR_REQUESTS.unshift(creep.memory.source.room);
-                creep.memory.canCall = 150;
+                creep.memory.canCall = hasHostileStructures ? 1000 : 150;
                 _checkIfAttackedByAlly(creep.room);
             }
 	    }

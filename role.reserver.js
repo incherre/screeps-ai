@@ -15,7 +15,15 @@ var _run = function(creep) {
         creep.moveTo(new RoomPosition(25, 25, creep.memory.target), {ignoreRoads: true, costCallback: find.avoidSourceKeepersCallback, range: 23});
     }
     else {
-        if(creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+        var actionResult = ERR_NOT_IN_RANGE;
+        if(creep.room.controller.reservation && creep.room.controller.reservation.username != find.getMyUsername()) {
+            actionResult = creep.attackController(creep.room.controller);
+        }
+        else {
+            actionResult = creep.reserveController(creep.room.controller);
+        }
+        
+        if(actionResult == ERR_NOT_IN_RANGE) {
             creep.moveTo(creep.room.controller, {maxRooms: 3, range: 1});
         }
 
@@ -38,7 +46,7 @@ var _findTargetNum = function(room) {
     
     for(let roomName in counts) {
         if(counts[roomName].count <= 0 && Game.map.getRoomLinearDistance(roomName, room.name) <= 1 && Game.rooms.hasOwnProperty(roomName) &&
-            (!Game.rooms[roomName].controller.reservation || Game.rooms[roomName].controller.reservation.ticksToEnd < 4450) &&
+            (!Game.rooms[roomName].controller.reservation || Game.rooms[roomName].controller.reservation.ticksToEnd < 4450 || Game.rooms[roomName].controller.reservation.username != find.getMyUsername()) &&
             (!Memory.PROTECTOR_REQUESTS || Memory.PROTECTOR_REQUESTS.indexOf(roomName) == -1)) {
             return counts[roomName].num;
         }
@@ -48,8 +56,12 @@ var _findTargetNum = function(room) {
 }
 
 var _make = function(spawn, energy_limit) {
+    var targetRoom = targets[_findTargetNum(spawn.room)];
+
     var numOfPart = Math.floor(energy_limit / 650);
-    if(numOfPart > maxReserverParts){numOfPart = maxReserverParts;}
+    
+    var makeBigReserver = Game.rooms.hasOwnProperty(targetRoom) && Game.rooms[targetRoom].controller.reservation && Game.rooms[targetRoom].controller.reservation.username != find.getMyUsername();
+    if(numOfPart > maxReserverParts && !makeBigReserver){numOfPart = maxReserverParts;}
 
     var body = [];
     for(let i = 0; i < numOfPart; i++) {
@@ -57,8 +69,7 @@ var _make = function(spawn, energy_limit) {
         body.push(CLAIM);
     }
 
-    var targetNum = _findTargetNum(spawn.room);
-    var mem = {role: 'reserver', home: spawn.room.controller.id, long_range: true, target: targets[targetNum]};
+    var mem = {role: 'reserver', home: spawn.room.controller.id, long_range: true, target: targetRoom};
     var name = find.creepNames[Math.floor(Math.random() * find.creepNames.length)] + ' ' + spawn.name + Game.time;
     var retVal = spawn.spawnCreep(body, name, {memory: mem});
 
