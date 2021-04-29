@@ -122,7 +122,8 @@ var _lookForPower = function(room) {
             // check if it's over
             const structures = flag.room.lookForAt(LOOK_STRUCTURES, flag);
             const resources = flag.room.lookForAt(LOOK_RESOURCES, flag);
-            if(structures.length == 0 && resources.length == 0) {
+            const ruins = flag.room.lookForAt(LOOK_RUINS, flag);
+            if(structures.length == 0 && resources.length == 0 && ruins.length == 0) {
                 flag.remove();
             }
         }
