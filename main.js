@@ -98,7 +98,7 @@ module.exports.loop = function () {
         trading.trade();
     }
     
-    if(Game.time % 29 == 0) {
+    if(Game.time % 29 == 0 && Game.cpu.bucket > 100) {
         var resourcePairs = [ // destination, resource type, source
             ['E1S7', RESOURCE_OXYGEN, 'E3S4'], ['E3S4', RESOURCE_ZYNTHIUM, 'E7S3'], ['E3S4', RESOURCE_UTRIUM_LEMERGITE, 'W6N17'],
             ['W6N17', RESOURCE_POWER, 'E1S7'], ['E7S3', RESOURCE_POWER, 'E1S7'], ['E3S4', RESOURCE_POWER, 'E1S7'],
