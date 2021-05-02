@@ -158,7 +158,7 @@ export class WorkerCreep {
         }
 
         // give them a chance to move by themselves
-        this.creep.room.visual.text("Pardon me.", this.creep.pos);
+        this.creep.room.visual.text("Pardon me.", this.creep.pos, {'color': '#cccccc', 'font': 'bold 0.6 sans-serif', 'align': 'center'});
         blockingWorker.getOutOfTheWay(this);
 
         if(blockingWorker.moved) {
