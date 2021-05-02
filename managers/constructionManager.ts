@@ -48,7 +48,7 @@ export class ConstructionManager extends Manager {
             if(ttl && ttl < 50) {
                 actualNumber--;
             }
-            else if(worker.creep.carry.energy < ConstructionManager.refillRatio * worker.creep.carryCapacity) {
+            else if(worker.creep.store.energy < ConstructionManager.refillRatio * worker.creep.store.getCapacity()) {
                 requests.push(new DropoffRequest(ConstructionManager.type, worker.creep));
             }
         }
@@ -69,7 +69,7 @@ export class ConstructionManager extends Manager {
             this.placeSites()
         }
 
-        const unpairedSites: Set<string> = new Set<string>();
+        const unpairedSites: Set<Id<ConstructionSite>> = new Set<Id<ConstructionSite>>();
         let sites: ConstructionSite[] = this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES);
 
         if(this.parent.capital.storage) {

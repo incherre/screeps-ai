@@ -43,12 +43,12 @@ export class TransportManager extends Manager {
         }
 
         if(actualNumber === 0) {
-            requests.push(new SpawnRequest(TransportManager.type, spawnTypes.carrier, 0));  // see request.ts for priority meanings
+            requests.push(new SpawnRequest(TransportManager.type, spawnTypes.carrier, /*priority=*/0));
             actualNumber++;
         }
 
         for(let i = actualNumber; i < transportNumber; i++) {
-            requests.push(new SpawnRequest(TransportManager.type, spawnTypes.carrier, 2));  // see request.ts for priority meanings
+            requests.push(new SpawnRequest(TransportManager.type, spawnTypes.carrier, /*priority=*/2));
         }
 
         return requests;

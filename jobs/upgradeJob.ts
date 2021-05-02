@@ -43,7 +43,7 @@ export class UpgradeJob extends Job {
             }
         }
 
-        if(this.controller && creep.carry.energy > 0) {
+        if(this.controller && creep.store.energy > 0) {
             creep.upgradeController(this.controller);
         }
     }
@@ -56,7 +56,7 @@ export class UpgradeJob extends Job {
         }
         else if (jobInfo !== '') {
             const fields = jobInfo.split(',');
-            this.controller = Game.getObjectById(fields[0]);
+            this.controller = Game.getObjectById(fields[0] as Id<StructureController>);
             this.ttr = Number(fields[1]);
 
             if(Number(fields[2]) >= 0) {

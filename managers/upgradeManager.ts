@@ -24,10 +24,10 @@ export class UpgradeManager extends Manager {
         }
         else if(this.parent.capital.storage) {
             const upperCapacityConstant = Math.min(1 - ((1 - UpgradeManager.capacityConstant) / 2), UpgradeManager.capacityConstant * 2);
-            if(this.parent.capital.storage.store[RESOURCE_ENERGY] > (this.parent.capital.storage.storeCapacity * upperCapacityConstant)) {
+            if(this.parent.capital.storage.store[RESOURCE_ENERGY] > (this.parent.capital.storage.store.getCapacity() * upperCapacityConstant)) {
                 upgradeNumber = 3;
             }
-            else if(this.parent.capital.storage.store[RESOURCE_ENERGY] > (this.parent.capital.storage.storeCapacity * UpgradeManager.capacityConstant)) {
+            else if(this.parent.capital.storage.store[RESOURCE_ENERGY] > (this.parent.capital.storage.store.getCapacity() * UpgradeManager.capacityConstant)) {
                 upgradeNumber = 2;
             }
         }
@@ -43,13 +43,13 @@ export class UpgradeManager extends Manager {
             if(ttl && ttl < 50) {
                 actualNumber--;
             }
-            else if(worker.creep.carry.energy < UpgradeManager.refillRatio * worker.creep.carryCapacity) {
+            else if(worker.creep.store.energy < UpgradeManager.refillRatio * worker.creep.store.getCapacity()) {
                 requests.push(new DropoffRequest(UpgradeManager.type, worker.creep));
             }
         }
 
         if(actualNumber === 0) {
-            requests.push(new SpawnRequest(UpgradeManager.type, spawnTypes.worker, 2));  // see request.ts for priority meanings
+            requests.push(new SpawnRequest(UpgradeManager.type, spawnTypes.worker, /*priority=*/2));
             actualNumber++;
         }
 

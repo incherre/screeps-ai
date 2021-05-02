@@ -40,7 +40,7 @@ export class ConstructJob extends Job {
     }
 
     public do(creep: Creep): void {
-        if(this.site && creep.carry.energy > 0) {
+        if(this.site && creep.store.energy > 0) {
             creep.build(this.site);
         }
     }

@@ -74,7 +74,7 @@ export class Colony {
 
         // sort the structures
         const structures = this.capital.find(FIND_STRUCTURES, {
-            filter: (structure: any) => !(structure instanceof OwnedStructure) || (structure as OwnedStructure).my
+            filter: (structure: Structure) => !(structure instanceof OwnedStructure) || (structure as OwnedStructure).my
         });
         for(const struct of structures) {
             let structList = this.structures.get(struct.structureType);

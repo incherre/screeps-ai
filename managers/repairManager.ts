@@ -48,7 +48,7 @@ export class RepairManager extends Manager {
             if(ttl && ttl < 50) {
                 actualNumber--;
             }
-            else if(worker.creep.carry.energy === 0) {
+            else if(worker.creep.store.energy === 0) {
                 requests.push(new DropoffRequest(RepairManager.type, worker.creep));
             }
         }
@@ -104,7 +104,7 @@ export class RepairManager extends Manager {
             for(const building of towers) {
                 if(building instanceof StructureTower) {
                     const tower = building as StructureTower;
-                    if(tower.energy > RepairManager.towerConstant * tower.energyCapacity) {
+                    if(tower.store.energy > RepairManager.towerConstant * tower.store.getCapacity(RESOURCE_ENERGY)) {
                         if(dangerRampart instanceof Structure) {
                             tower.repair(dangerRampart);
                         }

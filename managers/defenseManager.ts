@@ -38,7 +38,7 @@ export class DefenseManager extends Manager {
         }
 
         for(let i = this.workers.length; i < dangerCount; i++) {
-            requests.push(new SpawnRequest(DefenseManager.type, spawnTypes.fighter, 2)); // see request.ts for priority meanings
+            requests.push(new SpawnRequest(DefenseManager.type, spawnTypes.fighter, /*priority=*/2));
         }
 
         return requests;
@@ -73,7 +73,7 @@ export class DefenseManager extends Manager {
         const towers = this.parent.structures.get(STRUCTURE_TOWER);
         if(towers) {
             for(const towerEntry of towers) {
-                if((towerEntry as StructureTower).energy > 0) {
+                if((towerEntry as StructureTower).store.energy > 0) {
                     const tower = towerEntry as StructureTower;
                     let target = null;
                     if(attackers.length > 0) {

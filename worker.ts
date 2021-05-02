@@ -152,13 +152,13 @@ export class WorkerCreep {
 
         // figure out if someone is blocking us
         const blockingWorker = this.parent.getWorker(targetPos);
-        if(!blockingWorker) {
+        if(!blockingWorker || blockingWorker.moved) {
             // nothing is blocking us, happy day!
             return this.creep.moveByPath(path);
         }
 
         // give them a chance to move by themselves
-        this.creep.say("Beep-beep!")
+        this.creep.room.visual.text("Pardon me.", this.creep.pos);
         blockingWorker.getOutOfTheWay(this);
 
         if(blockingWorker.moved) {

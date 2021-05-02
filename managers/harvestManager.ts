@@ -93,16 +93,16 @@ export class HarvestManager extends Manager {
         }
 
         if(workNumber === 0) {
-            requests.push(new SpawnRequest(HarvestManager.type, spawnTypes.harvester, 0));  // see request.ts for priority meanings
+            requests.push(new SpawnRequest(HarvestManager.type, spawnTypes.harvester, /*priority=*/0));
             workNumber++;
         }
 
         for(let i = workNumber; i < harvestNumber; i++){
-            requests.push(new SpawnRequest(HarvestManager.type, spawnTypes.harvester, 2));  // see request.ts for priority meanings
+            requests.push(new SpawnRequest(HarvestManager.type, spawnTypes.harvester, /*priority=*/2));
         }
 
         for(let i = claimNumber; i < reserveNumber; i++){
-            requests.push(new SpawnRequest(HarvestManager.type, spawnTypes.claimer, 2));  // see request.ts for priority meanings
+            requests.push(new SpawnRequest(HarvestManager.type, spawnTypes.claimer, /*priority=*/2));
         }
 
         return requests;
@@ -113,7 +113,7 @@ export class HarvestManager extends Manager {
             return;
         }
 
-        const unpairedSources: Set<string> = new Set<string>();
+        const unpairedSources: Set<Id<Source>> = new Set<Id<Source>>();
         const unpairedRooms: Set<string> = new Set<string>();
         const sources: Source[] = this.parent.capital.find(FIND_SOURCES);
         for(const source of sources) {
@@ -155,7 +155,7 @@ export class HarvestManager extends Manager {
             else if(worker.job instanceof HarvestJob) {
                 const sourceId = (worker.job as HarvestJob).sourceId;
                 if(!creepNearDeath(worker.creep, this.parent.capital.name) && sourceId) {
-                    unpairedSources.delete(sourceId);
+                    unpairedSources.delete(sourceId as Id<Source>);
                 }
             }
             else if(worker.job instanceof ReserveJob) {

@@ -55,8 +55,8 @@ export class MineralManager extends Manager {
                     const storage = this.parent.capital.storage;
                     let amount: number | undefined;
 
-                    amount = terminal.store.getUsedCapacity() - terminal.store[RESOURCE_ENERGY]
-                    if(terminal.store[RESOURCE_ENERGY] < amount * 2) {
+                    amount = terminal.store.getUsedCapacity() - terminal.store.energy
+                    if(terminal.store.energy < amount * 2) {
                         requests.push(new DropoffRequest(MineralManager.type, this.parent.capital.terminal));
                     }
 
