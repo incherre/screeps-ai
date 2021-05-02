@@ -10,9 +10,6 @@ import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class TransportManager extends Manager {
     // static parameters
     public static type = 'transport';
@@ -62,8 +59,10 @@ export class TransportManager extends Manager {
             return;
         }
 
-        const hungryContainers: Map<ResourceConstant, Set<string>> = new Map<ResourceConstant, Set<string>>();
-        const fullContainers: Map<ResourceConstant, Set<string>> = new Map<ResourceConstant, Set<string>>();
+        const hungryContainers: Map<ResourceConstant, Set<Id<AnyStoreStructure> | Id<Creep>>> =
+            new Map<ResourceConstant, Set<Id<AnyStoreStructure> | Id<Creep>>>();
+        const fullContainers: Map<ResourceConstant, Set<Id<AnyStoreStructure> | Id<Creep> | Id<Tombstone> | Id<Ruin> | Id<Resource>>> =
+            new Map<ResourceConstant, Set<Id<AnyStoreStructure> | Id<Creep> | Id<Tombstone> | Id<Ruin> | Id<Resource>>>();
         const resourcesGettingGot: Set<ResourceConstant> = new Set<ResourceConstant>();
 
         const idleEmpty: WorkerCreep[] = [];
@@ -80,9 +79,9 @@ export class TransportManager extends Manager {
                 if(dropoffRequests[i] instanceof DropoffRequest) {
                     const asDR = dropoffRequests[i] as DropoffRequest;
                     if(!hungryContainers.has(asDR.resourceType)){
-                        hungryContainers.set(asDR.resourceType, new Set<string>());
+                        hungryContainers.set(asDR.resourceType, new Set<Id<AnyStoreStructure> | Id<Creep>>());
                     }
-                    
+
                     const resourceSet = hungryContainers.get(asDR.resourceType);
                     if(resourceSet) {
                         resourceSet.add(asDR.container.id);
@@ -99,7 +98,8 @@ export class TransportManager extends Manager {
                 if(pickupRequests[i] instanceof PickupRequest) {
                     const asPR = pickupRequests[i] as PickupRequest;
                     if(!fullContainers.has(asPR.resourceType)) {
-                        fullContainers.set(asPR.resourceType, new Set<string>());
+                        fullContainers.set(asPR.resourceType,
+                            new Set<Id<AnyStoreStructure> | Id<Creep> | Id<Tombstone> | Id<Ruin> | Id<Resource>>());
                     }
                     const resourceSet = fullContainers.get(asPR.resourceType as ResourceConstant);
                     if(resourceSet) {
@@ -117,14 +117,14 @@ export class TransportManager extends Manager {
 
             if(worker.job instanceof IdleJob) {
                 const idleCreep = worker.creep;
-                if(Object.keys(idleCreep.carry).length > 1) {
+                if(Object.keys(idleCreep.store).length > 1) {
                     // full with something that's not energy
-                    const resource: ResourceConstant = _.max(Object.keys(idleCreep.carry), (resourceType: ResourceConstant) => {
+                    const resource: ResourceConstant = _.max(Object.keys(idleCreep.store), (resourceType: ResourceConstant) => {
                         if(resourceType === RESOURCE_ENERGY) {
                             return -Infinity;
                         }
                         else {
-                            return idleCreep.carry[resourceType];
+                            return idleCreep.store[resourceType];
                         }
                     }) as ResourceConstant;
 
@@ -137,11 +137,11 @@ export class TransportManager extends Manager {
                         workerList.push(worker);
                     }
                 }
-                else if(idleCreep.carry.energy > 0 && idleCreep.carry.energy < idleCreep.carryCapacity) {
+                else if(idleCreep.store.energy > 0 && idleCreep.store.getFreeCapacity() > 0) {
                     // has some energy
                     idlePartFull.push(worker);
                 }
-                else if(idleCreep.carry.energy > 0 && idleCreep.carry.energy === idleCreep.carryCapacity) {
+                else if(idleCreep.store.energy > 0 && idleCreep.store.getFreeCapacity() === 0) {
                     // full with energy
                     if(!idleFull.has(RESOURCE_ENERGY)) {
                         idleFull.set(RESOURCE_ENERGY, []);
@@ -177,7 +177,7 @@ export class TransportManager extends Manager {
                 const container = (worker.job as DropoffJob).container;
                 const resourceType = (worker.job as DropoffJob).resourceType;
                 const resourceSet = hungryContainers.get(resourceType);
-                
+
                 if(resourceSet && container) {
                     resourceSet.delete(container.id);
                     if(resourceSet.size === 0) {
@@ -204,8 +204,8 @@ export class TransportManager extends Manager {
                 worker = getAndRemoveClosest(idleEmpty, container.pos);
             }
 
-            if(worker && (container instanceof Structure || container instanceof Resource || container instanceof Tombstone)) {
-                worker.job = new PickupJob(container, resourceType);
+            if(worker && (container instanceof Structure || container instanceof Resource || container instanceof Tombstone || container instanceof Ruin)) {
+                worker.job = new PickupJob(container as AnyStoreStructure | Resource | Tombstone | Ruin, resourceType);
             }
         }
 
@@ -225,7 +225,7 @@ export class TransportManager extends Manager {
                 }
 
                 if(worker && (container instanceof Structure || container instanceof Creep)) {
-                    worker.job = new DropoffJob(container);
+                    worker.job = new DropoffJob(container as AnyStoreStructure | Creep);
                 }
             }
         }
@@ -243,10 +243,10 @@ export class TransportManager extends Manager {
                 }
 
                 if(worker && (container instanceof Structure || container instanceof Creep)) {
-                    worker.job = new DropoffJob(container);
+                    worker.job = new DropoffJob(container as AnyStoreStructure | Creep);
                 }
             }
-            
+
             if(energyHungry.size > 0 && !resourcesGettingGot.has(RESOURCE_ENERGY) && idleEmpty.length > 0 && this.parent.capital.storage !== undefined && this.parent.capital.storage.store.energy > 0){
                 // if there are still containers that need energy, and there are no workers going to pick up energy, and we have a store of it, and spare idle workers,
                 // then send someone to pick some up
@@ -286,7 +286,7 @@ export class TransportManager extends Manager {
                     }
 
                     if(worker && (container instanceof Structure || container instanceof Creep)) {
-                        worker.job = new DropoffJob(container, resource);
+                        worker.job = new DropoffJob(container as AnyStoreStructure | Creep, resource);
                     }
                 }
 
@@ -333,8 +333,8 @@ export class TransportManager extends Manager {
                 worker = getAndRemoveClosest(idlePartFull, container.pos);
             }
 
-            if(worker && (container instanceof Structure || container instanceof Resource || container instanceof Tombstone)) {
-                worker.job = new PickupJob(container, resourceType);
+            if(worker && (container instanceof Structure || container instanceof Resource || container instanceof Tombstone || container instanceof Ruin)) {
+                worker.job = new PickupJob(container as AnyStoreStructure | Resource | Tombstone | Ruin, resourceType);
             }
         }
     }

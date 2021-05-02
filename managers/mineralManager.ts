@@ -9,9 +9,6 @@ import { SellRequest } from "../requests/sellRequst";
 import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
 import { Manager } from "./manager";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class MineralManager extends Manager {
     // static parameters
     public static type: string = 'mineral';
@@ -44,7 +41,7 @@ export class MineralManager extends Manager {
             const mineral = _.find(this.parent.capital.find(FIND_MINERALS));
             if(mineral) {
                 const container = _.find(mineral.pos.findInRange(FIND_STRUCTURES, 1, {filter: (struct) => struct.structureType === STRUCTURE_CONTAINER}));
-                if(container instanceof StructureContainer && _.sum(container.store) > MineralManager.pickupThreshold) {
+                if(container instanceof StructureContainer && container.store.getUsedCapacity() > MineralManager.pickupThreshold) {
                     for(const mineralType of Object.keys(container.store)) {
                         const amount = container.store[mineralType as ResourceConstant];
                         if(amount && amount > 0) {
@@ -58,7 +55,7 @@ export class MineralManager extends Manager {
                     const storage = this.parent.capital.storage;
                     let amount: number | undefined;
 
-                    amount = _.sum(terminal.store) - terminal.store[RESOURCE_ENERGY]
+                    amount = terminal.store.getUsedCapacity() - terminal.store[RESOURCE_ENERGY]
                     if(terminal.store[RESOURCE_ENERGY] < amount * 2) {
                         requests.push(new DropoffRequest(MineralManager.type, this.parent.capital.terminal));
                     }

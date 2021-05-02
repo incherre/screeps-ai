@@ -6,9 +6,6 @@ import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
 import { Manager } from "./manager";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class UpgradeManager extends Manager {
     // static parameters
     public static type = 'upgrade';

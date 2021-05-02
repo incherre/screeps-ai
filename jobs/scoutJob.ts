@@ -1,13 +1,10 @@
 import { addRoomInfo, getRoomInfo } from "../misc/helperFunctions";
 import { Job } from "./job";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class ScoutJob extends Job {
     public static type: string = 'scout';
     public static rescoutThreshold = 50;
-    
+
     public roomName: string | null;
 
     public recalculateTarget(creep: Creep): boolean {
@@ -16,7 +13,7 @@ export class ScoutJob extends Job {
         }
 
         this.do(creep); // might as well record the info for the rooms on the way
-        
+
         this.target = new RoomPosition(25, 25, this.roomName);
 
         // it only makes sense to scout a room if it has either never been scouted, or hasn't been scouted recently

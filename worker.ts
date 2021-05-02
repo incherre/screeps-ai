@@ -4,13 +4,10 @@ import { Job } from "./jobs/job";
 import { jobTypes } from "./manifest"
 import { addRoomInfo, getOwnName, getRoomInfo, getSpotsNear, movePos, shuffle, SOURCE_KEEPER_NAME } from "./misc/helperFunctions";
 
-import { profile } from "./Profiler/Profiler";
-
-@profile
 export class WorkerCreep {
     // inter-tick variables
     public parent: Colony;
-    public creepId: string;
+    public creepId: Id<Creep>;
     public job: Job;
 
     // single-tick variables
@@ -105,7 +102,7 @@ export class WorkerCreep {
                     blockingWorker.getOutOfTheWay(this, false);
                     this.moved = false;
                 }
-                
+
                 if(newPos && (!blockingWorker || blockingWorker.moved)) {
                     // only move if we think we're in the clear
                     retVal = this.creep.move(dir);
@@ -159,7 +156,7 @@ export class WorkerCreep {
             // nothing is blocking us, happy day!
             return this.creep.moveByPath(path);
         }
-        
+
         // give them a chance to move by themselves
         this.creep.say("Beep-beep!")
         blockingWorker.getOutOfTheWay(this);

@@ -22,7 +22,6 @@ interface Memory {
 
 declare namespace NodeJS {
   interface Global {
-    Profiler: Profiler | undefined;
     empire: any | undefined;
     myMaps: {[key: string]: Array<Array<{exitDist: number, wallDist: number, sourceDist: number[], controllerDist:number}>>} | undefined;
     myCosts: {[key: string]: {mat: CostMatrix, time: number}} | undefined;

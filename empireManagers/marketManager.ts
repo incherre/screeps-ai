@@ -3,9 +3,6 @@ import { EmpireRequest } from "../requests/empireRequest";
 import { SellRequest } from "../requests/sellRequst";
 import { EmpireManager } from "./empireManager";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class MarketManager extends EmpireManager {
     // static parameters
     public static maxPriceEntries = 200;
@@ -47,7 +44,7 @@ export class MarketManager extends EmpireManager {
                         // only do the fancy trading once there's enough data for it
                         const longTermAverage = _.sum(Memory.marketHistory[request.resourceType]) / Memory.marketHistory[request.resourceType].length;
                         const shortTermAverage = _.sum(Memory.marketHistory[request.resourceType].slice(0, MarketManager.shortTerm)) / MarketManager.shortTerm;
-                        
+
                         if(shortTermAverage >= longTermAverage) {
                             // if we are in a temporary upward fluctuation, sell
                             threshold = (longTermAverage + shortTermAverage) / 2;

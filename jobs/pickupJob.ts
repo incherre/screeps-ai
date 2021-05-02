@@ -1,14 +1,10 @@
-import { EnergyContainer, GeneralContainer } from "../misc/typeChecking";
 import { Job } from "./job";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class PickupJob extends Job {
     public static type: string = 'pickup';
 
-    public container: Structure | Resource | Tombstone | null;
-    public containerId: string | null;
+    public container: AnyStoreStructure | Resource | Tombstone | Ruin | null;
+    public containerId: Id<AnyStoreStructure> | Id<Resource> | Id<Tombstone> | Id<Ruin> | null;
     public containerRoomName: string | null;
     public resourceType: ResourceConstant;
 
@@ -30,30 +26,14 @@ export class PickupJob extends Job {
             return true;
         }
         else if (this.container) {
-            const hasSpace = _.sum(creep.carry) < creep.carryCapacity;
-            const test = this.container as any;
+            const hasSpace = creep.store.getFreeCapacity() > 0;
             if(this.container instanceof Resource) {
                 // make sure you can get there in time
                 return hasSpace && this.container.resourceType === this.resourceType && this.container.amount >= creep.pos.getRangeTo(this.container);
             }
-            else if(this.resourceType === RESOURCE_ENERGY && (test as EnergyContainer).energy !== undefined) {
-                // this container only has energy
-                const asEnergy = test as EnergyContainer;
-                return hasSpace && asEnergy.energy > 0;
-            }
-            else if(this.resourceType !== RESOURCE_ENERGY && this.resourceType !== RESOURCE_POWER && (test as StructureLab).mineralAmount !== undefined){
-                // this container is a lab, and the creep is taking a mineral
-                const asLab = test as StructureLab;
-                return hasSpace && (asLab.mineralType !== null && asLab.mineralType === this.resourceType) && asLab.mineralAmount > 0;
-            }
-            else if((test as GeneralContainer).store !== undefined) {
-                // this container could have anything
-                const asGeneral = test as GeneralContainer;
-                const resourceAmount = asGeneral.store[this.resourceType];
-                return hasSpace && resourceAmount !== undefined && resourceAmount > 0;
-            }
             else {
-                return false;
+                const resourceAmount = this.container.store[this.resourceType];
+                return hasSpace && resourceAmount !== undefined && resourceAmount > 0;
             }
         }
         else {
@@ -99,9 +79,9 @@ export class PickupJob extends Job {
         }
     }
 
-    constructor (jobInfo: string | Structure | Resource | Tombstone, resourceType: ResourceConstant = RESOURCE_ENERGY) {
+    constructor (jobInfo: string | AnyStoreStructure | Resource | Tombstone | Ruin, resourceType: ResourceConstant = RESOURCE_ENERGY) {
         super();
-        if(jobInfo instanceof Structure || jobInfo instanceof Resource || jobInfo instanceof Tombstone) {
+        if(jobInfo instanceof Structure || jobInfo instanceof Resource || jobInfo instanceof Tombstone || jobInfo instanceof Ruin) {
             this.container = jobInfo;
             this.resourceType = resourceType;
             this.containerId = jobInfo.id;
@@ -109,7 +89,7 @@ export class PickupJob extends Job {
         }
         else if (jobInfo !== '') {
             const fields = jobInfo.split(',');
-            this.containerId = fields[0];
+            this.containerId = fields[0] as Id<AnyStoreStructure> | Id<Resource> | Id<Tombstone> | Id<Ruin>;
             this.container = Game.getObjectById(this.containerId);
             this.containerRoomName = fields[1];
             this.resourceType = fields[2] as ResourceConstant;
@@ -128,7 +108,7 @@ export class PickupJob extends Job {
             this.containerId = null;
             this.containerRoomName = null;
         }
-        
+
         if(this.container && !this.target) {
             this.target = this.container.pos;
         }

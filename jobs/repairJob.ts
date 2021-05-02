@@ -1,14 +1,11 @@
 import { Job } from "./job";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class RepairJob extends Job {
     public static type: string = 'repair';
     public static range: number = 3;
 
     public repairable: Structure | null;
-    public repairableId: string | null;
+    public repairableId: Id<Structure> | null;
     public repairableRoomName: string | null;
 
     public recalculateTarget(creep: Creep): boolean {
@@ -23,7 +20,7 @@ export class RepairJob extends Job {
 
             if(this.repairable) {
                 return creep.getActiveBodyparts(WORK) > 0 && creep.getActiveBodyparts(CARRY) > 0 && this.repairable.hits < this.repairable.hitsMax &&
-                (creep.pos.getRangeTo(this.repairable) > RepairJob.range || creep.carry.energy > 0);
+                (creep.pos.getRangeTo(this.repairable) > RepairJob.range || creep.store.energy > 0);
             }
             else {
                 return creep.getActiveBodyparts(WORK) > 0 && creep.getActiveBodyparts(CARRY) > 0;
@@ -59,7 +56,7 @@ export class RepairJob extends Job {
     }
 
     public do(creep: Creep): void {
-        if(this.repairable && creep.carry.energy > 0) {
+        if(this.repairable && creep.store.energy > 0) {
             creep.repair(this.repairable);
         }
     }
@@ -74,7 +71,7 @@ export class RepairJob extends Job {
         }
         else if (jobInfo !== '') {
             const fields = jobInfo.split(',');
-            this.repairableId = fields[0];
+            this.repairableId = fields[0] as Id<Structure>;
             this.repairable = Game.getObjectById(this.repairableId);
             this.repairableRoomName = fields[1];
             this.ttr = Number(fields[2]);
@@ -91,7 +88,7 @@ export class RepairJob extends Job {
             this.repairableId = null;
             this.repairableRoomName = null;
         }
-        
+
         if(this.repairable && !this.target) {
             this.target = this.repairable.pos;
         }

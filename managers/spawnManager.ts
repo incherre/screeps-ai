@@ -1,15 +1,11 @@
 import { Colony } from "../colony";
 import { BusyJob } from "../jobs/busyJob";
 import { popMostImportant, shuffle } from "../misc/helperFunctions";
-import { EnergyContainer } from "../misc/typeChecking";
 import { DropoffRequest } from "../requests/dropoffRequest";
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest } from "../requests/spawnRequest";
 import { Manager } from "./manager";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class SpawnManager extends Manager {
     // static parameters
     public static type: string = 'spawn';
@@ -45,20 +41,19 @@ export class SpawnManager extends Manager {
 
         const requests: ScreepsRequest[] = [];
 
-        let buildings: Structure[] = [];
+        let buildings: (StructureSpawn | StructureExtension)[] = [];
         const extensions = this.parent.structures.get(STRUCTURE_EXTENSION);
         if(extensions) {
-            buildings = extensions;
+            buildings = extensions as StructureExtension[];
         }
 
         const spawns = this.parent.structures.get(STRUCTURE_SPAWN);
         if(spawns) {
-            buildings = buildings.concat(spawns);
+            buildings = buildings.concat(spawns as StructureSpawn[]);
         }
 
         for(const building of buildings) {
-            const test = building as any;
-            if((test as EnergyContainer).energy !== undefined && (test as EnergyContainer).energy < (test as EnergyContainer).energyCapacity) {
+            if(building.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                 requests.push(new DropoffRequest(SpawnManager.type, building));
             }
         }
@@ -91,7 +86,7 @@ export class SpawnManager extends Manager {
                     const memory = {jobType: BusyJob.type, jobInfo: '', colonyRoom: this.parent.capital.name, managerType: request.requester, path: undefined};
                     const body = request.creepFunction(energy, energyMax);
                     const name = building.name + '-' + Game.time;
-                    
+
                     const status = building.spawnCreep(body, name, {'memory': memory});
                     if(status === OK) {
                         this.namesToAdd.push(name);

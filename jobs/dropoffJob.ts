@@ -1,14 +1,10 @@
-import { EnergyContainer, GeneralContainer } from "../misc/typeChecking";
 import { Job } from "./job";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class DropoffJob extends Job {
     public static type: string = 'dropoff';
 
-    public container: Structure | Creep | null;
-    public containerId: string | null;
+    public container: AnyStoreStructure | Creep | null;
+    public containerId: Id<AnyStoreStructure> | Id<Creep> | null;
     public containerRoomName: string | null;
     public resourceType: ResourceConstant;
 
@@ -30,33 +26,9 @@ export class DropoffJob extends Job {
             return true;
         }
         else if (this.container) {
-            const test = this.container as any;
-            if(this.resourceType === RESOURCE_ENERGY && (test as EnergyContainer).energy !== undefined) {
-                // this container only accepts energy
-                const asEnergy = test as EnergyContainer;
-                return creep.carry.energy > 0 && asEnergy.energy < asEnergy.energyCapacity;
-            }
-            else if(this.resourceType !== RESOURCE_ENERGY && this.resourceType !== RESOURCE_POWER && (test as StructureLab).mineralAmount !== undefined){
-                // this container is a lab, and the creep is delivering a mineral
-                const asLab = test as StructureLab;
-                const resourceAmount = creep.carry[this.resourceType];
-                return resourceAmount !== undefined && resourceAmount > 0 && (asLab.mineralType === null || asLab.mineralType === this.resourceType) && asLab.mineralAmount < asLab.mineralCapacity;
-            }
-            else if((test as GeneralContainer).store !== undefined) {
-                // this container accepts anything
-                const asGeneral = test as GeneralContainer;
-                const resourceAmount = creep.carry[this.resourceType];
-                return resourceAmount !== undefined && resourceAmount > 0 && _.sum(asGeneral.store) < asGeneral.storeCapacity;
-            }
-            else if(this.container instanceof Creep) {
-                // this container is a creep
-                this.containerRoomName = this.container.room.name;
-                const resourceAmount = creep.carry[this.resourceType];
-                return resourceAmount !== undefined && resourceAmount > 0 && _.sum(this.container.carry) < this.container.carryCapacity;
-            }
-            else {
-                return false;
-            }
+            const resourceAmount = creep.store[this.resourceType];
+            const availableCapacity = (this.container.store as StoreDefinition).getFreeCapacity(this.resourceType);
+            return resourceAmount !== undefined && resourceAmount > 0 && availableCapacity !== null && availableCapacity > 0;
         }
         else {
             return false;
@@ -103,7 +75,7 @@ export class DropoffJob extends Job {
         }
     }
 
-    constructor (jobInfo: string | Structure | Creep, resourceType: ResourceConstant = RESOURCE_ENERGY) {
+    constructor (jobInfo: string | AnyStoreStructure | Creep, resourceType: ResourceConstant = RESOURCE_ENERGY) {
         super();
         if(jobInfo instanceof Structure || jobInfo instanceof Creep) {
             this.container = jobInfo;
@@ -113,7 +85,7 @@ export class DropoffJob extends Job {
         }
         else if (jobInfo !== '') {
             const fields = jobInfo.split(',');
-            this.containerId = fields[0];
+            this.containerId = fields[0] as Id<AnyStoreStructure> | Id<Creep>;
             this.container = Game.getObjectById(this.containerId);
             this.containerRoomName = fields[1];
             this.resourceType = fields[2] as ResourceConstant;
@@ -132,7 +104,7 @@ export class DropoffJob extends Job {
             this.containerId = null;
             this.containerRoomName = null;
         }
-        
+
         if(this.container && !this.target) {
             this.target = this.container.pos;
         }

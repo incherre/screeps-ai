@@ -3,9 +3,6 @@ import { EmpireManager } from "./empireManagers/empireManager";
 import { empireTypes } from "./manifest";
 import { EmpireRequest } from "./requests/empireRequest";
 
-import { profile } from "./Profiler/Profiler";
-
-@profile
 export class Empire {
     // static parameters
     public static cpuBucketSkipThreshold = 500;

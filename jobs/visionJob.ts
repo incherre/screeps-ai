@@ -1,13 +1,10 @@
 import { addRoomInfo } from "../misc/helperFunctions";
 import { Job } from "./job";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class VisionJob extends Job {
     public static type: string = 'vision';
     public static visionTimer: number = 5;
-    
+
     public roomName: string | null;
     public visionCount: number;
 
@@ -17,7 +14,7 @@ export class VisionJob extends Job {
         }
 
         addRoomInfo(creep.room); // might as well record the info for the rooms on the way
-        
+
         this.target = new RoomPosition(25, 25, this.roomName);
 
         // it only makes sense to provide vision for a couple of ticks

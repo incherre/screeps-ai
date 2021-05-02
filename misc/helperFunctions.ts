@@ -38,9 +38,9 @@ export function getOwnName(): string {
         return Memory.username;
     }
     else {
-        const struct = _.find(Game.structures);
-        if(struct && (struct as OwnedStructure).my) {
-            Memory.username = (struct as OwnedStructure).owner.username;
+        const struct = _.find(Game.structures) as OwnedStructure;
+        if(struct && struct.my && struct.owner) {
+            Memory.username = struct.owner.username;
             return Memory.username;
         }
         else {

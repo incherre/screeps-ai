@@ -1,8 +1,5 @@
 import { Job } from "./job";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class DefendJob extends Job {
     public static type: string = 'defend';
 
@@ -16,7 +13,7 @@ export class DefendJob extends Job {
         if(creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
             this.targetRange = 3;
         }
-        
+
         // find an enemy
         const closestHostile = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
         if(closestHostile) {

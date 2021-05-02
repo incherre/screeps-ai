@@ -10,9 +10,6 @@ import { VisionRequest } from "../requests/visionRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class HarvestManager extends Manager {
     // static parameters
     public static type = 'harvest';
@@ -54,7 +51,7 @@ export class HarvestManager extends Manager {
             }
 
             for(const container of source.pos.findInRange(FIND_STRUCTURES, 1, {filter: (struct) => struct.structureType === STRUCTURE_CONTAINER && struct.store.energy > HarvestManager.minCont})) {
-                requests.push(new PickupRequest(HarvestManager.type, container))
+                requests.push(new PickupRequest(HarvestManager.type, container as StructureContainer))
             }
         }
 
@@ -141,12 +138,12 @@ export class HarvestManager extends Manager {
 
         const idleHarvesters: WorkerCreep[] = [];
         const idleReservers: WorkerCreep[] = [];
-    
+
         for(const worker of this.workers) {
             if(!worker.creep) {
                 continue;
             }
-            
+
             if(worker.job instanceof IdleJob) {
                 if(worker.creep.getActiveBodyparts(WORK) > 0) {
                     idleHarvesters.push(worker);

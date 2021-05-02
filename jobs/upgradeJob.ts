@@ -2,9 +2,6 @@ import { getOwnName } from "../misc/helperFunctions";
 import { signs } from "../misc/signs";
 import { Job } from "./job";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class UpgradeJob extends Job {
     public static type: string = 'upgrade';
 
@@ -72,7 +69,7 @@ export class UpgradeJob extends Job {
         else {
             this.controller = null;
         }
-        
+
         if(this.controller && !this.target) {
             this.target = this.controller.pos;
         }

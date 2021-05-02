@@ -6,9 +6,6 @@ import { EmpireRequest } from "./requests/empireRequest";
 import { ScreepsRequest } from "./requests/request";
 import { WorkerCreep } from "./worker";
 
-import { profile } from "./Profiler/Profiler";
-
-@profile
 export class Colony {
     // inter-tick variables
     public empire: Empire;
@@ -32,6 +29,9 @@ export class Colony {
 
         // set the names of nearby farms
         this.remotes = [];
+        if (!Memory.rooms) {
+            Memory.rooms = {};
+        }
         for(const roomName of getAdjacentRooms(capital.name)) {
             if(Memory.rooms[roomName] && Memory.rooms[roomName].parent === capital.name) {
                 this.remotes.push(roomName);
@@ -191,7 +191,7 @@ export class Colony {
             // can't have a location without a body
             return;
         }
-    
+
         const posString: string = [worker.creep.pos.x, worker.creep.pos.y, worker.creep.pos.roomName].join();
         this.workersByLocation.set(posString, worker);
     }

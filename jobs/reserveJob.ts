@@ -2,19 +2,16 @@ import { getOwnName } from "../misc/helperFunctions";
 import { signs } from "../misc/signs";
 import { Job } from "./job";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class ReserveJob extends Job {
     public static type: string = 'reserve';
-    
+
     public roomName: string | null;
 
     public recalculateTarget(creep: Creep): boolean {
         if(!this.roomName) {
             return false;
         }
-        
+
         if(Game.rooms[this.roomName] && Game.rooms[this.roomName].controller) {
             const controller = Game.rooms[this.roomName].controller;
             if(controller) {

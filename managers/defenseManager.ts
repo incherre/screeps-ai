@@ -7,9 +7,6 @@ import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class DefenseManager extends Manager {
     // static parameters
     public static type: string = 'defense';
@@ -21,13 +18,13 @@ export class DefenseManager extends Manager {
         }
 
         const requests: ScreepsRequest[] = [];
-        
+
         // make fill requests for the towers
         const towers = this.parent.structures.get(STRUCTURE_TOWER);
         if(towers) {
             for(const tower of towers) {
-                if((tower as StructureTower).energy < (DefenseManager.refillConstant * (tower as StructureTower).energyCapacity)) {
-                    requests.push(new DropoffRequest(DefenseManager.type, tower));
+                if((tower as StructureTower).store.energy < (DefenseManager.refillConstant * (tower as StructureTower).store.getCapacity(RESOURCE_ENERGY))) {
+                    requests.push(new DropoffRequest(DefenseManager.type, tower as StructureTower));
                 }
             }
         }
@@ -39,7 +36,7 @@ export class DefenseManager extends Manager {
                 dangerCount++;
             }
         }
-        
+
         for(let i = this.workers.length; i < dangerCount; i++) {
             requests.push(new SpawnRequest(DefenseManager.type, spawnTypes.fighter, 2)); // see request.ts for priority meanings
         }

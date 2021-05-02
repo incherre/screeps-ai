@@ -9,9 +9,6 @@ import { VisionRequest } from "../requests/visionRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class ExplorationManager extends Manager {
     // static parameters
     public static type = 'explore';
@@ -60,7 +57,7 @@ export class ExplorationManager extends Manager {
         const visionRequests = this.parent.requests.get(VisionRequest.type);
         let visionRequest = null;
         const visionRequired: Set<string> = new Set<string>();
-    
+
         const idleWorkers: WorkerCreep[] = [];
         const adjacentRooms = getAdjacentRooms(this.parent.capital.name);
         const T0: Set<string> = new Set<string>(adjacentRooms);
@@ -68,7 +65,7 @@ export class ExplorationManager extends Manager {
         if(visionRequests) {
             shuffle(visionRequests);
             visionRequest = visionRequests.pop();
-            
+
             if(visionRequest && (visionRequest instanceof VisionRequest) && observer) {
                 observer.observeRoom(visionRequest.roomName);
                 visionRequest = visionRequests.pop();
@@ -139,7 +136,7 @@ export class ExplorationManager extends Manager {
                     T1.add(roomName);
                 }
             }
-            
+
             T1.delete(this.parent.capital.name);
             for(const roomName of adjacentRooms) {
                 T1.delete(roomName);
@@ -166,7 +163,7 @@ export class ExplorationManager extends Manager {
                 if(!Memory.rooms[roomName]) {
                     Memory.rooms[roomName] = {} as RoomMemory;
                 }
-                
+
                 Memory.rooms[roomName].parent = this.parent.capital.name;
             }
             else if(info && info.owner && info.owner !== getOwnName() && Memory.rooms[roomName]) {

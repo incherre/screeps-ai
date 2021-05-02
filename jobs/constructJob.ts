@@ -1,12 +1,9 @@
 import { Job } from "./job";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class ConstructJob extends Job {
     public static type: string = 'construct';
 
-    public site: ConstructionSite | null;
+    public site: ConstructionSite | null | undefined;
     public static range: number = 3;
 
     public recalculateTarget(creep: Creep): boolean {
@@ -69,7 +66,7 @@ export class ConstructJob extends Job {
         else {
             this.site = null;
         }
-        
+
         if(this.site && !this.target) {
             this.target = this.site.pos;
         }

@@ -9,9 +9,6 @@ import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
 import { RepairManager } from "./repairManager";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class ConstructionManager extends Manager {
     // static parameters
     public static type = 'construction';
@@ -88,7 +85,7 @@ export class ConstructionManager extends Manager {
         }
 
         const idleWorkers: WorkerCreep[] = [];
-    
+
         for(const worker of this.workers) {
             if(!worker.creep) {
                 continue;
@@ -139,7 +136,7 @@ export class ConstructionManager extends Manager {
                     // if we have nothing more to build for the moment, give the workers to the repair manager
                     this.workers[i] = this.workers[this.workers.length - 1];
                     this.workers.pop();
-                    
+
                     worker.creep.memory.managerType = RepairManager.type;
                     const repairManager = this.parent.managers.get(RepairManager.type);
                     if(repairManager) {

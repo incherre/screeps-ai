@@ -1,15 +1,12 @@
 import { getSpotsNear } from "../misc/helperFunctions";
 import { Job } from "./job";
 
-import { profile } from "../Profiler/Profiler";
-
-@profile
 export class HarvestJob extends Job {
     public static type: string = 'harvest';
     public static mineralCooldown: number = 6; // the docs say 5, but it's 0 - 5, so actually mod 6
 
     public source: Source | Mineral | null;
-    public sourceId: string | null;
+    public sourceId: Id<Source> | Id<Mineral> | null;
     public sourceRoomName: string | null;
 
     public recalculateTarget(creep: Creep): boolean {
@@ -21,7 +18,7 @@ export class HarvestJob extends Job {
         if(creep.room.name === this.sourceRoomName && this.source) {
             const containers = this.source.pos.findInRange(FIND_STRUCTURES, 1, {filter: (struct) => struct.structureType === STRUCTURE_CONTAINER});
             const container = creep.pos.findClosestByRange(containers);
-        
+
             if(container) {
                 // if there's a container by the source, target it
                 this.target = container.pos;
@@ -40,7 +37,7 @@ export class HarvestJob extends Job {
             this.target = new RoomPosition(25, 25, this.sourceRoomName);
         }
 
-        return creep.getActiveBodyparts(WORK) > 0 && (creep.getActiveBodyparts(CARRY) === 0 || _.sum(creep.carry) < creep.carryCapacity);
+        return creep.getActiveBodyparts(WORK) > 0 && (creep.getActiveBodyparts(CARRY) === 0 || creep.store.getFreeCapacity() > 0);
     }
 
     public getJobType(): string {
@@ -86,7 +83,7 @@ export class HarvestJob extends Job {
         }
         else if (jobInfo !== '') {
             const fields = jobInfo.split(',');
-            this.sourceId = fields[0];
+            this.sourceId = fields[0] as Id<Source>;
             this.source = Game.getObjectById(this.sourceId);
             this.sourceRoomName = fields[1];
             this.ttr = Number(fields[2]);
@@ -103,7 +100,7 @@ export class HarvestJob extends Job {
             this.sourceId = null;
             this.sourceRoomName = null;
         }
-        
+
         if(this.source && !this.target) {
             this.target = this.source.pos;
         }
