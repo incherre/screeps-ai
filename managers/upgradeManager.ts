@@ -20,7 +20,20 @@ export class UpgradeManager extends Manager {
         const requests: ScreepsRequest[] = [];
         let upgradeNumber = 1;
         if(this.parent.capital.controller && this.parent.capital.controller.level <= 4) {
-            upgradeNumber = this.parent.capital.controller.level;
+            let sourceCount = this.parent.capital.find(FIND_SOURCES).length;
+            let energyFromSourcesPerTick = (SOURCE_ENERGY_CAPACITY / ENERGY_REGEN_TIME) * sourceCount;
+
+            let bodyIterCost = BODYPART_COST[WORK] + BODYPART_COST[CARRY] + BODYPART_COST[MOVE];
+            let maxSpawningEnergy = (this.parent.structures.get(STRUCTURE_SPAWN)  || []).length * SPAWN_ENERGY_CAPACITY +
+                (this.parent.structures.get(STRUCTURE_EXTENSION) || []).length * EXTENSION_ENERGY_CAPACITY[this.parent.capital.controller.level];
+            let maxBodyIters = Math.floor(maxSpawningEnergy / bodyIterCost);
+            let maxBodyItersCost = maxBodyIters * bodyIterCost;
+
+            // Note, this assumes that upgradeController() uses one energy per tick per work part.
+            let creepsRequiredToUseAllEnergy = Math.floor(energyFromSourcesPerTick / (maxBodyIters + (maxBodyItersCost / CREEP_LIFE_TIME)));
+
+            // Don't make more than 8 upgraders. With default server settings, this would only happen at RCL 1 anyway.
+            upgradeNumber = Math.min(creepsRequiredToUseAllEnergy, 8);
         }
         else if(this.parent.capital.storage) {
             const upperCapacityConstant = Math.min(1 - ((1 - UpgradeManager.capacityConstant) / 2), UpgradeManager.capacityConstant * 2);
