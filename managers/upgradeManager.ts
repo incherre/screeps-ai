@@ -3,7 +3,7 @@ import { IdleJob } from "../jobs/idleJob";
 import { UpgradeJob } from "../jobs/upgradeJob";
 import { DropoffRequest } from "../requests/dropoffRequest";
 import { ScreepsRequest } from "../requests/request";
-import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
+import { SpawnRequest } from "../requests/spawnRequest";
 import { Manager } from "./manager";
 
 export class UpgradeManager extends Manager {
@@ -62,12 +62,12 @@ export class UpgradeManager extends Manager {
         }
 
         if(actualNumber === 0) {
-            requests.push(new SpawnRequest(UpgradeManager.type, spawnTypes.worker, /*priority=*/2));
+            requests.push(new SpawnRequest(UpgradeManager.type, 'worker', /*priority=*/2));
             actualNumber++;
         }
 
         for(let i = actualNumber; i < upgradeNumber; i++){
-            requests.push(new SpawnRequest(UpgradeManager.type, spawnTypes.worker));
+            requests.push(new SpawnRequest(UpgradeManager.type, 'worker'));
         }
 
         return requests;

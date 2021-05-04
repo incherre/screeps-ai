@@ -1,5 +1,10 @@
 import { ScreepsRequest } from "./request";
 
+/**
+ * A request for resources to be picked up from a specific container.
+ * @property {ResourceConstant} resourceType - The type of resource to pick up
+ * @property {AnyStoreStructure | Resource | Tombstone | Ruin} container - The container to withdraw the resource from
+ */
 export class PickupRequest extends ScreepsRequest {
     public static type = 'pickup'
     public resourceType: ResourceConstant;
@@ -9,9 +14,8 @@ export class PickupRequest extends ScreepsRequest {
         return PickupRequest.type;
     }
 
-    constructor (requester: string, container: AnyStoreStructure | Resource | Tombstone | Ruin, resourceType: ResourceConstant = RESOURCE_ENERGY) {
-        super();
-        this.requester = requester;
+    constructor (requester: string, container: AnyStoreStructure | Resource | Tombstone | Ruin, resourceType: ResourceConstant = RESOURCE_ENERGY, priority: number = 3) {
+        super(requester, priority);
         this.resourceType = resourceType;
         this.container = container;
     }

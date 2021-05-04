@@ -6,7 +6,7 @@ import { shuffle } from "../misc/helperFunctions";
 import { DropoffRequest } from "../requests/dropoffRequest";
 import { PickupRequest } from "../requests/pickupRequest";
 import { ScreepsRequest } from "../requests/request";
-import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
+import { SpawnRequest } from "../requests/spawnRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
 
@@ -43,12 +43,12 @@ export class TransportManager extends Manager {
         }
 
         if(actualNumber === 0) {
-            requests.push(new SpawnRequest(TransportManager.type, spawnTypes.carrier, /*priority=*/0));
+            requests.push(new SpawnRequest(TransportManager.type, 'carrier', /*priority=*/0));
             actualNumber++;
         }
 
         for(let i = actualNumber; i < transportNumber; i++) {
-            requests.push(new SpawnRequest(TransportManager.type, spawnTypes.carrier, /*priority=*/2));
+            requests.push(new SpawnRequest(TransportManager.type, 'carrier', /*priority=*/2));
         }
 
         return requests;

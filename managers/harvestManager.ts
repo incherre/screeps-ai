@@ -5,7 +5,7 @@ import { ReserveJob } from "../jobs/reserveJob";
 import { creepNearDeath } from "../misc/helperFunctions";
 import { PickupRequest } from "../requests/pickupRequest";
 import { ScreepsRequest } from "../requests/request";
-import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
+import { SpawnRequest } from "../requests/spawnRequest";
 import { VisionRequest } from "../requests/visionRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
@@ -64,6 +64,7 @@ export class HarvestManager extends Manager {
         }
 
         const tombstones = this.parent.capital.find(FIND_TOMBSTONES, {filter:
+            // TODO(Daniel): Fix the outdated way to determine if a store has non-energy resources.
             (stone) => (stone.store.energy > HarvestManager.minReso) || (Object.keys(stone.store).length > 1 && storage)
         });
         for(const tombstone of tombstones) {
@@ -93,16 +94,16 @@ export class HarvestManager extends Manager {
         }
 
         if(workNumber === 0) {
-            requests.push(new SpawnRequest(HarvestManager.type, spawnTypes.harvester, /*priority=*/0));
+            requests.push(new SpawnRequest(HarvestManager.type, 'harvester', /*priority=*/0));
             workNumber++;
         }
 
         for(let i = workNumber; i < harvestNumber; i++){
-            requests.push(new SpawnRequest(HarvestManager.type, spawnTypes.harvester, /*priority=*/2));
+            requests.push(new SpawnRequest(HarvestManager.type, 'harvester', /*priority=*/2));
         }
 
         for(let i = claimNumber; i < reserveNumber; i++){
-            requests.push(new SpawnRequest(HarvestManager.type, spawnTypes.claimer, /*priority=*/2));
+            requests.push(new SpawnRequest(HarvestManager.type, 'claimer', /*priority=*/2));
         }
 
         return requests;

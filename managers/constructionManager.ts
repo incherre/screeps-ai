@@ -4,7 +4,7 @@ import { IdleJob } from "../jobs/idleJob";
 import { placeBaseRamparts, placeBaseSites } from "../misc/constructionTemplates";
 import { DropoffRequest } from "../requests/dropoffRequest";
 import { ScreepsRequest } from "../requests/request";
-import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
+import { SpawnRequest } from "../requests/spawnRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
 import { RepairManager } from "./repairManager";
@@ -54,7 +54,7 @@ export class ConstructionManager extends Manager {
         }
 
         for(let i = actualNumber; i < constructNumber; i++) {
-            requests.push(new SpawnRequest(ConstructionManager.type, spawnTypes.worker));
+            requests.push(new SpawnRequest(ConstructionManager.type, 'worker'));
         }
 
         return requests;

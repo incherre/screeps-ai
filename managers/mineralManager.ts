@@ -6,7 +6,7 @@ import { DropoffRequest } from "../requests/dropoffRequest";
 import { PickupRequest } from "../requests/pickupRequest";
 import { ScreepsRequest } from "../requests/request";
 import { SellRequest } from "../requests/sellRequst";
-import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
+import { SpawnRequest } from "../requests/spawnRequest";
 import { Manager } from "./manager";
 
 export class MineralManager extends Manager {
@@ -35,7 +35,7 @@ export class MineralManager extends Manager {
             }
 
             for(let i = actualNumber; i < mineNumber; i++){
-                requests.push(new SpawnRequest(MineralManager.type, spawnTypes.miner));
+                requests.push(new SpawnRequest(MineralManager.type, 'miner'));
             }
 
             const mineral = _.find(this.parent.capital.find(FIND_MINERALS));

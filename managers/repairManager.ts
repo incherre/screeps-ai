@@ -3,7 +3,7 @@ import { IdleJob } from "../jobs/idleJob";
 import { RepairJob } from "../jobs/repairJob";
 import { DropoffRequest } from "../requests/dropoffRequest";
 import { ScreepsRequest } from "../requests/request";
-import { SpawnRequest, spawnTypes } from "../requests/spawnRequest";
+import { SpawnRequest } from "../requests/spawnRequest";
 import { Manager } from "./manager";
 
 export class RepairManager extends Manager {
@@ -54,7 +54,7 @@ export class RepairManager extends Manager {
         }
 
         for(let i = actualNumber; i < repairNumber; i++){
-            requests.push(new SpawnRequest(RepairManager.type, spawnTypes.worker));
+            requests.push(new SpawnRequest(RepairManager.type, 'worker'));
         }
 
         return requests;

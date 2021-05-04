@@ -3,7 +3,7 @@ import { BusyJob } from "../jobs/busyJob";
 import { popMostImportant, shuffle } from "../misc/helperFunctions";
 import { DropoffRequest } from "../requests/dropoffRequest";
 import { ScreepsRequest } from "../requests/request";
-import { SpawnRequest } from "../requests/spawnRequest";
+import { SpawnRequest, spawnFunctions } from "../requests/spawnRequest";
 import { Manager } from "./manager";
 
 export class SpawnManager extends Manager {
@@ -84,7 +84,7 @@ export class SpawnManager extends Manager {
                 if(!building.spawning && requests.length > 0 && energy >= SpawnManager.minSpawnEnergy) {
                     const request = popMostImportant(requests) as SpawnRequest;
                     const memory = {jobType: BusyJob.type, jobInfo: '', colonyRoom: this.parent.capital.name, managerType: request.requester, path: undefined};
-                    const body = request.creepFunction(energy, energyMax);
+                    const body = spawnFunctions[request.creepBody](energy, energyMax);
                     const name = building.name + '-' + Game.time;
 
                     const status = building.spawnCreep(body, name, {'memory': memory});

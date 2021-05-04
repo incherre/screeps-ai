@@ -1,72 +1,71 @@
 import { ScreepsRequest } from "./request";
 
+/**
+ * The possible types of creep bodies to produce.
+ */
+export type BodyType = 'carrier' | 'fighter' | 'ranger' | 'harvester' | 'miner' | 'scout' | 'worker' | 'claimer';
+
+/**
+ * A request to spawn a new creep.
+ * @property {BodyType} creepBody - The type of creep to make
+ */
 export class SpawnRequest extends ScreepsRequest {
     public static type = 'spawn';
-    public creepFunction: (energyLimit: number, maxEnergy: number) => BodyPartConstant[];
+    public creepBody: BodyType;
 
     public getType(): string {
         return SpawnRequest.type;
     }
 
-    constructor (requester: string, creepFunction: (energyLimit: number, maxEnergy: number) => BodyPartConstant[], priority: number = 3) {
-        super();
+    constructor (requester: string, creepBody: BodyType, priority: number = 3) {
+        super(requester, priority);
         this.requester = requester;
-        this.creepFunction = creepFunction;
+        this.creepBody = creepBody;
         this.priority = priority;
     }
 }
 
-// -----Creep Generating Functions-----
-type BodyType = 'carrier' | 'fighter' | 'ranger' | 'harvester' | 'miner' | 'scout' | 'worker' | 'claimer';
+/**
+ * Constructs a full creep body array based on the given parameters.
+ * @param {BodyPartConstant[]} bodyTemplate - An array of body part constants that will be repeated to construct the body
+ * @param {number} energyLimit - The maximum amount of energy available in this room for spawning
+ * @param {number} maxEnergy - The spawning energy capacity of the room, currently unused
+ * @param {number} minParts - The minimum amount of parts required for spawning
+ * @param {number} maxParts - The maximum allowed parts in the creep body
+ * @returns {BodyPartConstant[]} - The full body part array used for spawning
+ */
+function genericBodyFunction(bodyTemplate: BodyPartConstant[], energyLimit: number, maxEnergy: number, minParts: number, maxParts: number = MAX_CREEP_SIZE): BodyPartConstant[] {
+    const energyPerRound: number = _.sum(bodyTemplate, (part: BodyPartConstant) => BODYPART_COST[part]);
+    const partsPerRound: number = bodyTemplate.length;
 
-export const spawnTypes: Record<BodyType, (energyLimit: number, maxEnergy: number) => BodyPartConstant[]> = {
-    'carrier': (energyLimit: number, maxEnergy: number) => {
-        const energyPerRound = BODYPART_COST[CARRY] + BODYPART_COST[MOVE];
-        const partsPerRound = 2;
-        const maxParts = MAX_CREEP_SIZE;
-        const minParts = 4;
+    if(energyLimit < energyPerRound * (minParts / partsPerRound)) {
+        return [];
+    }
 
-        if(energyLimit < energyPerRound * (minParts / partsPerRound)){ return []; }
-        let soFar = 0;
-        const body: BodyPartConstant[] = [];
-        while(soFar + energyPerRound <= energyLimit && body.length + partsPerRound <= maxParts) {
-            soFar += energyPerRound;
-            body.push(CARRY);
-            body.push(MOVE);
+    const partNumber: number = Math.min(Math.floor(energyLimit / energyPerRound), Math.floor(maxParts / partsPerRound));
+    let body: BodyPartConstant[] = [];
+    for(const part of bodyTemplate) {
+        for(let i = 0; i < partNumber; i++) {
+            body.push(part);
         }
-        return body;
+    }
+    return body;
+}
+
+/**
+ * A map of body types to functions used for generating the body array for that type.
+ */
+export const spawnFunctions: Record<BodyType, (energyLimit: number, maxEnergy: number) => BodyPartConstant[]> = {
+    'carrier': (energyLimit: number, maxEnergy: number) => {
+        return genericBodyFunction([CARRY, MOVE], energyLimit, maxEnergy, /*minParts=*/4);
     },
 
     'fighter': (energyLimit: number, maxEnergy: number) => {
-        const energyPerRound = BODYPART_COST[MOVE] + BODYPART_COST[ATTACK];
-        const partsPerRound = 2;
-        const maxParts = MAX_CREEP_SIZE;
-
-        const partNumber = Math.min(Math.floor(energyLimit / energyPerRound), Math.floor(maxParts / partsPerRound));
-        const body: BodyPartConstant[] = [];
-        for(let i = 0; i < partNumber; i++) {
-            body.push(MOVE);
-        }
-        for(let i = 0; i < partNumber; i++) {
-            body.push(ATTACK);
-        }
-        return body;
+        return genericBodyFunction([MOVE, ATTACK], energyLimit, maxEnergy, /*minParts=*/2);
     },
 
     'ranger': (energyLimit: number, maxEnergy: number) => {
-        const energyPerRound = BODYPART_COST[MOVE] + BODYPART_COST[RANGED_ATTACK];
-        const partsPerRound = 2;
-        const maxParts = MAX_CREEP_SIZE;
-
-        const partNumber = Math.min(Math.floor(energyLimit / energyPerRound), Math.floor(maxParts / partsPerRound));
-        const body: BodyPartConstant[] = [];
-        for(let i = 0; i < partNumber; i++) {
-            body.push(MOVE);
-        }
-        for(let i = 0; i < partNumber; i++) {
-            body.push(RANGED_ATTACK);
-        }
-        return body;
+        return genericBodyFunction([MOVE, RANGED_ATTACK], energyLimit, maxEnergy, /*minParts=*/2);
     },
 
     'harvester': (energyLimit: number, maxEnergy: number) => {
@@ -112,40 +111,16 @@ export const spawnTypes: Record<BodyType, (energyLimit: number, maxEnergy: numbe
             return body;
         }
     },
-    
+
     'scout': (energyLimit: number, maxEnergy: number) => {
         return [MOVE];
     },
 
     'worker': (energyLimit: number, maxEnergy: number) => {
-        const energyPerRound = BODYPART_COST[WORK] + BODYPART_COST[CARRY] + BODYPART_COST[MOVE];
-        const partsPerRound = 3;
-        const maxParts = MAX_CREEP_SIZE;
-
-        let soFar = 0;
-        const body: BodyPartConstant[] = [];
-        while(soFar + energyPerRound <= energyLimit && body.length + partsPerRound <= maxParts) {
-            soFar += energyPerRound;
-            body.push(WORK);
-            body.push(CARRY);
-            body.push(MOVE);
-        }
-        return body;
+        return genericBodyFunction([WORK, CARRY, MOVE], energyLimit, maxEnergy, /*minParts=*/3);
     },
 
     'claimer': (energyLimit: number, maxEnergy: number) => {
-        const energyPerRound = BODYPART_COST[CLAIM] + BODYPART_COST[MOVE];
-        const partsPerRound = 2;
-        const maxParts = 4;
-
-        if(energyLimit < energyPerRound){ return []; }
-        let soFar = 0;
-        const body: BodyPartConstant[] = [];
-        while(soFar + energyPerRound <= energyLimit && body.length + partsPerRound <= maxParts) {
-            soFar += energyPerRound;
-            body.push(CLAIM);
-            body.push(MOVE);
-        }
-        return body;
+        return genericBodyFunction([CLAIM, MOVE], energyLimit, maxEnergy, /*minParts=*/2, /*maxParts=*/4);
     },
 };
