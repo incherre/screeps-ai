@@ -24,7 +24,7 @@ export class UpgradeManager extends Manager {
             let energyFromSourcesPerTick = (SOURCE_ENERGY_CAPACITY / ENERGY_REGEN_TIME) * sourceCount;
 
             let bodyIterCost = BODYPART_COST[WORK] + BODYPART_COST[CARRY] + BODYPART_COST[MOVE];
-            let maxSpawningEnergy = (this.parent.structures.get(STRUCTURE_SPAWN)  || []).length * SPAWN_ENERGY_CAPACITY +
+            let maxSpawningEnergy = (this.parent.structures.get(STRUCTURE_SPAWN) || []).length * SPAWN_ENERGY_CAPACITY +
                 (this.parent.structures.get(STRUCTURE_EXTENSION) || []).length * EXTENSION_ENERGY_CAPACITY[this.parent.capital.controller.level];
             let maxBodyIters = Math.floor(maxSpawningEnergy / bodyIterCost);
             let maxBodyItersCost = maxBodyIters * bodyIterCost;

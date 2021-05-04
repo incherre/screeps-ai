@@ -20,13 +20,30 @@ export class TransportManager extends Manager {
         }
 
         const requests: ScreepsRequest[] = [];
-        let transportNumber = 1 + this.parent.capital.find(FIND_SOURCES).length;
+        let transportNumber = 0;
         if(this.parent.capital.storage) {
+            transportNumber = 1 + this.parent.capital.find(FIND_SOURCES).length;
             for(const roomName of this.parent.remotes) {
                 if(Game.rooms[roomName]) {
                     transportNumber += 1 + Game.rooms[roomName].find(FIND_SOURCES).length;
                 }
             }
+        }
+        else if (this.parent.capital.controller) {
+            let sourceCount = this.parent.capital.find(FIND_SOURCES).length;
+            let energyFromSourcesPerTick = (SOURCE_ENERGY_CAPACITY / ENERGY_REGEN_TIME) * sourceCount;
+
+            let bodyIterCost = BODYPART_COST[CARRY] + BODYPART_COST[MOVE];
+            let maxSpawningEnergy = (this.parent.structures.get(STRUCTURE_SPAWN) || []).length * SPAWN_ENERGY_CAPACITY +
+                (this.parent.structures.get(STRUCTURE_EXTENSION) || []).length * EXTENSION_ENERGY_CAPACITY[this.parent.capital.controller.level];
+            let maxBodyIters = Math.floor(maxSpawningEnergy / bodyIterCost);
+            let maxBodyItersCost = maxBodyIters * bodyIterCost;
+
+            // Note, this assumes that the average path length of a carrier is 25, and we have to go there and back.
+            let energyTransportedPerTickPerPart = CARRY_CAPACITY / (25 * 2);
+            let creepsRequiredToMoveAllEnergy = Math.ceil(energyFromSourcesPerTick / ((energyTransportedPerTickPerPart * maxBodyIters) + (maxBodyItersCost / CREEP_LIFE_TIME)));
+
+            transportNumber = creepsRequiredToMoveAllEnergy;
         }
 
         let actualNumber = this.workers.length;
