@@ -68,7 +68,7 @@ export class HarvestJob extends Job {
         if(this.source instanceof Source && this.source.energy > 0) {
             creep.harvest(this.source);
         }
-        else if(this.source instanceof Mineral && Game.time % HarvestJob.mineralCooldown === 0) {
+        else if(this.source instanceof Mineral && this.source.mineralAmount > 0 && Game.time % HarvestJob.mineralCooldown === 0) {
             creep.harvest(this.source);
         }
     }
