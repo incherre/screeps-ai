@@ -16,6 +16,7 @@ export class HarvestManager extends Manager {
     public static reserveMargin = 600;
     public static minCont = 150;
     public static minReso = 50;
+    public static regenThreshold = 50;
 
     public generateRequests(): ScreepsRequest[] {
         if(!this.parent.capital) {
@@ -78,7 +79,7 @@ export class HarvestManager extends Manager {
             }
         }
 
-        const harvestNumber = sources.length;
+        const harvestNumber = _.filter(sources, (source) => source.energy > 0 || source.ticksToRegeneration < HarvestManager.regenThreshold).length;
         let workNumber = 0;
         let claimNumber = 0;
 
@@ -93,7 +94,7 @@ export class HarvestManager extends Manager {
             }
         }
 
-        if(workNumber === 0) {
+        if(workNumber === 0 && harvestNumber > 0) {
             requests.push(new SpawnRequest(HarvestManager.type, 'harvester', /*priority=*/0));
             workNumber++;
         }
@@ -118,7 +119,9 @@ export class HarvestManager extends Manager {
         const unpairedRooms: Set<string> = new Set<string>();
         const sources: Source[] = this.parent.capital.find(FIND_SOURCES);
         for(const source of sources) {
-            unpairedSources.add(source.id);
+            if(source.energy > 0 || source.ticksToRegeneration < HarvestManager.regenThreshold) {
+                unpairedSources.add(source.id);
+            }
         }
 
         if(this.parent.capital.storage) {
@@ -126,7 +129,9 @@ export class HarvestManager extends Manager {
                 if(Game.rooms[roomName]) {
                     const roomSources  = Game.rooms[roomName].find(FIND_SOURCES);
                     for(const source of roomSources) {
-                        unpairedSources.add(source.id);
+                        if(source.energy > 0 || source.ticksToRegeneration < HarvestManager.regenThreshold) {
+                            unpairedSources.add(source.id);
+                        }
                     }
 
                     const controller = Game.rooms[roomName].controller;

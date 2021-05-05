@@ -38,12 +38,18 @@ function genericBodyFunction(bodyTemplate: BodyPartConstant[], energyLimit: numb
     const energyPerRound: number = _.sum(bodyTemplate, (part: BodyPartConstant) => BODYPART_COST[part]);
     const partsPerRound: number = bodyTemplate.length;
 
-    if(energyLimit < energyPerRound * (minParts / partsPerRound)) {
-        return [];
+    let body: BodyPartConstant[] = [];
+    if(energyLimit < energyPerRound) {
+        let costSoFar = 0;
+        while(costSoFar + BODYPART_COST[bodyTemplate[body.length]] <= energyLimit) {
+            costSoFar += BODYPART_COST[bodyTemplate[body.length]];
+            body.push(bodyTemplate[body.length]);
+        }
+
+        return body.length >= minParts ? body : [];
     }
 
     const partNumber: number = Math.min(Math.floor(energyLimit / energyPerRound), Math.floor(maxParts / partsPerRound));
-    let body: BodyPartConstant[] = [];
     for(const part of bodyTemplate) {
         for(let i = 0; i < partNumber; i++) {
             body.push(part);
@@ -69,47 +75,11 @@ export const spawnFunctions: Record<BodyType, (energyLimit: number) => BodyPartC
     },
 
     'harvester': (energyLimit: number) => {
-        const maxParts = 8;
-        const minParts = 3;
-        const minCost = BODYPART_COST[WORK] + BODYPART_COST[WORK] + BODYPART_COST[MOVE];
-        const baseBody: BodyPartConstant[] = [MOVE, WORK, WORK, WORK];
-
-        if(energyLimit < minCost){ return []; }
-        let soFar = 0;
-        const body: BodyPartConstant[] = [];
-        while(soFar + BODYPART_COST[baseBody[body.length % baseBody.length]] <= energyLimit && body.length < maxParts) {
-            soFar += BODYPART_COST[baseBody[body.length % baseBody.length]];
-            body.push(baseBody[body.length % baseBody.length]);
-        }
-
-        if(body.length < minParts) {
-            return [];
-        }
-        else {
-            return body;
-        }
+        return genericBodyFunction([MOVE, WORK, WORK, WORK], energyLimit, /*minParts=*/3);
     },
 
     'miner': (energyLimit: number) => {
-        const maxParts = MAX_CREEP_SIZE;
-        const minParts = 5;
-        const minCost = (BODYPART_COST[WORK] * 4) + BODYPART_COST[MOVE];
-        const baseBody: BodyPartConstant[] = [MOVE, WORK, WORK, WORK, WORK];
-
-        if(energyLimit < minCost){ return []; }
-        let soFar = 0;
-        const body: BodyPartConstant[] = [];
-        while(soFar + BODYPART_COST[baseBody[body.length % baseBody.length]] <= energyLimit && body.length < maxParts) {
-            soFar += BODYPART_COST[baseBody[body.length % baseBody.length]];
-            body.push(baseBody[body.length % baseBody.length]);
-        }
-
-        if(body.length < minParts) {
-            return [];
-        }
-        else {
-            return body;
-        }
+        return genericBodyFunction([MOVE, WORK, WORK, WORK, WORK], energyLimit, /*minParts=*/5);
     },
 
     'scout': (energyLimit: number) => {
