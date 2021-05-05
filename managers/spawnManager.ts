@@ -10,6 +10,7 @@ export class SpawnManager extends Manager {
     // static parameters
     public static type: string = 'spawn';
     public static minSpawnEnergy: number = 100;
+    public static spawnImmediatelyPriority: number = 1;
 
     // inter-tick variables
     public namesToAdd: string[];
@@ -84,15 +85,20 @@ export class SpawnManager extends Manager {
                 if(!building.spawning && requests.length > 0 && energy >= SpawnManager.minSpawnEnergy) {
                     const request = popMostImportant(requests) as SpawnRequest;
                     const memory = {jobType: BusyJob.type, jobInfo: '', colonyRoom: this.parent.capital.name, managerType: request.requester, path: undefined};
-                    const body = spawnFunctions[request.creepBody](energy, energyMax);
+                    const body = spawnFunctions[request.creepBody](request.priority <= SpawnManager.spawnImmediatelyPriority ? energy : energyMax);
+                    const totalCost = _.sum(body, (part) => BODYPART_COST[part]);
                     const name = building.name + '-' + Game.time;
+
+                    // Hold out for full capacity if the priority isn't pressing.
+                    if (totalCost > energy) {
+                        requests.push(request);
+                        break;
+                    }
 
                     const status = building.spawnCreep(body, name, {'memory': memory});
                     if(status === OK) {
                         this.namesToAdd.push(name);
-                        for(const j in body) {
-                            energy -= BODYPART_COST[body[j]];
-                        }
+                        energy -= totalCost;
                     }
                 }
             }
