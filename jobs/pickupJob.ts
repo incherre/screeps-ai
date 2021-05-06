@@ -1,83 +1,18 @@
 import { Job } from "./job";
 
+/**
+ * Pick up some resource, possibly in a container, tombstone, or ruin; or even dropped on the ground.
+ */
 export class PickupJob extends Job {
     public static type: string = 'pickup';
 
-    public container: AnyStoreStructure | Resource | Tombstone | Ruin | null;
+    // Inter-tick variables
     public containerId: Id<AnyStoreStructure> | Id<Resource> | Id<Tombstone> | Id<Ruin> | null;
     public containerRoomName: string | null;
     public resourceType: ResourceConstant;
 
-    public recalculateTarget(creep: Creep): boolean {
-        if(!this.containerId || !this.containerRoomName) {
-            // if the container doesn't exist, return false
-            return false;
-        }
-
-        if(this.container) {
-            this.target = this.container.pos;
-        }
-
-        if(!this.target) {
-            this.target = new RoomPosition(25, 25, this.containerRoomName);
-        }
-
-        if(this.containerRoomName !== creep.room.name) {
-            return true;
-        }
-        else if (this.container) {
-            const hasSpace = creep.store.getFreeCapacity() > 0;
-            if(this.container instanceof Resource) {
-                // make sure you can get there in time
-                return hasSpace && this.container.resourceType === this.resourceType && this.container.amount >= creep.pos.getRangeTo(this.container);
-            }
-            else {
-                const resourceAmount = this.container.store[this.resourceType];
-                return hasSpace && resourceAmount !== undefined && resourceAmount > 0;
-            }
-        }
-        else {
-            return false;
-        }
-    }
-
-    public getJobType(): string {
-        return PickupJob.type;
-    }
-
-    public getJobInfo(): string {
-        let vals: any[];
-
-        if(this.containerId && this.containerRoomName) {
-            vals = [this.containerId, this.containerRoomName, this.resourceType, this.ttr];
-        }
-        else {
-            return '';
-        }
-
-        if(this.target) {
-            vals = vals.concat([this.target.x, this.target.y, this.target.roomName]);
-        }
-        else {
-            vals = vals.concat([-1, -1, 'none']);
-        }
-
-        return vals.join();
-    }
-
-    public do(creep: Creep): void {
-        let retVal = -1;
-        if(this.container instanceof Resource) {
-            retVal = creep.pickup(this.container);
-        }
-        else if(this.container) {
-            retVal = creep.withdraw(this.container, this.resourceType);
-        }
-
-        if(retVal === OK) {
-            this.containerId = null;
-        }
-    }
+    // Single-tick variables
+    public container: AnyStoreStructure | Resource | Tombstone | Ruin | null;
 
     constructor (jobInfo: string | AnyStoreStructure | Resource | Tombstone | Ruin, resourceType: ResourceConstant = RESOURCE_ENERGY) {
         super();
@@ -112,5 +47,85 @@ export class PickupJob extends Job {
         if(this.container && !this.target) {
             this.target = this.container.pos;
         }
+    }
+
+    public tickInit(): void {
+        if(this.containerId) {
+            this.container = Game.getObjectById(this.containerId);
+        }
+        else {
+            this.container = null;
+        }
+    }
+
+    public recalculateTarget(creep: Creep): boolean {
+        if(!this.containerId || !this.containerRoomName) {
+            // if the container doesn't exist, return false
+            return false;
+        }
+
+        if(this.container) {
+            this.target = this.container.pos;
+        }
+
+        if(!this.target) {
+            this.target = new RoomPosition(25, 25, this.containerRoomName);
+        }
+
+        if(this.containerRoomName !== creep.room.name) {
+            return true;
+        }
+        else if (this.container) {
+            const hasSpace = creep.store.getFreeCapacity() > 0;
+            if(this.container instanceof Resource) {
+                // make sure you can get there in time
+                return hasSpace && this.container.resourceType === this.resourceType && this.container.amount >= creep.pos.getRangeTo(this.container);
+            }
+            else {
+                const resourceAmount = this.container.store[this.resourceType];
+                return hasSpace && resourceAmount !== undefined && resourceAmount > 0;
+            }
+        }
+        else {
+            return false;
+        }
+    }
+
+    public do(creep: Creep): void {
+        let retVal = -1;
+        if(this.container instanceof Resource) {
+            retVal = creep.pickup(this.container);
+        }
+        else if(this.container) {
+            retVal = creep.withdraw(this.container, this.resourceType);
+        }
+
+        if(retVal === OK) {
+            this.containerId = null;
+        }
+    }
+
+    public getJobType(): string {
+        return PickupJob.type;
+    }
+
+    public getJobInfo(): string {
+        let vals: any[];
+
+        if(this.containerId && this.containerRoomName) {
+            vals = [this.containerId, this.containerRoomName, this.resourceType, this.ttr];
+        }
+        else {
+            return '';
+        }
+
+        if(this.target) {
+            vals = vals.concat([this.target.x, this.target.y, this.target.roomName]);
+        }
+        else {
+            vals = vals.concat([-1, -1, 'none']);
+        }
+
+        return vals.join();
     }
 }

@@ -1,45 +1,15 @@
 import { addRoomInfo, getRoomInfo } from "../misc/helperFunctions";
 import { Job } from "./job";
 
+/**
+ * Go to the specified room and record information about it, while recording information about the rooms on the way.
+ */
 export class ScoutJob extends Job {
     public static type: string = 'scout';
     public static rescoutThreshold = 50;
 
+    // Inter-tick variables
     public roomName: string | null;
-
-    public recalculateTarget(creep: Creep): boolean {
-        if(!this.roomName) {
-            return false;
-        }
-
-        this.do(creep); // might as well record the info for the rooms on the way
-
-        this.target = new RoomPosition(25, 25, this.roomName);
-
-        // it only makes sense to scout a room if it has either never been scouted, or hasn't been scouted recently
-        const roomInfo = getRoomInfo(this.roomName);
-        return !roomInfo || Game.time - roomInfo.lastObserved > ScoutJob.rescoutThreshold;
-    }
-
-    public getJobType(): string {
-        return ScoutJob.type;
-    }
-
-    public getJobInfo(): string {
-        if(this.roomName && this.target) {
-            return [this.roomName, this.ttr, this.target.x, this.target.y, this.target.roomName].join();
-        }
-        else if(this.roomName) {
-            return [this.roomName, this.ttr, -1, -1, 'none'].join();
-        }
-        else {
-            return '';
-        }
-    }
-
-    public do(creep: Creep): void {
-        addRoomInfo(creep.room);
-    }
 
     constructor (jobInfo: string) {
         super();
@@ -60,6 +30,42 @@ export class ScoutJob extends Job {
         }
         else {
             this.roomName = null;
+        }
+    }
+
+    public tickInit(): void {}
+
+    public recalculateTarget(creep: Creep): boolean {
+        if(!this.roomName) {
+            return false;
+        }
+
+        this.do(creep); // might as well record the info for the rooms on the way
+
+        this.target = new RoomPosition(25, 25, this.roomName);
+
+        // it only makes sense to scout a room if it has either never been scouted, or hasn't been scouted recently
+        const roomInfo = getRoomInfo(this.roomName);
+        return !roomInfo || Game.time - roomInfo.lastObserved > ScoutJob.rescoutThreshold;
+    }
+
+    public do(creep: Creep): void {
+        addRoomInfo(creep.room);
+    }
+
+    public getJobType(): string {
+        return ScoutJob.type;
+    }
+
+    public getJobInfo(): string {
+        if(this.roomName && this.target) {
+            return [this.roomName, this.ttr, this.target.x, this.target.y, this.target.roomName].join();
+        }
+        else if(this.roomName) {
+            return [this.roomName, this.ttr, -1, -1, 'none'].join();
+        }
+        else {
+            return '';
         }
     }
 }

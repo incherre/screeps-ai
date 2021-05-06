@@ -1,65 +1,18 @@
 import { Job } from "./job";
 
+/**
+ * Repair some structure until the creep runs out of energy.
+ */
 export class RepairJob extends Job {
     public static type: string = 'repair';
     public static range: number = 3;
 
-    public repairable: Structure | null;
+    // Inter-tick variables
     public repairableId: Id<Structure> | null;
     public repairableRoomName: string | null;
 
-    public recalculateTarget(creep: Creep): boolean {
-        if(this.repairableId && this.repairableRoomName) {
-            if(this.repairable) {
-                this.target = this.repairable.pos;
-            }
-
-            if(!this.target) {
-                this.target = new RoomPosition(25, 25, this.repairableRoomName);
-            }
-
-            if(this.repairable) {
-                return creep.getActiveBodyparts(WORK) > 0 && creep.getActiveBodyparts(CARRY) > 0 && this.repairable.hits < this.repairable.hitsMax &&
-                (creep.pos.getRangeTo(this.repairable) > RepairJob.range || creep.store.energy > 0);
-            }
-            else {
-                return creep.getActiveBodyparts(WORK) > 0 && creep.getActiveBodyparts(CARRY) > 0;
-            }
-        }
-        else {
-            return false;
-        }
-    }
-
-    public getJobType(): string {
-        return RepairJob.type;
-    }
-
-    public getJobInfo(): string {
-        let vals: any[];
-
-        if(this.repairableId && this.repairableRoomName) {
-            vals = [this.repairableId, this.repairableRoomName, this.ttr];
-        }
-        else {
-            return '';
-        }
-
-        if(this.target) {
-            vals = vals.concat([this.target.x, this.target.y, this.target.roomName]);
-        }
-        else {
-            vals = vals.concat([-1, -1, 'none']);
-        }
-
-        return vals.join();
-    }
-
-    public do(creep: Creep): void {
-        if(this.repairable && creep.store.energy > 0) {
-            creep.repair(this.repairable);
-        }
-    }
+    // Single-tick variables
+    public repairable: Structure | null;
 
     constructor (jobInfo: string | Structure) {
         super();
@@ -92,5 +45,67 @@ export class RepairJob extends Job {
         if(this.repairable && !this.target) {
             this.target = this.repairable.pos;
         }
+    }
+
+    public tickInit(): void {
+        if(this.repairableId) {
+            this.repairable = Game.getObjectById(this.repairableId);
+        }
+        else {
+            this.repairable = null;
+        }
+    }
+
+    public recalculateTarget(creep: Creep): boolean {
+        if(this.repairableId && this.repairableRoomName) {
+            if(this.repairable) {
+                this.target = this.repairable.pos;
+            }
+
+            if(!this.target) {
+                this.target = new RoomPosition(25, 25, this.repairableRoomName);
+            }
+
+            if(this.repairable) {
+                return creep.getActiveBodyparts(WORK) > 0 && creep.getActiveBodyparts(CARRY) > 0 && this.repairable.hits < this.repairable.hitsMax &&
+                (creep.pos.getRangeTo(this.repairable) > RepairJob.range || creep.store.energy > 0);
+            }
+            else {
+                return creep.getActiveBodyparts(WORK) > 0 && creep.getActiveBodyparts(CARRY) > 0;
+            }
+        }
+        else {
+            return false;
+        }
+    }
+
+    public do(creep: Creep): void {
+        if(this.repairable && creep.store.energy > 0) {
+            creep.repair(this.repairable);
+        }
+    }
+
+    public getJobType(): string {
+        return RepairJob.type;
+    }
+
+    public getJobInfo(): string {
+        let vals: any[];
+
+        if(this.repairableId && this.repairableRoomName) {
+            vals = [this.repairableId, this.repairableRoomName, this.ttr];
+        }
+        else {
+            return '';
+        }
+
+        if(this.target) {
+            vals = vals.concat([this.target.x, this.target.y, this.target.roomName]);
+        }
+        else {
+            vals = vals.concat([-1, -1, 'none']);
+        }
+
+        return vals.join();
     }
 }

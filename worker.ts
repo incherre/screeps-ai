@@ -5,12 +5,12 @@ import { jobTypes } from "./manifest"
 import { addRoomInfo, getOwnName, getRoomInfo, getSpotsNear, movePos, shuffle, SOURCE_KEEPER_NAME } from "./misc/helperFunctions";
 
 export class WorkerCreep {
-    // inter-tick variables
+    // Inter-tick variables
     public parent: Colony;
     public creepId: Id<Creep>;
     public job: Job;
 
-    // single-tick variables
+    // Single-tick variables
     public creep: Creep | undefined;
     public moved: boolean;
     public worked: boolean;
@@ -18,6 +18,7 @@ export class WorkerCreep {
     constructor (creep: Creep, parent: Colony) {
         this.parent = parent;
         this.creepId = creep.id;
+        this.creep = creep;
         if(jobTypes[creep.memory.jobType]) {
             this.job = jobTypes[creep.memory.jobType](creep.memory.jobInfo);
         }
@@ -37,6 +38,10 @@ export class WorkerCreep {
         }
 
         this.creep = creep;
+
+        this.job.tickInit();
+        this.moved = false;
+        this.worked = false;
     }
 
     public work(): void {

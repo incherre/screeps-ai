@@ -1,10 +1,56 @@
 import { Job } from "./job";
 
+/**
+ * Build a construction site.
+ */
 export class ConstructJob extends Job {
     public static type: string = 'construct';
-
-    public site: ConstructionSite | null | undefined;
     public static range: number = 3;
+
+    // Inter-tick variables
+    public siteId: Id<ConstructionSite> | null;
+
+    // Single-tick variables
+    public site: ConstructionSite | null | undefined;
+
+    constructor (jobInfo: string | ConstructionSite) {
+        super();
+        this.targetRange = ConstructJob.range;
+        if(jobInfo instanceof ConstructionSite) {
+            this.site = jobInfo;
+            this.siteId = jobInfo.id;
+        }
+        else if (jobInfo !== '') {
+            const fields = jobInfo.split(',');
+            this.siteId = fields[0] as Id<ConstructionSite>;
+            this.site = Game.constructionSites[this.siteId];
+            this.ttr = Number(fields[1]);
+
+            if(Number(fields[2]) >= 0) {
+                const x = Number(fields[2]);
+                const y = Number(fields[3]);
+                const roomName = fields[4];
+                this.target = new RoomPosition(x, y, roomName);
+            }
+        }
+        else {
+            this.site = null;
+            this.siteId = null;
+        }
+
+        if(this.site && !this.target) {
+            this.target = this.site.pos;
+        }
+    }
+
+    public tickInit(): void {
+        if(this.siteId) {
+            this.site = Game.constructionSites[this.siteId];
+        }
+        else {
+            this.site = null;
+        }
+    }
 
     public recalculateTarget(creep: Creep): boolean {
         if(this.site) {
@@ -23,6 +69,12 @@ export class ConstructJob extends Job {
         }
     }
 
+    public do(creep: Creep): void {
+        if(this.site && creep.store.energy > 0) {
+            creep.build(this.site);
+        }
+    }
+
     public getJobType(): string {
         return ConstructJob.type;
     }
@@ -36,39 +88,6 @@ export class ConstructJob extends Job {
         }
         else {
             return '';
-        }
-    }
-
-    public do(creep: Creep): void {
-        if(this.site && creep.store.energy > 0) {
-            creep.build(this.site);
-        }
-    }
-
-    constructor (jobInfo: string | ConstructionSite) {
-        super();
-        this.targetRange = ConstructJob.range;
-        if(jobInfo instanceof ConstructionSite) {
-            this.site = jobInfo;
-        }
-        else if (jobInfo !== '') {
-            const fields = jobInfo.split(',');
-            this.site = Game.constructionSites[fields[0]];
-            this.ttr = Number(fields[1]);
-
-            if(Number(fields[2]) >= 0) {
-                const x = Number(fields[2]);
-                const y = Number(fields[3]);
-                const roomName = fields[4];
-                this.target = new RoomPosition(x, y, roomName);
-            }
-        }
-        else {
-            this.site = null;
-        }
-
-        if(this.site && !this.target) {
-            this.target = this.site.pos;
         }
     }
 }
