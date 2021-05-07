@@ -7,6 +7,7 @@ import { Manager } from "./managers/manager";
 
 // -----Jobs-----
 import { BusyJob } from "./jobs/busyJob";
+import { ClaimJob } from "./jobs/claimJob";
 import { ConstructJob } from "./jobs/constructJob";
 import { DefendJob } from "./jobs/defendJob";
 import { DropoffJob } from "./jobs/dropoffJob";
@@ -21,6 +22,7 @@ import { VisionJob } from "./jobs/visionJob";
 
 export const jobTypes: {[key: string]: (jobInfo: string) => Job} = {
     [BusyJob.type]: (jobInfo: string) => new BusyJob(),
+    [ClaimJob.type]: (jobInfo: string) => new ClaimJob(jobInfo),
     [ConstructJob.type]: (jobInfo: string) => new ConstructJob(jobInfo),
     [DefendJob.type]: (jobInfo: string) => new DefendJob(jobInfo),
     [DropoffJob.type]: (jobInfo: string) => new DropoffJob(jobInfo),
