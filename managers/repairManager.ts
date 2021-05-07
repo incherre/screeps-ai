@@ -49,7 +49,7 @@ export class RepairManager extends Manager {
                 actualNumber--;
             }
             else if(worker.creep.store.energy === 0) {
-                requests.push(new DropoffRequest(RepairManager.type, worker.creep));
+                requests.push(new DropoffRequest(RepairManager.type, worker.creep, worker.creep.store.getFreeCapacity()));
             }
         }
 

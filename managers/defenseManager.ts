@@ -24,7 +24,8 @@ export class DefenseManager extends Manager {
         if(towers) {
             for(const tower of towers) {
                 if((tower as StructureTower).store.energy < (DefenseManager.refillConstant * (tower as StructureTower).store.getCapacity(RESOURCE_ENERGY))) {
-                    requests.push(new DropoffRequest(DefenseManager.type, tower as StructureTower, /*resourceType=*/undefined, /*priority=*/1));
+                    requests.push(new DropoffRequest(DefenseManager.type, tower as StructureTower,
+                        (tower as StructureTower).store.getCapacity(RESOURCE_ENERGY), /*resourceType=*/undefined, /*priority=*/1));
                 }
             }
         }

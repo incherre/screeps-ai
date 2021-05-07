@@ -49,7 +49,7 @@ export class ConstructionManager extends Manager {
                 actualNumber--;
             }
             else if(worker.creep.store.energy < ConstructionManager.refillRatio * worker.creep.store.getCapacity()) {
-                requests.push(new DropoffRequest(ConstructionManager.type, worker.creep));
+                requests.push(new DropoffRequest(ConstructionManager.type, worker.creep, worker.creep.store.getFreeCapacity()));
             }
         }
 

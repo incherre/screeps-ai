@@ -57,7 +57,7 @@ export class UpgradeManager extends Manager {
                 actualNumber--;
             }
             else if(worker.creep.store.energy < UpgradeManager.refillRatio * worker.creep.store.getCapacity()) {
-                requests.push(new DropoffRequest(UpgradeManager.type, worker.creep));
+                requests.push(new DropoffRequest(UpgradeManager.type, worker.creep, worker.creep.store.getFreeCapacity()));
             }
         }
 

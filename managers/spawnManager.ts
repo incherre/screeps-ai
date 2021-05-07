@@ -55,7 +55,8 @@ export class SpawnManager extends Manager {
 
         for(const building of buildings) {
             if(building.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                requests.push(new DropoffRequest(SpawnManager.type, building, /*resourceType=*/undefined, /*priority=*/2));
+                requests.push(new DropoffRequest(SpawnManager.type, building, building.store.getFreeCapacity(RESOURCE_ENERGY),
+                /*resourceType=*/undefined, /*priority=*/2));
             }
         }
         return requests;
@@ -84,7 +85,13 @@ export class SpawnManager extends Manager {
 
                 if(!building.spawning && requests.length > 0 && energy >= SpawnManager.minSpawnEnergy) {
                     const request = popMostImportant(requests) as SpawnRequest;
-                    const memory = {jobType: BusyJob.type, jobInfo: '', colonyRoom: this.parent.capital.name, managerType: request.requester, path: undefined};
+                    const memory = {
+                        jobType: BusyJob.type,
+                        jobInfo: '',
+                        colonyRoom: this.parent.capital.name,
+                        managerType: request.requester,
+                        path: undefined
+                    };
                     const body = spawnFunctions[request.creepBody](request.priority <= SpawnManager.spawnImmediatelyPriority ? energy : energyMax);
                     const totalCost = _.sum(body, (part) => BODYPART_COST[part]);
                     const name = building.name + '-' + Game.time;
