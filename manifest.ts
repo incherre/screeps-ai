@@ -17,6 +17,7 @@ import { PickupJob } from "./jobs/pickupJob";
 import { RepairJob } from "./jobs/repairJob";
 import { ReserveJob } from "./jobs/reserveJob";
 import { ScoutJob } from "./jobs/scoutJob";
+import { SettleJob } from "./jobs/settleJob";
 import { UpgradeJob } from "./jobs/upgradeJob";
 import { VisionJob } from "./jobs/visionJob";
 
@@ -32,6 +33,7 @@ export const jobTypes: {[key: string]: (jobInfo: string) => Job} = {
     [RepairJob.type]: (jobInfo: string) => new RepairJob(jobInfo),
     [ReserveJob.type]: (jobInfo: string) => new ReserveJob(jobInfo),
     [ScoutJob.type]: (jobInfo: string) => new ScoutJob(jobInfo),
+    [SettleJob.type]: (jobInfo: string) => new SettleJob(jobInfo),
     [UpgradeJob.type]: (jobInfo: string) => new UpgradeJob(jobInfo),
     [VisionJob.type]: (jobInfo: string) => new VisionJob(jobInfo),
 };

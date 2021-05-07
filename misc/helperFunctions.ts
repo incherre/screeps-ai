@@ -142,7 +142,8 @@ export function getSpotsNear(position: RoomPosition, range:number = 1): RoomPosi
                 let blocked = false;
                 for(const i in objects[y][x]) {
                     if(objects[y][x][i].type === 'creep' || objects[y][x][i].type === 'constructionSite') {
-                        blocked = true;
+                        const constructionSite = objects[y][x][i].constructionSite;
+                        blocked = !!constructionSite && constructionSite.structureType in OBSTACLE_OBJECT_TYPES;
                         break;
                     }
                     else if(objects[y][x][i].type === 'terrain' && objects[y][x][i].terrain === 'wall') {
