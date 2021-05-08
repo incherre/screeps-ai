@@ -316,6 +316,14 @@ function standardCallback(roomName: string): false | CostMatrix {
                 costs.set(structure.pos.x, structure.pos.y, 0xff);
             }
         }
+
+        for(const source of Game.rooms[roomName].find(FIND_SOURCES)) {
+            for(const creep of source.pos.findInRange(FIND_MY_CREEPS, 1)) {
+                // Really try to avoid walking through harvesters and interrupting them
+                costs.set(creep.pos.x, creep.pos.y, 0xfe);
+            }
+        }
+
         global.myCosts[roomName] = {mat: costs, time: Game.time};
         costs = costs.clone();
     }
