@@ -46,13 +46,17 @@ export class HarvestManager extends Manager {
 
         for(const source of sources) {
             if(source.pos.roomName !== this.parent.capital.name) {
-                for(const resource of source.pos.findInRange(FIND_DROPPED_RESOURCES, 1, {filter: (res) => res.amount > HarvestManager.minReso})) {
-                    requests.push(new PickupRequest(HarvestManager.type, resource, resource.resourceType))
+                for(const resource of source.pos.findInRange(FIND_DROPPED_RESOURCES, 1, {
+                    filter: (res) => res.amount > HarvestManager.minReso
+                })) {
+                    requests.push(new PickupRequest(HarvestManager.type, resource, resource.amount, resource.resourceType))
                 }
             }
 
-            for(const container of source.pos.findInRange(FIND_STRUCTURES, 1, {filter: (struct) => struct.structureType === STRUCTURE_CONTAINER && struct.store.energy > HarvestManager.minCont})) {
-                requests.push(new PickupRequest(HarvestManager.type, container as StructureContainer))
+            for(const container of source.pos.findInRange(FIND_STRUCTURES, 1, {
+                filter: (struct) => struct.structureType === STRUCTURE_CONTAINER && struct.store.energy > HarvestManager.minCont
+            }) as StructureContainer[]) {
+                requests.push(new PickupRequest(HarvestManager.type, container, container.store.energy))
             }
         }
 
@@ -61,20 +65,20 @@ export class HarvestManager extends Manager {
             (reso.resourceType !== RESOURCE_ENERGY && storage)
         });
         for(const resource of droppedResources) {
-            requests.push(new PickupRequest(HarvestManager.type, resource, resource.resourceType));
+            requests.push(new PickupRequest(HarvestManager.type, resource, resource.amount, resource.resourceType));
         }
 
         const tombstones = this.parent.capital.find(FIND_TOMBSTONES, {filter:
-            // TODO(Daniel): Fix the outdated way to determine if a store has non-energy resources.
-            (stone) => (stone.store.energy > HarvestManager.minReso) || (Object.keys(stone.store).length > 1 && storage)
+            (stone) => (stone.store.energy > HarvestManager.minReso) ||
+                (_.filter(Object.keys(stone.store), (resource) => resource != RESOURCE_ENERGY).length > 1 && storage)
         });
         for(const tombstone of tombstones) {
-            for(const resource of Object.keys(tombstone.store)) {
+            for(const resource of Object.keys(tombstone.store) as ResourceConstant[]) {
                 if(resource === RESOURCE_ENERGY && tombstone.store.energy > HarvestManager.minReso) {
-                    requests.push(new PickupRequest(HarvestManager.type, tombstone));
+                    requests.push(new PickupRequest(HarvestManager.type, tombstone, tombstone.store[resource]));
                 }
                 else if(storage) {
-                    requests.push(new PickupRequest(HarvestManager.type, tombstone, resource as ResourceConstant));
+                    requests.push(new PickupRequest(HarvestManager.type, tombstone, tombstone.store[resource], resource as ResourceConstant));
                 }
             }
         }

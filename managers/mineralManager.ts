@@ -40,12 +40,14 @@ export class MineralManager extends Manager {
 
             const mineral = _.find(this.parent.capital.find(FIND_MINERALS));
             if(mineral) {
-                const container = _.find(mineral.pos.findInRange(FIND_STRUCTURES, 1, {filter: (struct) => struct.structureType === STRUCTURE_CONTAINER}));
+                const container = _.find(mineral.pos.findInRange(FIND_STRUCTURES, 1, {
+                    filter: (struct) => struct.structureType === STRUCTURE_CONTAINER
+                }));
                 if(container instanceof StructureContainer && container.store.getUsedCapacity() > MineralManager.pickupThreshold) {
-                    for(const mineralType of Object.keys(container.store)) {
-                        const amount = container.store[mineralType as ResourceConstant];
+                    for(const mineralType of Object.keys(container.store) as ResourceConstant[]) {
+                        const amount = container.store[mineralType];
                         if(amount && amount > 0) {
-                            requests.push(new PickupRequest(MineralManager.type, container, mineralType as ResourceConstant));
+                            requests.push(new PickupRequest(MineralManager.type, container, container.store[mineralType], mineralType));
                         }
                     }
                 }
