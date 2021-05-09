@@ -209,8 +209,11 @@ function _evaluateMatch(worker: WorkerCreep, request: PickupRequest | DropoffReq
     const amount = Math.min(request.amount,
         (request instanceof DropoffRequest) ? worker.creep.store[request.resourceType] : worker.creep.store.getFreeCapacity());
 
-    const distance = (worker.creep.pos.roomName === request.container.pos.roomName) ? worker.creep.pos.getRangeTo(request.container.pos) :
+    let distance = (worker.creep.pos.roomName === request.container.pos.roomName) ? worker.creep.pos.getRangeTo(request.container.pos) :
         Game.map.getRoomLinearDistance(worker.creep.pos.roomName, request.container.pos.roomName) * 50;
+
+    // Consider a priority level to be roughly equivalent to walking 20 extra steps
+    distance += 20 * request.priority;
 
     // Maximize the amount of resources transported per tick
     return amount / distance;

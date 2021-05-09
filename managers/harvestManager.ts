@@ -103,6 +103,11 @@ export class HarvestManager extends Manager {
             workNumber++;
         }
 
+        if(workNumber === 1 && harvestNumber > 1) {
+            requests.push(new SpawnRequest(HarvestManager.type, 'harvester', /*priority=*/1));
+            workNumber++;
+        }
+
         for(let i = workNumber; i < harvestNumber; i++){
             requests.push(new SpawnRequest(HarvestManager.type, 'harvester', /*priority=*/2));
         }
