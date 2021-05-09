@@ -19,13 +19,16 @@ export class DefenseManager extends Manager {
 
         const requests: ScreepsRequest[] = [];
 
+        const capitalAggressors = this.parent.capital.find(FIND_HOSTILE_CREEPS);
+
         // make fill requests for the towers
         const towers = this.parent.structures.get(STRUCTURE_TOWER);
         if(towers) {
             for(const tower of towers) {
                 if((tower as StructureTower).store.energy < (DefenseManager.refillConstant * (tower as StructureTower).store.getCapacity(RESOURCE_ENERGY))) {
                     requests.push(new DropoffRequest(DefenseManager.type, tower as StructureTower,
-                        (tower as StructureTower).store.getCapacity(RESOURCE_ENERGY), /*resourceType=*/undefined, /*priority=*/1));
+                        (tower as StructureTower).store.getCapacity(RESOURCE_ENERGY), /*resourceType=*/undefined,
+                        /*priority=*/capitalAggressors.length > 0 ? 1 : 3));
                 }
             }
         }
