@@ -63,6 +63,11 @@ export class TransportManager extends Manager {
             actualNumber++;
         }
 
+        if(actualNumber === 1) {
+            requests.push(new SpawnRequest(TransportManager.type, 'carrier', /*priority=*/1));
+            actualNumber++;
+        }
+
         for(let i = actualNumber; i < transportNumber; i++) {
             requests.push(new SpawnRequest(TransportManager.type, 'carrier', /*priority=*/2));
         }
