@@ -40,7 +40,7 @@ export class RepairManager extends Manager {
         let actualNumber = this.workers.length;
 
         for(const worker of this.workers) {
-            if(!worker.creep) {
+            if(!worker.creep || worker.creep.spawning) {
                 continue;
             }
 
