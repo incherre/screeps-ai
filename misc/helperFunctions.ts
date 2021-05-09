@@ -140,18 +140,18 @@ export function getSpotsNear(position: RoomPosition, range:number = 1): RoomPosi
         for(const y in objects) {
             for(const x in objects[y]) {
                 let blocked = false;
-                for(const i in objects[y][x]) {
-                    if(objects[y][x][i].type === 'creep' || objects[y][x][i].type === 'constructionSite') {
-                        const constructionSite = objects[y][x][i].constructionSite;
+                for(const object of objects[y][x]) {
+                    if(object.type === 'creep' || object.type === 'constructionSite') {
+                        const constructionSite = object.constructionSite;
                         blocked = !!constructionSite && constructionSite.structureType in OBSTACLE_OBJECT_TYPES;
                         break;
                     }
-                    else if(objects[y][x][i].type === 'terrain' && objects[y][x][i].terrain === 'wall') {
+                    else if(object.type === 'terrain' && object.terrain === 'wall') {
                         blocked = true;
                         break;
                     }
-                    else if(objects[y][x][i].type === 'structure') {
-                        const structure = objects[y][x][i].structure;
+                    else if(object.type === 'structure') {
+                        const structure = object.structure;
                         if(structure && OBSTACLE_OBJECT_TYPES.includes(structure.structureType as any)){
                             blocked = true;
                             break;

@@ -78,9 +78,9 @@ export class UpgradeManager extends Manager {
             return;
         }
 
-        for(const i in this.workers) {
-            if(this.workers[i].job instanceof IdleJob && this.parent.capital.controller) {
-                this.workers[i].job = new UpgradeJob(this.parent.capital.controller);
+        for(const worker of this.workers) {
+            if(worker.job instanceof IdleJob && this.parent.capital.controller) {
+                worker.job = new UpgradeJob(this.parent.capital.controller);
             }
         }
     }

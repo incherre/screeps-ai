@@ -85,7 +85,7 @@ export function placeBaseRamparts(room: Room, count: number): number {
     if(!room.memory.seed) {
         return 0;
     }
-    
+
     let placed = 0;
     const seed = room.memory.seed;
     let template = rotateTemplate(seedTemplate, seed.r);
@@ -196,7 +196,7 @@ export function displayLayout(room: Room) {
             }
         }
     }
-    
+
 }
 
 function hasSeeds(room: Room): boolean {
@@ -325,7 +325,7 @@ function placePetals(seed: RoomPosition, startDirection: number, petals: Array<{
         rotateTemplate(petalTemplate, 0), rotateTemplate(petalTemplate, 1),
         rotateTemplate(petalTemplate, 2), rotateTemplate(petalTemplate, 3)
     ];
-    
+
     let dx = 0;
     let dy = 0;
     let rotation = (startDirection + 1) % 4;
@@ -469,7 +469,7 @@ function calculateOptimalPosition (myMap: MyMap, minWallDist: number, controller
             }
         }
     }
-    
+
     return minPos;
 }
 
@@ -497,7 +497,7 @@ function getDistanceGraph(room: Room): MyMap | null {
         myMap.push([]);
         for(let y = 0; y < 50; y++) {
             const tempTerrain: {exitDist: number, wallDist: number, sourceDist: number[], controllerDist:number} = {exitDist: -1, wallDist: -1, sourceDist: [], controllerDist: -1};
-            
+
             if((x === 0 || y === 0 || x === 49 || y === 49) && terrain.get(x, y) === 0) {
                 tempTerrain.exitDist = 0;
                 exitQueue.unshift({'x': x, 'y': y});
@@ -510,25 +510,25 @@ function getDistanceGraph(room: Room): MyMap | null {
                 tempTerrain.wallDist = 0;
                 wallQueue.unshift({'x': x, 'y': y});
             }
-            
+
             tempTerrain.sourceDist = [];
-            for(const i in sources){
-                if(x === sources[i].x && y === sources[i].y){
+            for(const source of sources){
+                if(x === source.x && y === source.y){
                     tempTerrain.sourceDist.push(0);
                 }
                 else {
                     tempTerrain.sourceDist.push(-1);
                 }
             }
-            
+
             if(x === controller.x && y === controller.y) {
                 tempTerrain.controllerDist = 0;
             }
-            
+
             myMap[x].push(tempTerrain);
         }
     }
-    
+
     while(exitQueue.length > 0) {
         const pos: {x: number, y: number} | undefined = exitQueue.pop();
         if(!pos) { continue; }
@@ -538,7 +538,7 @@ function getDistanceGraph(room: Room): MyMap | null {
             const x: number = pos.x + dx;
             for(let dy = -1; dy <= 1; dy++) {
                 const y: number = pos.y + dy;
-                
+
                 if((dx !== 0 || dy !== 0) && x >= 0 && x < 50 && y >= 0 && y < 50 && myMap[x][y].wallDist !== 0 && myMap[x][y].exitDist < 0) {
                     myMap[x][y].exitDist = current + 1;
                     exitQueue.unshift({'x': x, 'y': y});
@@ -546,7 +546,7 @@ function getDistanceGraph(room: Room): MyMap | null {
             }
         }
     }
-    
+
     while(wallQueue.length > 0) {
         const pos: {x: number, y: number} | undefined = wallQueue.pop();
         if(!pos) { continue; }
@@ -556,7 +556,7 @@ function getDistanceGraph(room: Room): MyMap | null {
             const x: number = pos.x + dx;
             for(let dy = -1; dy <= 1; dy++) {
                 const y: number = pos.y + dy;
-                
+
                 if((dx !== 0 || dy !== 0) && x >= 0 && x < 50 && y >= 0 && y < 50 && myMap[x][y].wallDist < 0) {
                     myMap[x][y].wallDist = current + 1;
                     wallQueue.unshift({'x': x, 'y': y});
@@ -575,7 +575,7 @@ function getDistanceGraph(room: Room): MyMap | null {
             const x: number = pos.x + dx;
             for(let dy = -1; dy <= 1; dy++) {
                 const y: number = pos.y + dy;
-                
+
                 if((dx !== 0 || dy !== 0) && x >= 0 && x < 50 && y >= 0 && y < 50 && myMap[x][y].wallDist !== 0 && myMap[x][y].controllerDist < 0) {
                     myMap[x][y].controllerDist = current + 1;
                     queue.unshift({'x': x, 'y': y});
@@ -583,19 +583,19 @@ function getDistanceGraph(room: Room): MyMap | null {
             }
         }
     }
-    
+
     for(const i in sources) {
         queue.unshift({x: sources[i].x, y: sources[i].y});
         while(queue.length > 0) {
             const pos: {x: number, y: number} | undefined = queue.pop();
             if(!pos) { continue; }
             const current = myMap[pos.x][pos.y].sourceDist[i];
-    
+
             for(let dx = -1; dx <= 1; dx++) {
                 const x: number = pos.x + dx;
                 for(let dy = -1; dy <= 1; dy++) {
                     const y: number = pos.y + dy;
-                    
+
                     if((dx !== 0 || dy !== 0) && x >= 0 && x < 50 && y >= 0 && y < 50 && myMap[x][y].wallDist !== 0 && myMap[x][y].sourceDist[i] < 0) {
                         myMap[x][y].sourceDist[i] = current + 1;
                         queue.unshift({'x': x, 'y': y});
