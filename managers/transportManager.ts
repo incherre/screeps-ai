@@ -149,10 +149,10 @@ export class TransportManager extends Manager {
 
             // If someone is requesting something, but it isn't in a creep already, try to pick it up
             if(this.parent.capital.storage && this.parent.capital.storage.store[resourceType] > 0) {
-                containerRequests.push(new PickupRequest(request.requester, this.parent.capital.storage, request.amount, resourceType));
+                containerRequests.push(new PickupRequest(request.requester, this.parent.capital.storage, request.amount, resourceType, request.priority));
             }
             else if(this.parent.capital.terminal && this.parent.capital.terminal.store[resourceType] > 0) {
-                containerRequests.push(new PickupRequest(request.requester, this.parent.capital.terminal, request.amount, resourceType));
+                containerRequests.push(new PickupRequest(request.requester, this.parent.capital.terminal, request.amount, resourceType, request.priority));
             }
         }
 
