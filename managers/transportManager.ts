@@ -2,7 +2,6 @@ import { Colony } from "../colony";
 import { DropoffJob } from "../jobs/dropoffJob";
 import { IdleJob } from "../jobs/idleJob";
 import { PickupJob } from "../jobs/pickupJob";
-import { shuffle } from "../misc/helperFunctions";
 import { DropoffRequest } from "../requests/dropoffRequest";
 import { PickupRequest } from "../requests/pickupRequest";
 import { ScreepsRequest } from "../requests/request";
@@ -76,282 +75,118 @@ export class TransportManager extends Manager {
             return;
         }
 
-        const hungryContainers: Map<ResourceConstant, Set<Id<AnyStoreStructure> | Id<Creep>>> =
-            new Map<ResourceConstant, Set<Id<AnyStoreStructure> | Id<Creep>>>();
-        const fullContainers: Map<ResourceConstant, Set<Id<AnyStoreStructure> | Id<Creep> | Id<Tombstone> | Id<Ruin> | Id<Resource>>> =
-            new Map<ResourceConstant, Set<Id<AnyStoreStructure> | Id<Creep> | Id<Tombstone> | Id<Ruin> | Id<Resource>>>();
-        const resourcesGettingGot: Set<ResourceConstant> = new Set<ResourceConstant>();
+        // Map of (id,resourceType) pairs to a request
+        const containerRequestsMap: Map<string, DropoffRequest | PickupRequest> = new Map<string, DropoffRequest | PickupRequest>();
 
-        const idleEmpty: WorkerCreep[] = [];
-        const idlePartFull: WorkerCreep[] = [];
-        const idleFull: Map<ResourceConstant, WorkerCreep[]> = new Map<ResourceConstant, WorkerCreep[]>();
+        const idleCreeps: WorkerCreep[] = [];
+        const mineralsSoonAvailable: Set<ResourceConstant> = new Set<ResourceConstant>();
 
-        // calculate all the things that need to get stuff, and what sort of activities are in progress
-
-        // deal with other managers requesting stuff
+        // Consider other managers requesting stuff
         const dropoffRequests: ScreepsRequest[] | undefined = this.parent.requests.get(DropoffRequest.type);
         if(dropoffRequests) {
-            shuffle(dropoffRequests);
-            for(const i in dropoffRequests) {
-                if(dropoffRequests[i] instanceof DropoffRequest) {
-                    const asDR = dropoffRequests[i] as DropoffRequest;
-                    if(!hungryContainers.has(asDR.resourceType)){
-                        hungryContainers.set(asDR.resourceType, new Set<Id<AnyStoreStructure> | Id<Creep>>());
-                    }
-
-                    const resourceSet = hungryContainers.get(asDR.resourceType);
-                    if(resourceSet) {
-                        resourceSet.add(asDR.container.id);
-                    }
-                }
+            for(const request of dropoffRequests as DropoffRequest[]) {
+                containerRequestsMap.set([request.container.id, request.resourceType].join(), request);
             }
         }
 
-        // deal with other managers giving stuff
+        // Consider other managers giving stuff
         const pickupRequests: ScreepsRequest[] | undefined = this.parent.requests.get(PickupRequest.type);
         if(pickupRequests) {
-            shuffle(pickupRequests);
-            for(const i in pickupRequests) {
-                if(pickupRequests[i] instanceof PickupRequest) {
-                    const asPR = pickupRequests[i] as PickupRequest;
-                    if(!fullContainers.has(asPR.resourceType)) {
-                        fullContainers.set(asPR.resourceType,
-                            new Set<Id<AnyStoreStructure> | Id<Creep> | Id<Tombstone> | Id<Ruin> | Id<Resource>>());
-                    }
-                    const resourceSet = fullContainers.get(asPR.resourceType as ResourceConstant);
-                    if(resourceSet) {
-                        resourceSet.add(asPR.container.id);
-                    }
-                }
+            for(const request of pickupRequests as PickupRequest[]) {
+                containerRequestsMap.set([request.container.id, request.resourceType].join(), request);
             }
         }
 
-        // use the information about creeps to find creeps in need of work, and remove some requests
+        // Use the information about creeps to find creeps in need of work, and remove some requests
         for(const worker of this.workers) {
             if(!worker.creep) {
                 continue;
             }
 
             if(worker.job instanceof IdleJob) {
-                const idleCreep = worker.creep;
-                if(Object.keys(idleCreep.store).length > 1) {
-                    // full with something that's not energy
-                    const resource: ResourceConstant = _.max(Object.keys(idleCreep.store), (resourceType: ResourceConstant) => {
-                        if(resourceType === RESOURCE_ENERGY) {
-                            return -Infinity;
-                        }
-                        else {
-                            return idleCreep.store[resourceType];
-                        }
-                    }) as ResourceConstant;
-
-                    if(!idleFull.has(resource)) {
-                        idleFull.set(resource, []);
-                    }
-
-                    const workerList = idleFull.get(resource);
-                    if(workerList) {
-                        workerList.push(worker);
-                    }
-                }
-                else if(idleCreep.store.energy > 0 && idleCreep.store.getFreeCapacity() > 0) {
-                    // has some energy
-                    idlePartFull.push(worker);
-                }
-                else if(idleCreep.store.energy > 0 && idleCreep.store.getFreeCapacity() === 0) {
-                    // full with energy
-                    if(!idleFull.has(RESOURCE_ENERGY)) {
-                        idleFull.set(RESOURCE_ENERGY, []);
-                    }
-
-                    const workerList = idleFull.get(RESOURCE_ENERGY);
-                    if(workerList) {
-                        workerList.push(worker);
-                    }
-                }
-                else {
-                    // only one key in carry, must be energy; energy not greater than 0, must be 0 :. carry must be empty
-                    idleEmpty.push(worker);
+                idleCreeps.push(worker);
+                for(const resource of Object.keys(worker.creep.store)) {
+                    mineralsSoonAvailable.add(resource as ResourceConstant);
                 }
             }
             else if(worker.job instanceof PickupJob) {
                 // the resource is being gotten
-                const container =  (worker.job as PickupJob).container;
+                const container = (worker.job as PickupJob).container;
                 const resourceType = (worker.job as PickupJob).resourceType;
                 if(container) {
-                    resourcesGettingGot.add(resourceType);
-                    const resourceSet = fullContainers.get(resourceType);
-                    if(resourceSet) {
-                        resourceSet.delete(container.id);
-                        if(resourceSet.size === 0) {
-                            fullContainers.delete(resourceType);
-                        }
-                    }
+                    containerRequestsMap.delete([container.id, resourceType].join());
+                    mineralsSoonAvailable.add(resourceType);
                 }
             }
             else if(worker.job instanceof DropoffJob) {
-                // it's delivering it
+                // the resource is being delivered
                 const container = (worker.job as DropoffJob).container;
                 const resourceType = (worker.job as DropoffJob).resourceType;
-                const resourceSet = hungryContainers.get(resourceType);
-
-                if(resourceSet && container) {
-                    resourceSet.delete(container.id);
-                    if(resourceSet.size === 0) {
-                        hungryContainers.delete(resourceType);
-                    }
+                if(container) {
+                    containerRequestsMap.delete([container.id, resourceType].join());
                 }
             }
         }
 
-        // now actually assign creeps to do the things that need to be done
-
-        while(idleEmpty.length > 0 && fullContainers.size > 0) {
-            // pair idle and empty workers with containers that need emptying
-            let worker = null;
-            const [resourceType, resourceSet] = fullContainers.entries().next().value;
-            const containerId = resourceSet.values().next().value;
-            const container = Game.getObjectById(containerId);
-            resourceSet.delete(containerId);
-            if(resourceSet.size === 0) {
-                fullContainers.delete(resourceType);
+        // Build a list of requests instead of the map
+        const containerRequests: (DropoffRequest | PickupRequest)[] = [];
+        for(const key of containerRequestsMap.keys()) {
+            const resourceType = key.split(',')[1] as ResourceConstant;
+            const request = containerRequestsMap.get(key);
+            if(!request) {
+                continue;
             }
 
-            if(container instanceof RoomObject) {
-                worker = getAndRemoveClosest(idleEmpty, container.pos);
+            if(!(request instanceof DropoffRequest) || mineralsSoonAvailable.has(resourceType)) {
+                containerRequests.push(request)
+                continue;
             }
 
-            if(worker && (container instanceof Structure || container instanceof Resource || container instanceof Tombstone || container instanceof Ruin)) {
-                worker.job = new PickupJob(container as AnyStoreStructure | Resource | Tombstone | Ruin, resourceType);
+            // If someone is requesting something, but it isn't in a creep already, try to pick it up
+            if(this.parent.capital.storage && this.parent.capital.storage.store[resourceType] > 0) {
+                containerRequests.push(new PickupRequest(request.requester, this.parent.capital.storage, request.amount, resourceType));
             }
-        }
-
-        const energyFull =  idleFull.get(RESOURCE_ENERGY);
-        const energyHungry = hungryContainers.get(RESOURCE_ENERGY);
-
-        if(energyFull && energyHungry) {
-            while(energyFull.length > 0 && energyHungry.size > 0) {
-                // pair idle and full workers with containers that need energy
-                let worker = null;
-                const containerId = energyHungry.values().next().value;
-                const container = Game.getObjectById(containerId);
-                energyHungry.delete(containerId);
-
-                if(container instanceof RoomObject) {
-                    worker = getAndRemoveClosest(energyFull, container.pos);
-                }
-
-                if(worker && (container instanceof Structure || container instanceof Creep)) {
-                    worker.job = new DropoffJob(container as AnyStoreStructure | Creep);
-                }
+            else if(this.parent.capital.terminal && this.parent.capital.terminal.store[resourceType] > 0) {
+                containerRequests.push(new PickupRequest(request.requester, this.parent.capital.terminal, request.amount, resourceType));
             }
         }
 
-        if(energyHungry) {
-            while(idlePartFull.length > 0 && energyHungry.size > 0) {
-                // pair idle and partially full workers with containers that need energy
-                let worker = null;
-                const containerId = energyHungry.values().next().value;
-                const container = Game.getObjectById(containerId);
-                energyHungry.delete(containerId);
-
-                if(container instanceof RoomObject) {
-                    worker = getAndRemoveClosest(idlePartFull, container.pos);
-                }
-
-                if(worker && (container instanceof Structure || container instanceof Creep)) {
-                    worker.job = new DropoffJob(container as AnyStoreStructure | Creep);
-                }
+        // Assign creeps to do the things that need to be done
+        for(const worker of idleCreeps) {
+            if(!worker.creep) {
+                continue;
             }
 
-            if(energyHungry.size > 0 && !resourcesGettingGot.has(RESOURCE_ENERGY) && idleEmpty.length > 0 && this.parent.capital.storage !== undefined && this.parent.capital.storage.store.energy > 0){
-                // if there are still containers that need energy, and there are no workers going to pick up energy, and we have a store of it, and spare idle workers,
-                // then send someone to pick some up
-                const worker = getAndRemoveClosest(idleEmpty, this.parent.capital.storage.pos);
-                if(worker) {
-                    worker.job = new PickupJob(this.parent.capital.storage);
-                    resourcesGettingGot.add(RESOURCE_ENERGY);
-                }
-            }
-        }
-
-        if(energyFull && this.parent.capital.storage !== undefined) {
-            while(energyFull.length > 0) {
-                // if there are full workers that have nowhere to go, drop off their stuff at storage
-                const worker = energyFull.pop();
-                if(worker) {
-                    worker.job = new DropoffJob(this.parent.capital.storage);
-                }
-            }
-        }
-
-        idleFull.delete(RESOURCE_ENERGY);
-        hungryContainers.delete(RESOURCE_ENERGY);
-
-        for(const [resource, readyWorkers] of idleFull.entries()) {
-            const containerSet = hungryContainers.get(resource);
-            if(containerSet) {
-                // pair workers carrying minerals with the containers that require that mineral
-                while(readyWorkers.length > 0 && containerSet.size > 0) {
-                    let worker = null;
-                    const containerId = containerSet.values().next().value;
-                    const container = Game.getObjectById(containerId);
-                    containerSet.delete(containerId);
-
-                    if(container instanceof RoomObject) {
-                        worker = getAndRemoveClosest(readyWorkers, container.pos);
-                    }
-
-                    if(worker && (container instanceof Structure || container instanceof Creep)) {
-                        worker.job = new DropoffJob(container as AnyStoreStructure | Creep, resource);
-                    }
-                }
-
-                // if we ran out of workers, assign one (if available) to go pick up something
-                if(containerSet.size > 0 && !resourcesGettingGot.has(resource) && this.parent.capital.storage !== undefined && this.parent.capital.storage.store[resource] !== undefined){
-                    let worker = null;
-                    if(idleEmpty.length > 0) {
-                        worker = getAndRemoveClosest(idleEmpty, this.parent.capital.storage.pos);
-                    }
-                    else if(idlePartFull.length > 0) {
-                        worker = getAndRemoveClosest(idlePartFull, this.parent.capital.storage.pos);
-                    }
-
-                    if(worker) {
-                        worker.job = new PickupJob(this.parent.capital.storage, resource);
-                        resourcesGettingGot.add(resource);
-                    }
+            // Each creep picks the task it likes most from the remaining tasks. Greedy, could be improved.
+            let maxScore: number = 0;
+            let bestRequestIndex: number = -1;
+            for(const i in containerRequests) {
+                const thisScore = _evaluateMatch(worker, containerRequests[i]);
+                if(thisScore > maxScore) {
+                    maxScore = thisScore;
+                    bestRequestIndex = Number(i);
                 }
             }
 
-            if(this.parent.capital.storage !== undefined) {
-                // if there are more workers with a resource than things that require it, drop that resource off
-                while(readyWorkers.length > 0) {
-                    const worker = readyWorkers.pop();
-                    if(worker) {
-                        worker.job = new DropoffJob(this.parent.capital.storage, resource);
-                    }
-                }
-            }
-        }
-
-        while(idlePartFull.length > 0 && fullContainers.size > 0) {
-            // pair remaining idle and partially full workers with containers that need emptying
-            let worker = null;
-            const [resourceType, resourceSet] = fullContainers.entries().next().value;
-            const containerId = resourceSet.values().next().value;
-            const container = Game.getObjectById(containerId);
-            resourceSet.delete(containerId);
-            if(resourceSet.size === 0) {
-                fullContainers.delete(resourceType);
+            if(maxScore > 0 && bestRequestIndex >= 0) {
+                worker.job = _jobFromRequest(containerRequests[bestRequestIndex]);
+                containerRequests[bestRequestIndex] = containerRequests[containerRequests.length - 1];
+                containerRequests.pop();
+                continue;
             }
 
-            if(container instanceof RoomObject) {
-                worker = getAndRemoveClosest(idlePartFull, container.pos);
+            if(worker.creep.store.getUsedCapacity() === 0) {
+                continue;
             }
 
-            if(worker && (container instanceof Structure || container instanceof Resource || container instanceof Tombstone || container instanceof Ruin)) {
-                worker.job = new PickupJob(container as AnyStoreStructure | Resource | Tombstone | Ruin, resourceType);
+            if(this.parent.capital.storage) {
+                worker.job = new DropoffJob(this.parent.capital.storage, Object.keys(worker.creep.store)[0] as ResourceConstant);
+                continue;
+            }
+
+            if(this.parent.capital.terminal) {
+                worker.job = new DropoffJob(this.parent.capital.terminal, Object.keys(worker.creep.store)[0] as ResourceConstant);
+                continue;
             }
         }
     }
@@ -361,48 +196,26 @@ export class TransportManager extends Manager {
     }
 }
 
-function getAndRemoveClosest(creeps: WorkerCreep[], pos: RoomPosition): WorkerCreep | null {
-    const roomWidth = 50;
-    let minDist = Infinity;
-    let index = -1;
-
-    for(let i = 0; i < creeps.length; i++) {
-        const creep = creeps[i].creep;
-        if(!creep) {
-            continue;
-        }
-
-        let dist;
-        if(creep.pos.roomName === pos.roomName) {
-            dist = creep.pos.getRangeTo(pos);
-        }
-        else {
-            const exit = creep.room.findExitTo(pos.roomName);
-            if(exit === ERR_INVALID_ARGS || exit === ERR_NO_PATH) {
-                dist = Infinity;
-            }
-            else {
-                dist = (roomWidth * Game.map.getRoomLinearDistance(creep.pos.roomName, pos.roomName));
-                const closest = creep.pos.findClosestByRange(exit);
-                if(closest) {
-                    dist += creep.pos.getRangeTo(closest);
-                }
-            }
-        }
-
-        if(dist < minDist) {
-            minDist = dist;
-            index = i;
-        }
+function _evaluateMatch(worker: WorkerCreep, request: PickupRequest | DropoffRequest): number {
+    if(!worker.creep) {
+        return 0;
     }
 
-    if(minDist !== Infinity && index >= 0) {
-        const creep = creeps[index];
-        creeps[index] = creeps[creeps.length - 1];
-        creeps.pop();
-        return creep;
+    const amount = Math.min(request.amount,
+        (request instanceof DropoffRequest) ? worker.creep.store[request.resourceType] : worker.creep.store.getFreeCapacity());
+
+    const distance = (worker.creep.pos.roomName === request.container.pos.roomName) ? worker.creep.pos.getRangeTo(request.container.pos) :
+        Game.map.getRoomLinearDistance(worker.creep.pos.roomName, request.container.pos.roomName) * 50;
+
+    // Maximize the amount of resources transported per tick
+    return amount / distance;
+}
+
+function _jobFromRequest(request: PickupRequest | DropoffRequest): PickupJob | DropoffJob {
+    if(request instanceof PickupRequest) {
+        return new PickupJob(request.container, request.resourceType);
     }
     else {
-        return null;
+        return new DropoffJob(request.container, request.resourceType);
     }
 }
