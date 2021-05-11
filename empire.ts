@@ -1,3 +1,4 @@
+import { WorkerCreep } from "worker";
 import { Colony } from "./colony";
 import { EmpireManager } from "./empireManagers/empireManager";
 import { empireTypes } from "./manifest";
@@ -22,6 +23,7 @@ export class Empire {
 
         // sort all the creeps into their parent colonies
         const creepMap: Map<string, Creep[]> = new Map<string, Creep[]>();
+        const empireCreepMap: Map<string, WorkerCreep[]> = new Map<string, WorkerCreep[]>();
         for(const roomName in Game.rooms) {
             const room = Game.rooms[roomName];
             if(room.controller && room.controller.my) {
@@ -32,15 +34,28 @@ export class Empire {
 
         for(const creepName in Game.creeps) {
             const creep = Game.creeps[creepName];
+            if(!creep.memory.colonyRoom) {
+                continue;
+            }
+
             const list = creepMap.get(creep.memory.colonyRoom);
             if(list !== undefined) {
                 // add creeps to their rooms
                 list.push(creep);
+                continue;
             }
-            // What to do if creep doesn't have a home?
+
+            let empireList = empireCreepMap.get(creep.memory.colonyRoom);
+            if(!empireList){
+                empireList = [];
+                empireCreepMap.set(creep.memory.colonyRoom, empireList);
+            }
+
+            // Add Empire level creeps to their Empire level managers.
+            empireList.push(new WorkerCreep(creep, this));
         }
 
-        // init colonies
+        // Init colonies.
         this.colonies = new Map<string, Colony>();
         for(const roomName of creepMap.keys()) {
             const room = Game.rooms[roomName];
@@ -50,10 +65,16 @@ export class Empire {
             }
         }
 
-        // init empire level managers
+        // Init empire level managers
         this.managers = [];
         for(const managerName in empireTypes) {
-            this.managers.push(empireTypes[managerName](this));
+            const newManager = empireTypes[managerName](this);
+            this.managers.push(newManager);
+
+            const managerWorkers = empireCreepMap.get(managerName);
+            if(managerWorkers) {
+                newManager.workers = managerWorkers;
+            }
         }
     }
 

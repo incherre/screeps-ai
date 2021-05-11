@@ -1,3 +1,4 @@
+import { Empire } from "empire";
 import { Colony } from "./colony";
 import { IdleJob } from "./jobs/idleJob";
 import { Job } from "./jobs/job";
@@ -6,7 +7,7 @@ import { addRoomInfo, getOwnName, getRoomInfo, getSpotsNear, movePos, shuffle, S
 
 export class WorkerCreep {
     // Inter-tick variables
-    public parent: Colony;
+    public parent: Colony | Empire;
     public creepId: Id<Creep>;
     public job: Job;
 
@@ -15,7 +16,7 @@ export class WorkerCreep {
     public moved: boolean;
     public worked: boolean;
 
-    constructor (creep: Creep, parent: Colony) {
+    constructor (creep: Creep, parent: Colony | Empire) {
         this.parent = parent;
         this.creepId = creep.id;
         this.creep = creep;
@@ -92,7 +93,7 @@ export class WorkerCreep {
                 // try to move toward our target
                 dir = this.creep.pos.getDirectionTo(this.job.target);
                 let newPos: RoomPosition | null = movePos(this.creep.pos, dir);
-                const blockingWorker = this.parent.getWorker(newPos)
+                const blockingWorker = this.findBlockingCreepAtPos(newPos);
 
                 const matrix = standardCallback(this.creep.pos.roomName);
                 const terrain = Game.map.getRoomTerrain(this.creep.pos.roomName);
@@ -156,7 +157,7 @@ export class WorkerCreep {
         }
 
         // figure out if someone is blocking us
-        const blockingWorker = this.parent.getWorker(targetPos);
+        const blockingWorker = this.findBlockingCreepAtPos(targetPos);
         if(!blockingWorker || blockingWorker.moved) {
             // nothing is blocking us, happy day!
             return this.creep.moveByPath(path);
@@ -174,6 +175,26 @@ export class WorkerCreep {
             // they probably didn't move because they were tired...
             return ERR_TIRED;
         }
+    }
+
+    private findBlockingCreepAtPos(pos: RoomPosition): WorkerCreep | null {
+        if(this.parent instanceof Colony) {
+            return this.parent.getWorker(pos);
+        }
+
+        const immediateTempParent = this.parent.colonies.get(pos.roomName);
+        if(immediateTempParent) {
+            return immediateTempParent.getWorker(pos);
+        }
+
+        const parentRoom = Game.rooms[pos.roomName]?.memory.parent;
+        const indirectTempParent = (parentRoom) ? this.parent.colonies.get(parentRoom) : null
+        if(indirectTempParent) {
+            return indirectTempParent.getWorker(pos);
+        }
+
+        // If this becomes an issue, we can LookForAt later.
+        return null;
     }
 
     private moveTo(targetPos: RoomPosition): CreepMoveReturnCode | ERR_NOT_FOUND | ERR_INVALID_ARGS {
