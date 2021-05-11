@@ -1,8 +1,8 @@
 interface CreepMemory {
-  jobType: string;
-  jobInfo: string;
-  colonyRoom: string;
-  managerType: string;
+  jobType: string | undefined;
+  jobInfo: string | undefined;
+  colonyRoom: string | undefined;
+  managerType: string | undefined;
   path: string | undefined;
 }
 

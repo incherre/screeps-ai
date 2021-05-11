@@ -47,7 +47,7 @@ export class Colony {
         // initialize and distribute the workers
         this.workers = [];
         for(const creep of creeps) {
-            if(this.managers.has(creep.memory.managerType)) {
+            if(creep.memory.managerType && this.managers.has(creep.memory.managerType)) {
                 const worker = new WorkerCreep(creep, this);
                 const manager = this.managers.get(creep.memory.managerType);
                 if(manager) {
@@ -177,12 +177,15 @@ export class Colony {
             creep = Game.getObjectById(newOne.creepId);
         }
 
-        if(newWorker && creep) {
+        if(newWorker && creep && creep.memory.managerType) {
             this.workers.push(newWorker);
             const manager = this.managers.get(creep.memory.managerType);
             if(manager) {
                 manager.addWorker(newWorker);
             }
+        }
+        else {
+            console.log("A worker failed to be added in", this.capitalName);
         }
     }
 

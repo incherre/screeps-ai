@@ -20,7 +20,7 @@ export class WorkerCreep {
         this.parent = parent;
         this.creepId = creep.id;
         this.creep = creep;
-        if(jobTypes[creep.memory.jobType]) {
+        if(creep.memory.jobType && creep.memory.jobInfo && jobTypes[creep.memory.jobType]) {
             this.job = jobTypes[creep.memory.jobType](creep.memory.jobInfo);
         }
         else {
