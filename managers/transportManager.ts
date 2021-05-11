@@ -69,7 +69,7 @@ export class TransportManager extends Manager {
         }
 
         for(let i = actualNumber; i < transportNumber; i++) {
-            requests.push(new SpawnRequest(TransportManager.type, 'carrier', /*priority=*/2));
+            requests.push(new SpawnRequest(TransportManager.type, 'carrier', /*priority=*/(actualNumber < transportNumber / 2) ? 2 : 3));
         }
 
         return requests;
@@ -210,10 +210,7 @@ function _evaluateMatch(worker: WorkerCreep, request: PickupRequest | DropoffReq
         (request instanceof DropoffRequest) ? worker.creep.store[request.resourceType] : worker.creep.store.getFreeCapacity());
 
     let distance = (worker.creep.pos.roomName === request.container.pos.roomName) ? worker.creep.pos.getRangeTo(request.container.pos) :
-        Game.map.getRoomLinearDistance(worker.creep.pos.roomName, request.container.pos.roomName) * 50;
-
-    // Consider a priority level to be roughly equivalent to walking 20 extra steps
-    distance += 20 * request.priority;
+        (Game.map.getRoomLinearDistance(worker.creep.pos.roomName, request.container.pos.roomName) + 0.5) * 50;
 
     // Maximize the amount of resources transported per tick
     return amount / distance;

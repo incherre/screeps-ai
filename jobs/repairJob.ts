@@ -80,8 +80,20 @@ export class RepairJob extends Job {
     }
 
     public do(creep: Creep): void {
-        if(this.repairable && creep.store.energy > 0) {
+        if(!this.repairable) {
+            return;
+        }
+
+        if(creep.store.energy > 0) {
             creep.repair(this.repairable);
+            return;
+        }
+
+        const itsFreeEnergy = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 1, {
+            filter: (resource) => resource.resourceType === RESOURCE_ENERGY
+        });
+        if(itsFreeEnergy.length > 0) {
+            creep.pickup(itsFreeEnergy[0]);
         }
     }
 

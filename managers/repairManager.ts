@@ -11,6 +11,7 @@ export class RepairManager extends Manager {
     public static type = 'repair';
     public static towerConstant = 0.75;
     public static rampartDangerZone = 10000;
+    public static repairablesPerRepairer = 20;
 
     public generateRequests(): ScreepsRequest[] {
         if(!this.parent.capital) {
@@ -18,25 +19,29 @@ export class RepairManager extends Manager {
         }
 
         const requests: ScreepsRequest[] = [];
-        let repairNumber = 0;
-        const wallCount = this.parent.capital.find(FIND_STRUCTURES, {filter: (struct) => (struct.structureType === STRUCTURE_WALL || struct.structureType === STRUCTURE_RAMPART) && struct.hits < struct.hitsMax}).length;
+        let repairablesNumber = 0;
+        let remoteRepairRooms = 0;
+        const walls = this.parent.capital.find(FIND_STRUCTURES, {
+            filter: (struct) => (struct.structureType === STRUCTURE_WALL || struct.structureType === STRUCTURE_RAMPART) && struct.hits < struct.hitsMax
+        });
 
-        if(wallCount > 0) {
-            repairNumber += 1;
-        }
+        repairablesNumber += walls.length;
 
         if(this.parent.capital.storage) {
             for(const roomName of this.parent.remotes) {
                 if(Game.rooms[roomName] && Game.rooms[roomName].find(FIND_HOSTILE_CREEPS).length === 0) {
-                    const repairs = Game.rooms[roomName].find(FIND_STRUCTURES, {filter: (struct) => (struct.structureType === STRUCTURE_ROAD || struct.structureType === STRUCTURE_CONTAINER) && struct.hits < struct.hitsMax});
+                    const repairs = Game.rooms[roomName].find(FIND_STRUCTURES, {
+                        filter: (struct) => (struct.structureType === STRUCTURE_ROAD || struct.structureType === STRUCTURE_CONTAINER) && struct.hits < struct.hitsMax
+                    });
+                    repairablesNumber += repairs.length;
                     if(repairs.length > 0) {
-                        repairNumber += 1;
-                        break;
+                        remoteRepairRooms += 1;
                     }
                 }
             }
         }
 
+        let repairNumber = Math.ceil(repairablesNumber / RepairManager.repairablesPerRepairer);
         let actualNumber = this.workers.length;
 
         for(const worker of this.workers) {
@@ -51,6 +56,11 @@ export class RepairManager extends Manager {
             else if(worker.creep.store.energy === 0) {
                 requests.push(new DropoffRequest(RepairManager.type, worker.creep, worker.creep.store.getFreeCapacity()));
             }
+        }
+
+        if(remoteRepairRooms > 0 && actualNumber === 0 && repairNumber > 0) {
+            requests.push(new SpawnRequest(RepairManager.type, 'worker', /*priority=*/2));
+            actualNumber += 1;
         }
 
         for(let i = actualNumber; i < repairNumber; i++){
