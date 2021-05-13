@@ -93,7 +93,7 @@ export class WorkerCreep {
                 // try to move toward our target
                 dir = this.creep.pos.getDirectionTo(this.job.target);
                 let newPos: RoomPosition | null = movePos(this.creep.pos, dir);
-                const blockingWorker = this.findBlockingCreepAtPos(newPos);
+                const blockingWorker = this.parent.getBlockingWorker(newPos);
 
                 const matrix = standardCallback(this.creep.pos.roomName);
                 const terrain = Game.map.getRoomTerrain(this.creep.pos.roomName);
@@ -157,7 +157,7 @@ export class WorkerCreep {
         }
 
         // figure out if someone is blocking us
-        const blockingWorker = this.findBlockingCreepAtPos(targetPos);
+        const blockingWorker = this.parent.getBlockingWorker(targetPos);
         if(!blockingWorker || blockingWorker.moved) {
             // nothing is blocking us, happy day!
             return this.creep.moveByPath(path);
@@ -175,26 +175,6 @@ export class WorkerCreep {
             // they probably didn't move because they were tired...
             return ERR_TIRED;
         }
-    }
-
-    private findBlockingCreepAtPos(pos: RoomPosition): WorkerCreep | null {
-        if(this.parent instanceof Colony) {
-            return this.parent.getWorker(pos);
-        }
-
-        const immediateTempParent = this.parent.colonies.get(pos.roomName);
-        if(immediateTempParent) {
-            return immediateTempParent.getWorker(pos);
-        }
-
-        const parentRoom = Game.rooms[pos.roomName]?.memory.parent;
-        const indirectTempParent = (parentRoom) ? this.parent.colonies.get(parentRoom) : null
-        if(indirectTempParent) {
-            return indirectTempParent.getWorker(pos);
-        }
-
-        // If this becomes an issue, we can LookForAt later.
-        return null;
     }
 
     private moveTo(targetPos: RoomPosition): CreepMoveReturnCode | ERR_NOT_FOUND | ERR_INVALID_ARGS {

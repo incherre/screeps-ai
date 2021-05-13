@@ -199,7 +199,7 @@ export class Colony {
         this.workersByLocation.set(posString, worker);
     }
 
-    public getWorker(pos: RoomPosition): WorkerCreep | null {
+    public getBlockingWorker(pos: RoomPosition): WorkerCreep | null {
         const posString: string = [pos.x, pos.y, pos.roomName].join();
         const worker = this.workersByLocation.get(posString);
         if(worker) {

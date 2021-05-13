@@ -169,6 +169,22 @@ export class Empire {
         this.colonies.set(newColony.capitalName, newColony);
     }
 
+    public getBlockingWorker(pos: RoomPosition): WorkerCreep | null {
+        const immediateTempParent = this.colonies.get(pos.roomName);
+        if(immediateTempParent) {
+            return immediateTempParent.getBlockingWorker(pos);
+        }
+
+        const parentRoom = Game.rooms[pos.roomName]?.memory.parent;
+        const indirectTempParent = (parentRoom) ? this.colonies.get(parentRoom) : null
+        if(indirectTempParent) {
+            return indirectTempParent.getBlockingWorker(pos);
+        }
+
+        // If this becomes an issue, we can LookForAt later.
+        return null;
+    }
+
     private addRequests(newRequests: EmpireRequest[]): void {
         for(const request of newRequests) {
             const type = request.getType();
