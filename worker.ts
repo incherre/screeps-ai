@@ -3,7 +3,8 @@ import { Colony } from "./colony";
 import { IdleJob } from "./jobs/idleJob";
 import { Job } from "./jobs/job";
 import { jobTypes } from "./manifest"
-import { addRoomInfo, getOwnName, getRoomInfo, getSpotsNear, movePos, shuffle, SOURCE_KEEPER_NAME } from "./misc/helperFunctions";
+import { addRoomInfo, getRoomInfo, getSpotsNear, movePos, shuffle } from "./misc/helperFunctions";
+import { OWN_NAME, SOURCE_KEEPER_NAME } from "./misc/constants";
 
 export class WorkerCreep {
     // Inter-tick variables
@@ -294,7 +295,7 @@ function standardCallback(roomName: string): false | CostMatrix {
     if((!roomInfo || Game.time - roomInfo.lastObserved > renewRoomInfo) && Game.rooms[roomName]) {
         addRoomInfo(Game.rooms[roomName]); // record the room
     }
-    else if(roomInfo && roomInfo.owner && roomInfo.owner !== getOwnName() && roomInfo.level > 2) {
+    else if(roomInfo && roomInfo.owner && roomInfo.owner !== OWN_NAME && roomInfo.level > 2) {
         return false; // don't go in rooms that could have towers
     }
 

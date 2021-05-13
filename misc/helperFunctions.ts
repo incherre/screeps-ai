@@ -1,4 +1,5 @@
-import { ScreepsRequest } from "../requests/request";
+import { ScreepsRequest } from '../requests/request';
+import { SOURCE_KEEPER_NAME } from './constants';
 
 export function shuffle(a: any[]): void {
     let j: number;
@@ -33,31 +34,6 @@ export function popMostImportant(requests: ScreepsRequest[]): ScreepsRequest | n
     }
 }
 
-export function getOwnName(): string {
-    if(Memory.username) {
-        return Memory.username;
-    }
-    else {
-        const struct = _.find(Game.structures,
-            (structure: Structure) => structure instanceof OwnedStructure && (structure as OwnedStructure).my
-            ) as OwnedStructure;
-        if(struct && struct.my && struct.owner) {
-            Memory.username = struct.owner.username;
-            return Memory.username;
-        }
-        else {
-            const creep = _.find(Game.creeps);
-            if(creep && creep.my) {
-                Memory.username = creep.owner.username;
-                return Memory.username;
-            }
-            else {
-                return '';
-            }
-        }
-    }
-}
-
 export function getAdjacentRooms(roomName: string): string[] {
     const roomNames: string[] = [];
     const exits = Game.map.describeExits(roomName);
@@ -71,8 +47,6 @@ export function getAdjacentRooms(roomName: string): string[] {
     }
     return roomNames;
 }
-
-export const SOURCE_KEEPER_NAME = 'Source Keeper';
 
 export function addRoomInfo(room: Room): void {
     if(!Memory.seenRooms) {

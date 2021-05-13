@@ -1,4 +1,4 @@
-import { getOwnName } from "../misc/helperFunctions";
+import { OWN_NAME } from "../misc/constants";
 import { signs } from "../misc/signs";
 import { Job } from "./job";
 
@@ -66,7 +66,7 @@ export class UpgradeJob extends Job {
     }
 
     public do(creep: Creep): void {
-        if(this.controller && (!this.controller.sign || this.controller.sign.username !== getOwnName())) {
+        if(this.controller && (!this.controller.sign || this.controller.sign.username !== OWN_NAME)) {
             const sign: string = signs[Math.floor(Math.random() * signs.length)];
             if(creep.signController(this.controller, sign) === ERR_NOT_IN_RANGE) {
                 creep.move(creep.pos.getDirectionTo(this.controller));

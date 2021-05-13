@@ -1,4 +1,4 @@
-import { getOwnName } from "../misc/helperFunctions";
+import { OWN_NAME } from "../misc/constants";
 import { signs } from "../misc/signs";
 import { Job } from "./job";
 
@@ -58,7 +58,7 @@ export class ReserveJob extends Job {
     public do(creep: Creep) {
         if(this.roomName && Game.rooms[this.roomName]) {
             const controller = Game.rooms[this.roomName].controller;
-            if(controller && (!controller.sign || controller.sign.username !== getOwnName())) {
+            if(controller && (!controller.sign || controller.sign.username !== OWN_NAME)) {
                 const sign: string = signs[Math.floor(Math.random() * signs.length)];
                 creep.signController(controller, sign);
             }

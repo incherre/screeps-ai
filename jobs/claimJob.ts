@@ -1,4 +1,4 @@
-import { getOwnName } from "../misc/helperFunctions";
+import { OWN_NAME } from "../misc/constants";
 import { signs } from "../misc/signs";
 import { Job } from "./job";
 
@@ -72,15 +72,15 @@ export class ClaimJob extends Job {
         }
 
         // Sign the controller, if necessary.
-        if(!controller.sign || controller.sign.username !== getOwnName()) {
+        if(!controller.sign || controller.sign.username !== OWN_NAME) {
             const sign: string = signs[Math.floor(Math.random() * signs.length)];
             creep.signController(controller, sign);
         }
 
-        if((controller.owner && !controller.my) || (controller.reservation && controller.reservation.username !== getOwnName())) {
+        if((controller.owner && !controller.my) || (controller.reservation && controller.reservation.username !== OWN_NAME)) {
             creep.attackController(controller);
         }
-        else if(!controller.owner && (!controller.reservation || controller.reservation.username === getOwnName())) {
+        else if(!controller.owner && (!controller.reservation || controller.reservation.username === OWN_NAME)) {
             creep.claimController(controller);
         }
     }

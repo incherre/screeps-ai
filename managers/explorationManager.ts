@@ -2,7 +2,8 @@ import { Colony } from "../colony";
 import { IdleJob } from "../jobs/idleJob";
 import { ScoutJob } from "../jobs/scoutJob";
 import { VisionJob } from "../jobs/visionJob";
-import { getAdjacentRooms, getOwnName, getRoomInfo, shuffle} from "../misc/helperFunctions";
+import { getAdjacentRooms, getRoomInfo, shuffle} from "../misc/helperFunctions";
+import { OWN_NAME } from "../misc/constants"
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest } from "../requests/spawnRequest";
 import { VisionRequest } from "../requests/visionRequest";
@@ -166,7 +167,7 @@ export class ExplorationManager extends Manager {
 
                 Memory.rooms[roomName].parent = this.parent.capital.name;
             }
-            else if(info && info.owner && info.owner !== getOwnName() && Memory.rooms[roomName]) {
+            else if(info && info.owner && info.owner !== OWN_NAME && Memory.rooms[roomName]) {
                 delete Memory.rooms[roomName];
             }
         }
