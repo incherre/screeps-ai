@@ -9,7 +9,7 @@ export class Empire {
     public static cpuBucketSkipThreshold = 500;
 
     // inter-tick variables
-    public managers: EmpireManager[];
+    public managers: Map<string, EmpireManager>;
     public colonies: Map<string, Colony>;
 
     // single-tick variables
@@ -66,15 +66,16 @@ export class Empire {
         }
 
         // Init empire level managers
-        this.managers = [];
+        this.managers = new Map<string, EmpireManager>();
         for(const managerName in empireTypes) {
             const newManager = empireTypes[managerName](this);
-            this.managers.push(newManager);
 
             const managerWorkers = empireCreepMap.get(managerName);
             if(managerWorkers) {
                 newManager.workers = managerWorkers;
             }
+
+            this.managers.set(managerName, newManager);
         }
     }
 
@@ -102,7 +103,7 @@ export class Empire {
             }
 
             // initialize managers
-            for(const manager of this.managers) {
+            for(const [_, manager] of this.managers) {
                 manager.tickInit();
             }
 
@@ -121,7 +122,7 @@ export class Empire {
             }
 
             // generate empire level manager requests
-            for(const manager of this.managers) {
+            for(const [_, manager] of this.managers) {
                 this.addRequests(manager.generateRequests());
             }
         }
@@ -135,7 +136,7 @@ export class Empire {
             }
 
             // run the empire level managers
-            for(const manager of this.managers) {
+            for(const [_, manager] of this.managers) {
                 manager.manage();
             }
         }
@@ -159,7 +160,7 @@ export class Empire {
             }
 
             // clean the empire level managers
-            for(const manager of this.managers) {
+            for(const [_, manager] of this.managers) {
                 manager.cleanup();
             }
         }
@@ -167,6 +168,17 @@ export class Empire {
 
     public addColony(newColony: Colony): void {
         this.colonies.set(newColony.capitalName, newColony);
+    }
+
+    public addWorker(newWorker: WorkerCreep): void {
+        if(!newWorker.creep?.memory.colonyRoom) {
+            return;
+        }
+
+        const manager = this.managers.get(newWorker.creep?.memory.colonyRoom);
+        if(manager) {
+            manager.addWorker(newWorker);
+        }
     }
 
     public getBlockingWorker(pos: RoomPosition): WorkerCreep | null {

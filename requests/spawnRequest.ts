@@ -8,20 +8,24 @@ export type BodyType = 'carrier' | 'fighter' | 'ranger' | 'harvester' | 'miner' 
 /**
  * A request to spawn a new creep.
  * @property {BodyType} creepBody - The type of creep to make
+ * @property {boolean} empireDirect - Whether the creep should be directly managed by the Empire, or be associated with a Colony
  */
 export class SpawnRequest extends ScreepsRequest {
     public static type = 'spawn';
+
     public creepBody: BodyType;
+    public empireDirect: boolean;
 
     public getType(): string {
         return SpawnRequest.type;
     }
 
-    constructor (requester: string, creepBody: BodyType, priority: number = 3) {
+    constructor (requester: string, creepBody: BodyType, priority: number = 3, empireDirect: boolean = false) {
         super(requester, priority);
         this.requester = requester;
         this.creepBody = creepBody;
         this.priority = priority;
+        this.empireDirect = empireDirect;
     }
 }
 

@@ -177,12 +177,15 @@ export class Colony {
             creep = Game.getObjectById(newOne.creepId);
         }
 
-        if(newWorker && creep && creep.memory.managerType) {
+        if(newWorker && creep && creep.memory.managerType && creep.memory.colonyRoom === this.capitalName) {
             this.workers.push(newWorker);
             const manager = this.managers.get(creep.memory.managerType);
             if(manager) {
                 manager.addWorker(newWorker);
             }
+        }
+        else if(newWorker && creep && creep.memory.managerType) {
+            this.empire.addWorker(newWorker);
         }
         else {
             console.log("A worker failed to be added in", this.capitalName);

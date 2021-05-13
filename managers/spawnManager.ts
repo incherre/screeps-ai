@@ -88,7 +88,7 @@ export class SpawnManager extends Manager {
                     const memory = {
                         jobType: BusyJob.type,
                         jobInfo: '',
-                        colonyRoom: this.parent.capital.name,
+                        colonyRoom: request.empireDirect ? request.requester : this.parent.capital.name,
                         managerType: request.requester,
                         path: undefined
                     };
