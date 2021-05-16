@@ -35,7 +35,7 @@ export class MineralManager extends Manager {
             }
 
             for(let i = actualNumber; i < mineNumber; i++){
-                requests.push(new SpawnRequest(MineralManager.type, 'miner'));
+                requests.push(new SpawnRequest(MineralManager.type, this.parent.capitalName, 'miner'));
             }
 
             const mineral = _.find(this.parent.capital.find(FIND_MINERALS));
@@ -47,7 +47,7 @@ export class MineralManager extends Manager {
                     for(const mineralType of Object.keys(container.store) as ResourceConstant[]) {
                         const amount = container.store[mineralType];
                         if(amount && amount > 0) {
-                            requests.push(new PickupRequest(MineralManager.type, container, container.store[mineralType], mineralType));
+                            requests.push(new PickupRequest(MineralManager.type, this.parent.capitalName, container, container.store[mineralType], mineralType));
                         }
                     }
                 }
@@ -59,12 +59,12 @@ export class MineralManager extends Manager {
 
                     amount = terminal.store.getUsedCapacity() - terminal.store.energy
                     if(terminal.store.energy < amount * 2) {
-                        requests.push(new DropoffRequest(MineralManager.type, this.parent.capital.terminal, (amount * 2) - terminal.store.energy));
+                        requests.push(new DropoffRequest(MineralManager.type, this.parent.capitalName, this.parent.capital.terminal, (amount * 2) - terminal.store.energy));
                     }
 
                     amount = storage.store[mineral.mineralType];
                     if(amount && amount > MineralManager.storageAmount) {
-                        requests.push(new DropoffRequest(MineralManager.type, this.parent.capital.terminal,
+                        requests.push(new DropoffRequest(MineralManager.type, this.parent.capitalName, this.parent.capital.terminal,
                             amount - MineralManager.storageAmount, mineral.mineralType));
                     }
 

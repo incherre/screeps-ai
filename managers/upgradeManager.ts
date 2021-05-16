@@ -57,17 +57,17 @@ export class UpgradeManager extends Manager {
                 actualNumber--;
             }
             else if(worker.creep.store.energy < UpgradeManager.refillRatio * worker.creep.store.getCapacity()) {
-                requests.push(new DropoffRequest(UpgradeManager.type, worker.creep, worker.creep.store.getFreeCapacity()));
+                requests.push(new DropoffRequest(UpgradeManager.type, this.parent.capitalName, worker.creep, worker.creep.store.getFreeCapacity()));
             }
         }
 
         if(actualNumber === 0) {
-            requests.push(new SpawnRequest(UpgradeManager.type, 'worker', /*priority=*/2));
+            requests.push(new SpawnRequest(UpgradeManager.type, this.parent.capitalName, 'worker', /*priority=*/2));
             actualNumber++;
         }
 
         for(let i = actualNumber; i < upgradeNumber; i++){
-            requests.push(new SpawnRequest(UpgradeManager.type, 'worker'));
+            requests.push(new SpawnRequest(UpgradeManager.type, this.parent.capitalName, 'worker'));
         }
 
         return requests;

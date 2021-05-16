@@ -26,7 +26,7 @@ export class DefenseManager extends Manager {
         if(towers) {
             for(const tower of towers) {
                 if((tower as StructureTower).store.energy < (DefenseManager.refillConstant * (tower as StructureTower).store.getCapacity(RESOURCE_ENERGY))) {
-                    requests.push(new DropoffRequest(DefenseManager.type, tower as StructureTower,
+                    requests.push(new DropoffRequest(DefenseManager.type, this.parent.capitalName, tower as StructureTower,
                         (tower as StructureTower).store.getFreeCapacity(RESOURCE_ENERGY), /*resourceType=*/undefined,
                         /*priority=*/capitalAggressors.length > 0 ? 1 : 3));
                 }
@@ -42,7 +42,7 @@ export class DefenseManager extends Manager {
         }
 
         for(let i = this.workers.length; i < dangerCount; i++) {
-            requests.push(new SpawnRequest(DefenseManager.type, 'fighter', /*priority=*/2));
+            requests.push(new SpawnRequest(DefenseManager.type, this.parent.capitalName, 'fighter', /*priority=*/2));
         }
 
         return requests;

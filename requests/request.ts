@@ -1,6 +1,7 @@
 /**
  * Abstract base class representing a request from one manager to another.
  * @property {string} requester - The identifier of the manager which generated this request
+ * @property {string} roomName - The name of the room which should fulfull this request
  * @property {number} priority - The priority of the request
  * priorities:
  * 0 => Do this NOW, no questions asked
@@ -11,6 +12,7 @@
  */
 export abstract class ScreepsRequest {
     public requester: string;
+    public roomName: string;
     public priority: number;
 
     /**
@@ -18,8 +20,9 @@ export abstract class ScreepsRequest {
      */
     public abstract getType(): string;
 
-    constructor (requester: string, priority: number) {
+    constructor (requester: string, roomName: string, priority: number) {
         this.requester = requester;
+        this.roomName = roomName;
         this.priority = priority;
     }
 }

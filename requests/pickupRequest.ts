@@ -16,9 +16,9 @@ export class PickupRequest extends ScreepsRequest {
         return PickupRequest.type;
     }
 
-    constructor (requester: string, container: AnyStoreStructure | Resource | Tombstone | Ruin, amount: number,
+    constructor (requester: string, roomName: string, container: AnyStoreStructure | Resource | Tombstone | Ruin, amount: number,
         resourceType: ResourceConstant = RESOURCE_ENERGY, priority: number = 3) {
-        super(requester, priority);
+        super(requester, roomName, priority);
         this.amount = amount;
         this.resourceType = resourceType;
         this.container = container;

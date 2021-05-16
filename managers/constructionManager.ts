@@ -49,12 +49,12 @@ export class ConstructionManager extends Manager {
                 actualNumber--;
             }
             else if(worker.creep.store.energy < ConstructionManager.refillRatio * worker.creep.store.getCapacity()) {
-                requests.push(new DropoffRequest(ConstructionManager.type, worker.creep, worker.creep.store.getFreeCapacity()));
+                requests.push(new DropoffRequest(ConstructionManager.type, this.parent.capitalName, worker.creep, worker.creep.store.getFreeCapacity()));
             }
         }
 
         for(let i = actualNumber; i < constructNumber; i++) {
-            requests.push(new SpawnRequest(ConstructionManager.type, 'worker'));
+            requests.push(new SpawnRequest(ConstructionManager.type, this.parent.capitalName, 'worker'));
         }
 
         return requests;

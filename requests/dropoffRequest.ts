@@ -16,8 +16,8 @@ export class DropoffRequest extends ScreepsRequest {
         return DropoffRequest.type;
     }
 
-    constructor (requester: string, container: AnyStoreStructure | Creep, amount: number, resourceType: ResourceConstant = RESOURCE_ENERGY, priority: number = 3) {
-        super(requester, priority);
+    constructor (requester: string, roomName: string, container: AnyStoreStructure | Creep, amount: number, resourceType: ResourceConstant = RESOURCE_ENERGY, priority: number = 3) {
+        super(requester, roomName, priority);
         this.resourceType = resourceType;
         this.container = container;
         this.amount = amount;

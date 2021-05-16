@@ -20,8 +20,8 @@ export class SpawnRequest extends ScreepsRequest {
         return SpawnRequest.type;
     }
 
-    constructor (requester: string, creepBody: BodyType, priority: number = 3, empireDirect: boolean = false) {
-        super(requester, priority);
+    constructor (requester: string, roomName: string, creepBody: BodyType, priority: number = 3, empireDirect: boolean = false) {
+        super(requester, roomName, priority);
         this.requester = requester;
         this.creepBody = creepBody;
         this.priority = priority;

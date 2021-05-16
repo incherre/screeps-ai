@@ -59,17 +59,17 @@ export class TransportManager extends Manager {
         }
 
         if(actualNumber === 0) {
-            requests.push(new SpawnRequest(TransportManager.type, 'carrier', /*priority=*/0));
+            requests.push(new SpawnRequest(TransportManager.type, this.parent.capitalName, 'carrier', /*priority=*/0));
             actualNumber++;
         }
 
         if(actualNumber === 1) {
-            requests.push(new SpawnRequest(TransportManager.type, 'carrier', /*priority=*/1));
+            requests.push(new SpawnRequest(TransportManager.type, this.parent.capitalName, 'carrier', /*priority=*/1));
             actualNumber++;
         }
 
         for(let i = actualNumber; i < transportNumber; i++) {
-            requests.push(new SpawnRequest(TransportManager.type, 'carrier', /*priority=*/(actualNumber < transportNumber / 2) ? 2 : 3));
+            requests.push(new SpawnRequest(TransportManager.type, this.parent.capitalName, 'carrier', /*priority=*/(actualNumber < transportNumber / 2) ? 2 : 3));
         }
 
         return requests;
@@ -149,10 +149,10 @@ export class TransportManager extends Manager {
 
             // If someone is requesting something, but it isn't in a creep already, try to pick it up
             if(this.parent.capital.storage && this.parent.capital.storage.store[resourceType] > 0) {
-                containerRequests.push(new PickupRequest(request.requester, this.parent.capital.storage, request.amount, resourceType, request.priority));
+                containerRequests.push(new PickupRequest(request.requester, this.parent.capitalName, this.parent.capital.storage, request.amount, resourceType, request.priority));
             }
             else if(this.parent.capital.terminal && this.parent.capital.terminal.store[resourceType] > 0) {
-                containerRequests.push(new PickupRequest(request.requester, this.parent.capital.terminal, request.amount, resourceType, request.priority));
+                containerRequests.push(new PickupRequest(request.requester, this.parent.capitalName, this.parent.capital.terminal, request.amount, resourceType, request.priority));
             }
         }
 

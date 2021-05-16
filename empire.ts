@@ -1,3 +1,4 @@
+import { ScreepsRequest } from "requests/request";
 import { WorkerCreep } from "worker";
 import { Colony } from "./colony";
 import { EmpireManager } from "./empireManagers/empireManager";
@@ -91,7 +92,7 @@ export class Empire {
         if(Game.cpu.bucket >= Empire.cpuBucketSkipThreshold) {
             // initialize flags
             for(const flag of Object.values(Game.flags)) {
-                const colorCode: string = flag.color + ',' + flag.secondaryColor;
+                const colorCode: string = [flag.color, flag.secondaryColor].join();
                 let flagArray = this.flags.get(colorCode);
 
                 if(!flagArray) {
@@ -116,14 +117,30 @@ export class Empire {
 
     public generateRequests(): void {
         if(Game.cpu.bucket >= Empire.cpuBucketSkipThreshold) {
-            // generate colony requests
-            for(const colony of this.colonies.values()) {
-                this.addRequests(colony.generateRequests());
+            // Generate Empire-level manager requests.
+            const roomRequests: Map<string, ScreepsRequest[]> = new Map<string, ScreepsRequest[]>();
+            for(const [_, manager] of this.managers) {
+                for(const request of manager.generateRequests()) {
+                    if(request instanceof EmpireRequest) {
+                        this.addSingleRequest(request);
+                    }
+                    else {
+                        const roomName = request.roomName;
+                        let requests = roomRequests.get(roomName);
+                        if(!requests) {
+                            requests = [];
+                            roomRequests.set(roomName, requests);
+                        }
+
+                        requests.push(request);
+                    }
+                }
             }
 
-            // generate empire level manager requests
-            for(const [_, manager] of this.managers) {
-                this.addRequests(manager.generateRequests());
+            // Generate Colony requests.
+            for(const colony of this.colonies.values()) {
+                const requests = roomRequests.get(colony.capitalName) || [];
+                this.addRequests(colony.generateRequests(requests));
             }
         }
     }
@@ -197,16 +214,20 @@ export class Empire {
         return null;
     }
 
+    private addSingleRequest(newRequest: EmpireRequest): void {
+        const type = newRequest.getType();
+        let requests = this.requests.get(type);
+        if(!requests) {
+            requests = [];
+            this.requests.set(type, requests);
+        }
+
+        requests.push(newRequest);
+    }
+
     private addRequests(newRequests: EmpireRequest[]): void {
         for(const request of newRequests) {
-            const type = request.getType();
-            let requests = this.requests.get(type);
-            if(!requests) {
-                requests = [];
-                this.requests.set(type, requests);
-            }
-
-            requests.push(request);
+            this.addSingleRequest(request);
         }
     }
 }

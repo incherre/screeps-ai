@@ -39,7 +39,7 @@ export class HarvestManager extends Manager {
                     }
                 }
                 else if(!Game.rooms[roomName]) {
-                    requests.push(new VisionRequest(HarvestManager.type, roomName));
+                    requests.push(new VisionRequest(HarvestManager.type, this.parent.capitalName, roomName));
                 }
             }
         }
@@ -49,14 +49,14 @@ export class HarvestManager extends Manager {
                 for(const resource of source.pos.findInRange(FIND_DROPPED_RESOURCES, 1, {
                     filter: (res) => res.amount > HarvestManager.minReso
                 })) {
-                    requests.push(new PickupRequest(HarvestManager.type, resource, resource.amount, resource.resourceType))
+                    requests.push(new PickupRequest(HarvestManager.type, this.parent.capitalName, resource, resource.amount, resource.resourceType))
                 }
             }
 
             for(const container of source.pos.findInRange(FIND_STRUCTURES, 1, {
                 filter: (struct) => struct.structureType === STRUCTURE_CONTAINER && struct.store.energy > HarvestManager.minCont
             }) as StructureContainer[]) {
-                requests.push(new PickupRequest(HarvestManager.type, container, container.store.energy))
+                requests.push(new PickupRequest(HarvestManager.type, this.parent.capitalName, container, container.store.energy))
             }
         }
 
@@ -65,7 +65,7 @@ export class HarvestManager extends Manager {
             (reso.resourceType !== RESOURCE_ENERGY && storage)
         });
         for(const resource of droppedResources) {
-            requests.push(new PickupRequest(HarvestManager.type, resource, resource.amount, resource.resourceType));
+            requests.push(new PickupRequest(HarvestManager.type, this.parent.capitalName, resource, resource.amount, resource.resourceType));
         }
 
         const tombstones = this.parent.capital.find(FIND_TOMBSTONES, {filter:
@@ -75,10 +75,10 @@ export class HarvestManager extends Manager {
         for(const tombstone of tombstones) {
             for(const resource of Object.keys(tombstone.store) as ResourceConstant[]) {
                 if(resource === RESOURCE_ENERGY && tombstone.store.energy > HarvestManager.minReso) {
-                    requests.push(new PickupRequest(HarvestManager.type, tombstone, tombstone.store[resource]));
+                    requests.push(new PickupRequest(HarvestManager.type, this.parent.capitalName, tombstone, tombstone.store[resource]));
                 }
                 else if(storage) {
-                    requests.push(new PickupRequest(HarvestManager.type, tombstone, tombstone.store[resource], resource as ResourceConstant));
+                    requests.push(new PickupRequest(HarvestManager.type, this.parent.capitalName, tombstone, tombstone.store[resource], resource as ResourceConstant));
                 }
             }
         }
@@ -99,21 +99,21 @@ export class HarvestManager extends Manager {
         }
 
         if(workNumber === 0 && harvestNumber > 0) {
-            requests.push(new SpawnRequest(HarvestManager.type, 'harvester', /*priority=*/0));
+            requests.push(new SpawnRequest(HarvestManager.type, this.parent.capitalName, 'harvester', /*priority=*/0));
             workNumber++;
         }
 
         if(workNumber === 1 && harvestNumber > 1) {
-            requests.push(new SpawnRequest(HarvestManager.type, 'harvester', /*priority=*/1));
+            requests.push(new SpawnRequest(HarvestManager.type, this.parent.capitalName, 'harvester', /*priority=*/1));
             workNumber++;
         }
 
         for(let i = workNumber; i < harvestNumber; i++){
-            requests.push(new SpawnRequest(HarvestManager.type, 'harvester', /*priority=*/2));
+            requests.push(new SpawnRequest(HarvestManager.type, this.parent.capitalName, 'harvester', /*priority=*/2));
         }
 
         for(let i = claimNumber; i < reserveNumber; i++){
-            requests.push(new SpawnRequest(HarvestManager.type, 'claimer', /*priority=*/2));
+            requests.push(new SpawnRequest(HarvestManager.type, this.parent.capitalName, 'claimer', /*priority=*/2));
         }
 
         return requests;

@@ -54,17 +54,17 @@ export class RepairManager extends Manager {
                 actualNumber--;
             }
             else if(worker.creep.store.energy === 0) {
-                requests.push(new DropoffRequest(RepairManager.type, worker.creep, worker.creep.store.getFreeCapacity()));
+                requests.push(new DropoffRequest(RepairManager.type, this.parent.capitalName, worker.creep, worker.creep.store.getFreeCapacity()));
             }
         }
 
         if(remoteRepairRooms > 0 && actualNumber === 0 && repairNumber > 0) {
-            requests.push(new SpawnRequest(RepairManager.type, 'worker', /*priority=*/2));
+            requests.push(new SpawnRequest(RepairManager.type, this.parent.capitalName, 'worker', /*priority=*/2));
             actualNumber += 1;
         }
 
         for(let i = actualNumber; i < repairNumber; i++){
-            requests.push(new SpawnRequest(RepairManager.type, 'worker'));
+            requests.push(new SpawnRequest(RepairManager.type, this.parent.capitalName, 'worker'));
         }
 
         return requests;

@@ -1,5 +1,5 @@
+import { ScreepsRequest } from "requests/request";
 import { Empire } from "../empire";
-import { EmpireRequest } from "../requests/empireRequest";
 import { WorkerCreep } from "../worker";
 
 export abstract class EmpireManager {
@@ -10,7 +10,7 @@ export abstract class EmpireManager {
         // default is do nothing
         return;
     }
-    public abstract generateRequests(): EmpireRequest[];
+    public abstract generateRequests(): ScreepsRequest[];
     public abstract manage(): void;
     public cleanup(): void {
         // default is nothing to clean

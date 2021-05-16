@@ -1,8 +1,12 @@
+import { ScreepsRequest } from "requests/request";
 import { Empire } from "../empire";
-import { EmpireRequest } from "../requests/empireRequest";
 import { SellRequest } from "../requests/sellRequst";
 import { EmpireManager } from "./empireManager";
 
+/**
+ * The Empire Manager for tracking market rates and deciding when to sell resources.
+ * @property {number} dealsThisTick - The number of deals which have been executed this tick
+ */
 export class MarketManager extends EmpireManager {
     // static parameters
     public static maxPriceEntries = 200;
@@ -21,7 +25,7 @@ export class MarketManager extends EmpireManager {
         this.dealsThisTick = 0;
     }
 
-    public generateRequests(): EmpireRequest[] {
+    public generateRequests(): ScreepsRequest[] {
         return [];
     }
 

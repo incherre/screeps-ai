@@ -38,7 +38,7 @@ export class ExplorationManager extends Manager {
 
         const actualNumber = this.workers.length;
         for(let i = actualNumber; i < scoutNumber; i++) {
-            requests.push(new SpawnRequest(ExplorationManager.type, 'scout'));
+            requests.push(new SpawnRequest(ExplorationManager.type, this.parent.capitalName, 'scout'));
         }
 
         return requests;

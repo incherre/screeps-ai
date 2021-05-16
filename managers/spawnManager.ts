@@ -55,7 +55,7 @@ export class SpawnManager extends Manager {
 
         for(const building of buildings) {
             if(building.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                requests.push(new DropoffRequest(SpawnManager.type, building, building.store.getFreeCapacity(RESOURCE_ENERGY),
+                requests.push(new DropoffRequest(SpawnManager.type, this.parent.capitalName, building, building.store.getFreeCapacity(RESOURCE_ENERGY),
                 /*resourceType=*/undefined, /*priority=*/1));
             }
         }

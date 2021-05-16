@@ -111,10 +111,27 @@ export class Colony {
         }
     }
 
-    public generateRequests(): EmpireRequest[] {
+    public generateRequests(externalRequests: ScreepsRequest[]): EmpireRequest[] {
         const empireRequests: EmpireRequest[] = [];
 
-        // generate any manager requests
+        // Include requests passed down from the Empire.
+        for(const request of externalRequests) {
+            if(request instanceof EmpireRequest) {
+                console.log(('An EmpireRequest was incorrectly pushed down to the colony level: ' + JSON.stringify(request)).fontcolor('red'));
+                empireRequests.push(request);
+            }
+            else {
+                const type = request.getType();
+                let requestList = this.requests.get(type);
+                if(!requestList){
+                    requestList = [];
+                    this.requests.set(type, requestList);
+                }
+                requestList.push(request);
+            }
+        }
+
+        // Generate any manager requests.
         for(const manager of this.managers.values()) {
             const newRequests = manager.generateRequests();
             for(const request of newRequests) {
