@@ -65,6 +65,10 @@ export class SettleJob extends Job {
         }
 
         // First, get energy
+        if(creep.store.getFreeCapacity(RESOURCE_ENERGY) !== 0 && this.workSite instanceof Source) {
+            return true;
+        }
+
         if(creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && (!(this.workSite instanceof Source) || getSpotsNear(this.workSite.pos).length === 0)) {
             const source = creep.pos.findClosestByRange(FIND_SOURCES, {
                 filter: (source: Source) => (source.energy > 0 || source.ticksToRegeneration < 10) &&
@@ -74,6 +78,8 @@ export class SettleJob extends Job {
             if(source) {
                 this.workSiteId = source.id;
                 this.workSite = source;
+                this.target = source.pos;
+                this.targetRange = 1;
                 return true;
             }
         }
@@ -83,6 +89,8 @@ export class SettleJob extends Job {
         if (constructionSite) {
             this.workSiteId = constructionSite.id;
             this.workSite = constructionSite;
+            this.target = constructionSite.pos;
+            this.targetRange = 3;
             return true;
         }
 
@@ -90,6 +98,8 @@ export class SettleJob extends Job {
         if (creep.room.controller) {
             this.workSiteId = creep.room.controller.id;
             this.workSite = creep.room.controller;
+            this.target = creep.room.controller.pos;
+            this.targetRange = 3;
             return true;
         }
 

@@ -33,7 +33,6 @@ export class SpawnRequest extends ScreepsRequest {
  * Constructs a full creep body array based on the given parameters.
  * @param {BodyPartConstant[]} bodyTemplate - An array of body part constants that will be repeated to construct the body
  * @param {number} energyLimit - The maximum amount of energy available in this room for spawning
- * @param {number} maxEnergy - The spawning energy capacity of the room, currently unused
  * @param {number} minParts - The minimum amount of parts required for spawning
  * @param {number} maxParts - The maximum allowed parts in the creep body
  * @returns {BodyPartConstant[]} - The full body part array used for spawning

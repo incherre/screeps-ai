@@ -7,8 +7,22 @@ export abstract class EmpireManager {
     public workers: WorkerCreep[];
 
     public tickInit(): void {
-        // default is do nothing
-        return;
+        // Remove invalid workers.
+        let i = 0;
+        while(i < this.workers.length) {
+            if(!Game.getObjectById(this.workers[i].creepId)) {
+                // Remove from unsorted list in constant time.
+                this.workers[i] = this.workers[this.workers.length - 1];
+                this.workers.pop();
+            }
+            else {
+                i++;
+            }
+        }
+
+        for(const worker of this.workers) {
+            worker.tickInit();
+        }
     }
     public abstract generateRequests(): ScreepsRequest[];
     public abstract manage(): void;
