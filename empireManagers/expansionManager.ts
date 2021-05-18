@@ -49,6 +49,11 @@ export class ExpansionManager extends EmpireManager {
             let closestColony = undefined;
             let closestDistance = Infinity;
             for(const colony of this.parent.colonies.values()) {
+                if(flag.pos.roomName === colony.capitalName) {
+                    // Don't try to request settlers from the colony being settled.
+                    continue;
+                }
+
                 const distance = Game.map.getRoomLinearDistance(colony.capitalName, flag.pos.roomName);
                 if(distance < closestDistance) {
                     closestColony = colony;
