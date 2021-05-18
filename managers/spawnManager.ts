@@ -1,6 +1,6 @@
 import { Colony } from "../colony";
 import { BusyJob } from "../jobs/busyJob";
-import { popMostImportant, shuffle } from "../misc/helperFunctions";
+import { popMostImportant, shuffle } from "../misc/arrayFunctions";
 import { DropoffRequest } from "../requests/dropoffRequest";
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest, spawnFunctions } from "../requests/spawnRequest";

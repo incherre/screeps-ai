@@ -1,3 +1,4 @@
+import { removeAt } from "misc/arrayFunctions";
 import { Empire } from "./empire";
 import { Manager } from "./managers/manager";
 import { managerTypes } from "./manifest";
@@ -90,9 +91,7 @@ export class Colony {
         let i = 0;
         while(i < this.workers.length) {
             if(!Game.getObjectById(this.workers[i].creepId)) {
-                // move the last one to here and pop
-                this.workers[i] = this.workers[this.workers.length - 1];
-                this.workers.pop();
+                removeAt(this.workers, i);
             }
             else {
                 i++;

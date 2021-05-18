@@ -2,13 +2,14 @@ import { Colony } from "../colony";
 import { IdleJob } from "../jobs/idleJob";
 import { ScoutJob } from "../jobs/scoutJob";
 import { VisionJob } from "../jobs/visionJob";
-import { getAdjacentRooms, getRoomInfo, shuffle} from "../misc/helperFunctions";
+import { getAdjacentRooms, getRoomInfo } from "../misc/helperFunctions";
 import { OWN_NAME } from "../misc/constants"
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest } from "../requests/spawnRequest";
 import { VisionRequest } from "../requests/visionRequest";
 import { WorkerCreep } from "../worker";
 import { Manager } from "./manager";
+import { shuffle } from "misc/arrayFunctions";
 
 export class ExplorationManager extends Manager {
     // static parameters

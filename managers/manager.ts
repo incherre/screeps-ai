@@ -1,3 +1,4 @@
+import { removeAt } from "misc/arrayFunctions";
 import { Colony } from "../colony";
 import { ScreepsRequest } from "../requests/request";
 import { WorkerCreep } from "../worker";
@@ -12,8 +13,7 @@ export abstract class Manager {
         while(i < this.workers.length) {
             if(!Game.getObjectById(this.workers[i].creepId)) {
                 // move the last one to here and pop
-                this.workers[i] = this.workers[this.workers.length - 1];
-                this.workers.pop();
+                removeAt(this.workers, i);
             }
             else {
                 i++;
@@ -21,7 +21,7 @@ export abstract class Manager {
         }
     }
 
-    public abstract generateRequests(): ScreepsRequest[]; 
+    public abstract generateRequests(): ScreepsRequest[];
     public abstract manage(): void;
 
     public cleanup(): void {

@@ -1,6 +1,7 @@
 import { ScreepsRequest } from "requests/request";
 import { Empire } from "../empire";
 import { WorkerCreep } from "../worker";
+import { removeAt } from "../misc/arrayFunctions";
 
 export abstract class EmpireManager {
     public parent: Empire;
@@ -11,9 +12,7 @@ export abstract class EmpireManager {
         let i = 0;
         while(i < this.workers.length) {
             if(!Game.getObjectById(this.workers[i].creepId)) {
-                // Remove from unsorted list in constant time.
-                this.workers[i] = this.workers[this.workers.length - 1];
-                this.workers.pop();
+                removeAt(this.workers, i);
             }
             else {
                 i++;

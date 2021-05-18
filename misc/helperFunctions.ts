@@ -1,38 +1,4 @@
-import { ScreepsRequest } from '../requests/request';
 import { SOURCE_KEEPER_NAME } from './constants';
-
-export function shuffle(a: any[]): void {
-    let j: number;
-    let item: any;
-    for(let i = a.length - 1; i > 0; i--) {
-        j = Math.floor(Math.random() * (i + 1));
-        item = a[j];
-        a[j] = a[i];
-        a[i] = item;
-    }
-}
-
-export function popMostImportant(requests: ScreepsRequest[]): ScreepsRequest | null {
-    let min = Infinity;
-    let index = -1;
-
-    for(let i = 0; i < requests.length; i++) {
-        if(requests[i].priority < min) {
-            min = requests[i].priority;
-            index = i;
-        }
-    }
-
-    if(min !== Infinity && index >= 0) {
-        const request = requests[index];
-        requests[index] = requests[requests.length - 1];
-        requests.pop();
-        return request;
-    }
-    else {
-        return null;
-    }
-}
 
 export function getAdjacentRooms(roomName: string): string[] {
     const roomNames: string[] = [];

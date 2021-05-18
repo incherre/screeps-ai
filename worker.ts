@@ -3,8 +3,9 @@ import { Colony } from "./colony";
 import { IdleJob } from "./jobs/idleJob";
 import { Job } from "./jobs/job";
 import { jobTypes } from "./manifest"
-import { addRoomInfo, getRoomInfo, getSpotsNear, movePos, shuffle } from "./misc/helperFunctions";
+import { addRoomInfo, getRoomInfo, getSpotsNear, movePos } from "./misc/helperFunctions";
 import { OWN_NAME, SOURCE_KEEPER_NAME } from "./misc/constants";
+import { shuffle } from "misc/arrayFunctions";
 
 export class WorkerCreep {
     // Inter-tick variables
@@ -205,8 +206,11 @@ export class WorkerCreep {
             }
 
             // find a path to the target
-            const pathfinderReturn = PathFinder.search(this.creep.pos, {pos: targetPos, range: pathRange}, {roomCallback: standardCallback});
-            if(pathfinderReturn.path.length > 0) {
+            const pathfinderReturn = PathFinder.search(this.creep.pos, {pos: targetPos, range: pathRange}, {roomCallback: standardCallback, maxOps: 10000});
+            if(pathfinderReturn.incomplete) {
+                console.log(('Pathfinder returned incomplete for creep: ' + this.creep.name).fontcolor('red'));
+            }
+            else if(pathfinderReturn.path.length > 0) {
                 path = convertPath([this.creep.pos].concat(pathfinderReturn.path));
                 retVal = this.moveByPath(path);
                 changed = true;
@@ -236,8 +240,11 @@ export class WorkerCreep {
             }
 
             // find a path to the target
-            const pathfinderReturn = PathFinder.search(this.creep.pos, {pos: targetPos, range: pathRange}, {roomCallback: creepCallback});
-            if(pathfinderReturn.path.length > 0) {
+            const pathfinderReturn = PathFinder.search(this.creep.pos, {pos: targetPos, range: pathRange}, {roomCallback: creepCallback, maxOps: 10000});
+            if(pathfinderReturn.incomplete) {
+                console.log(('Pathfinder returned incomplete for creep: ' + this.creep.name).fontcolor('red'));
+            }
+            else if(pathfinderReturn.path.length > 0) {
                 path = convertPath([this.creep.pos].concat(pathfinderReturn.path));
                 retVal = this.moveByPath(path);
                 changed = true;

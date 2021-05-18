@@ -1,3 +1,4 @@
+import { removeAt } from "misc/arrayFunctions";
 import { Colony } from "../colony";
 import { ConstructJob } from "../jobs/constructJob";
 import { IdleJob } from "../jobs/idleJob";
@@ -134,8 +135,7 @@ export class ConstructionManager extends Manager {
 
                 if(worker.job instanceof IdleJob) {
                     // if we have nothing more to build for the moment, give the workers to the repair manager
-                    this.workers[i] = this.workers[this.workers.length - 1];
-                    this.workers.pop();
+                    removeAt(this.workers, i);
 
                     worker.creep.memory.managerType = RepairManager.type;
                     const repairManager = this.parent.managers.get(RepairManager.type);
