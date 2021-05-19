@@ -1,4 +1,4 @@
-import { getSpotsNear } from "../misc/helperFunctions";
+import { getSpotsNear } from "../misc/mapFunctions";
 import { Job } from "./job";
 
 /**

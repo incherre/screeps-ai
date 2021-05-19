@@ -1,5 +1,5 @@
 import { Job } from "./job";
-import { getSpotsNear } from "../misc/helperFunctions";
+import { getSpotsNear } from "../misc/mapFunctions";
 
 /**
  * Go to the specified room and help to establish a new colony.

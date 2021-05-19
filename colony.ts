@@ -2,7 +2,7 @@ import { removeAt } from "misc/arrayFunctions";
 import { Empire } from "./empire";
 import { Manager } from "./managers/manager";
 import { managerTypes } from "./manifest";
-import { getAdjacentRooms } from "./misc/helperFunctions";
+import { getAdjacentRooms } from "./misc/mapFunctions";
 import { EmpireRequest } from "./requests/empireRequest";
 import { ScreepsRequest } from "./requests/request";
 import { WorkerCreep } from "./worker";

@@ -2,7 +2,7 @@ import { Colony } from "../colony";
 import { IdleJob } from "../jobs/idleJob";
 import { ScoutJob } from "../jobs/scoutJob";
 import { VisionJob } from "../jobs/visionJob";
-import { getAdjacentRooms, getRoomInfo } from "../misc/helperFunctions";
+import { getAdjacentRooms, getRoomInfo } from "../misc/mapFunctions";
 import { OWN_NAME } from "../misc/constants"
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest } from "../requests/spawnRequest";

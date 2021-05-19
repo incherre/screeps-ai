@@ -1,7 +1,7 @@
 import { Colony } from "../colony";
 import { HarvestJob } from "../jobs/harvestJob";
 import { IdleJob } from "../jobs/idleJob";
-import { creepNearDeath } from "../misc/helperFunctions";
+import { creepNearDeath } from "../misc/mapFunctions";
 import { DropoffRequest } from "../requests/dropoffRequest";
 import { PickupRequest } from "../requests/pickupRequest";
 import { ScreepsRequest } from "../requests/request";

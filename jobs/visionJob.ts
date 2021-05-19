@@ -1,4 +1,4 @@
-import { addRoomInfo } from "../misc/helperFunctions";
+import { addRoomInfo } from "../misc/mapFunctions";
 import { Job } from "./job";
 
 /**

@@ -3,7 +3,7 @@ import { Colony } from "./colony";
 import { IdleJob } from "./jobs/idleJob";
 import { Job } from "./jobs/job";
 import { jobTypes } from "./manifest"
-import { addRoomInfo, getRoomInfo, getSpotsNear, movePos } from "./misc/helperFunctions";
+import { addRoomInfo, getRoomInfo, getSpotsNear, movePos } from "./misc/mapFunctions";
 import { OWN_NAME, SOURCE_KEEPER_NAME } from "./misc/constants";
 import { shuffle } from "misc/arrayFunctions";
 
