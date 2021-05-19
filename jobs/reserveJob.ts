@@ -1,5 +1,5 @@
 import { OWN_NAME } from "../misc/constants";
-import { signs } from "../misc/signs";
+import { signs } from "../misc/personalization";
 import { Job } from "./job";
 
 /**
