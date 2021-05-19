@@ -209,11 +209,14 @@ function _evaluateMatch(worker: WorkerCreep, request: PickupRequest | DropoffReq
     const amount = Math.min(request.amount,
         (request instanceof DropoffRequest) ? worker.creep.store[request.resourceType] : worker.creep.store.getFreeCapacity());
 
-    let distance = (worker.creep.pos.roomName === request.container.pos.roomName) ? worker.creep.pos.getRangeTo(request.container.pos) :
+    const distance = (worker.creep.pos.roomName === request.container.pos.roomName) ? worker.creep.pos.getRangeTo(request.container.pos) :
         (Game.map.getRoomLinearDistance(worker.creep.pos.roomName, request.container.pos.roomName) + 0.5) * 50;
 
+    // Adjust the scores so that tasks of each priority fall into clear bands and higher priority tasks are always preferred.
+    const priorityAdjustment = 4000 - (request.priority * 1000);
+
     // Maximize the amount of resources transported per tick
-    return amount / distance;
+    return (amount / distance) + priorityAdjustment;
 }
 
 function _jobFromRequest(request: PickupRequest | DropoffRequest): PickupJob | DropoffJob {
