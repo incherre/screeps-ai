@@ -78,7 +78,16 @@ export const spawnFunctions: Record<BodyType, (energyLimit: number) => BodyPartC
     },
 
     'harvester': (energyLimit: number) => {
-        return genericBodyFunction([MOVE, WORK, WORK, WORK], energyLimit, /*minParts=*/3);
+        const minCarryEnergy =_.sum([MOVE, WORK, WORK, WORK, CARRY], (part: BodyPartConstant) => BODYPART_COST[part]);
+        const tempEnergyLimit = energyLimit >= minCarryEnergy ? energyLimit - BODYPART_COST[CARRY] : energyLimit;
+
+        const body = genericBodyFunction([MOVE, WORK, WORK, WORK], tempEnergyLimit, /*minParts=*/3, /*maxParts=*/8);
+
+        if(tempEnergyLimit < energyLimit) {
+            body.push(CARRY);
+        }
+
+        return body;
     },
 
     'miner': (energyLimit: number) => {

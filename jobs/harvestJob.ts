@@ -85,11 +85,18 @@ export class HarvestJob extends Job {
             this.target = new RoomPosition(25, 25, this.sourceRoomName);
         }
 
-        return creep.getActiveBodyparts(WORK) > 0 && (creep.getActiveBodyparts(CARRY) === 0 || creep.store.getFreeCapacity() > 0);
+        return creep.getActiveBodyparts(WORK) > 0;
     }
 
     public do(creep: Creep): void {
-        if(this.source instanceof Source && this.source.energy > 0) {
+        const repairableContainers = creep.pos.findInRange(FIND_STRUCTURES, 0, {
+            filter: (struct) => struct.structureType === STRUCTURE_CONTAINER && struct.hits < struct.hitsMax
+        });
+
+        if(repairableContainers.length > 0 && creep.store.energy > 0) {
+            creep.repair(repairableContainers[0]);
+        }
+        else if(this.source instanceof Source && this.source.energy > 0) {
             creep.harvest(this.source);
         }
         else if(this.source instanceof Mineral && this.source.mineralAmount > 0 && Game.time % HarvestJob.mineralCooldown === 0) {
