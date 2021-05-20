@@ -1,5 +1,10 @@
 import { SOURCE_KEEPER_NAME } from './constants';
 
+/**
+ * Computes the names of the rooms directly accessible from a particular room.
+ * @param {string} roomName - The name of the room to calculate the exits of
+ * @returns {string[]} - An array of room names
+ */
 export function getAdjacentRooms(roomName: string): string[] {
     const roomNames: string[] = [];
     const exits = Game.map.describeExits(roomName);
@@ -14,6 +19,10 @@ export function getAdjacentRooms(roomName: string): string[] {
     return roomNames;
 }
 
+/**
+ * Records in memory various stats about the room.
+ * @param {Room} room - The room object to record
+ */
 export function addRoomInfo(room: Room): void {
     if(!Memory.seenRooms) {
         Memory.seenRooms = {};
@@ -38,6 +47,11 @@ export function addRoomInfo(room: Room): void {
     Memory.seenRooms[room.name] = info;
 }
 
+/**
+ * Retrieve the previously recorded information about a room, if available.
+ * @param {string} roomName - The name of the room
+ * @returns - An object representing the room with various properties
+ */
 export function getRoomInfo(roomName: string): {owner: string | null, level: number, lastObserved: number} | undefined {
     if(!Memory.seenRooms) {
         Memory.seenRooms = {};
@@ -46,6 +60,12 @@ export function getRoomInfo(roomName: string): {owner: string | null, level: num
     return Memory.seenRooms[roomName];
 }
 
+/**
+ * Computes a new room position that would result from moving.
+ * @param {RoomPosition} position - The current position to move from
+ * @param {DirectionConstant} direction - The direction to move in
+ * @returns {RoomPosition} - The new room position
+ */
 export function movePos(position: RoomPosition, direction: DirectionConstant): RoomPosition {
     let x = position.x;
     let y = position.y;
@@ -67,6 +87,12 @@ export function movePos(position: RoomPosition, direction: DirectionConstant): R
     return new RoomPosition(x, y, position.roomName);
 }
 
+/**
+ * Compute the list of unblocked spaces in range to a position.
+ * @param {RoomPosition} position - The target postion
+ * @param {number?} range - The range to check, defaults to 1
+ * @returns {RoomPosition[]} - A list of free positions in range of the target
+ */
 export function getSpotsNear(position: RoomPosition, range:number = 1): RoomPosition[] {
     if(Game.rooms[position.roomName]) {
         const room = Game.rooms[position.roomName];
@@ -112,6 +138,12 @@ export function getSpotsNear(position: RoomPosition, range:number = 1): RoomPosi
     }
 }
 
+/**
+ * A heuristic function to compute if a creep ought to be replaced.
+ * @param {Creep} creep - The creep which may be old
+ * @param {string} spawnRoomName - The name of the room which will replace this creep
+ * @returns {boolean} - Whether the replacement creep should start spawning now
+ */
 export function creepNearDeath(creep: Creep, spawnRoomName: string): boolean {
     const ticksPerStep = Math.ceil(creep.body.length / (creep.getActiveBodyparts(MOVE) * 2));
     const spawnTime = CREEP_SPAWN_TIME * creep.body.length;
@@ -129,4 +161,21 @@ export function creepNearDeath(creep: Creep, spawnRoomName: string): boolean {
     }
 
     return false;
+}
+
+/**
+ * Finds the center room of the current sector in which portals sometimes spawn.
+ * @param {string} roomName - The name of any room in the current sector
+ * @returns {string | false} - The name of the center room or false if there was an error
+ */
+export function getNearbyPortalRoom(roomName: string): string | false {
+    const coordinateRegex = /(E|W)(\d+)(N|S)(\d+)/g;
+    const match = coordinateRegex.exec(roomName);
+    if(match === null) {
+        return false;
+    }
+
+    const x = Number(match[2]) - (Number(match[2]) % 10) + 5;
+    const y = Number(match[4]) - (Number(match[4]) % 10) + 5;
+    return ''.concat(match[1], x.toString(), match[3], y.toString());
 }
