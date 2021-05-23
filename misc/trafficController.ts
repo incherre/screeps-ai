@@ -130,7 +130,6 @@ export class TrafficController {
             const creepPos = constructPositionString(creep.pos);
             this.creeps.set(creepPos, {
                 creep: creep,
-                registeredMovement: undefined,
                 moved: false,
             });
         }
@@ -152,7 +151,8 @@ export class TrafficController {
                 return true;
             }
 
-            const freeSpots = _.filter(getSpotsNear(movementInfo.creep.pos), (pos) => !this.movingCreeps.has(constructPositionString(pos)));
+            const freeSpots = _.filter(getSpotsNear(movementInfo.creep.pos, /*range=*/1, /*considerCreeps=*/false),
+                                       (pos) => !this.movingCreeps.has(constructPositionString(pos)));
             let newPos = _.find(freeSpots, (pos) => !this.creeps.has(constructPositionString(pos)));
             if(!newPos) {
                 newPos = _.find(freeSpots, (pos) => {
@@ -187,9 +187,16 @@ export class TrafficController {
             return false;
         }
 
+        // Set this before (potentially) unblocking, to prevent infinite call-stacks.
+        movementInfo.moved = true;
+        if(!this.movingCreeps.has(newPosString)) {
+            this.movingCreeps.set(newPosString, oldPosString);
+        }
+
         const blockingCreepMovementInfo = this.creeps.get(newPosString);
         if(blockingCreepMovementInfo && !blockingCreepMovementInfo.registeredMovement && !this.moveFromPosition(newPosString, /*forceMove=*/true)) {
             // Moving the blocking creep failed, so this creep fails too.
+            movementInfo.moved = false;
             if(this.movingCreeps.get(newPosString) === oldPosString) {
                 this.movingCreeps.delete(newPosString)
             }
@@ -197,10 +204,6 @@ export class TrafficController {
         }
 
         movementInfo.creep.move(moveDirecton);
-        movementInfo.moved = true;
-        if(!this.movingCreeps.has(newPosString)) {
-            this.movingCreeps.set(newPosString, oldPosString);
-        }
         return true;
     }
 }
@@ -210,13 +213,13 @@ export class TrafficController {
  * range - The required range to the target, defaults to 1
  */
 export interface TrafficControllerOptions {
-    range: number | undefined;
-    maxOps: number | undefined;
+    range?: number;
+    maxOps?: number;
 }
 
 interface CreepMovementInfo {
     creep: Creep;
-    registeredMovement: DirectionConstant | undefined;
+    registeredMovement?: DirectionConstant;
     moved: boolean;
 }
 

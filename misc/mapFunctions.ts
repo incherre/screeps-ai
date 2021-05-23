@@ -93,7 +93,7 @@ export function movePos(position: RoomPosition, direction: DirectionConstant): R
  * @param {number?} range - The range to check, defaults to 1
  * @returns {RoomPosition[]} - A list of free positions in range of the target
  */
-export function getSpotsNear(position: RoomPosition, range:number = 1): RoomPosition[] {
+export function getSpotsNear(position: RoomPosition, range: number = 1, considerCreeps: boolean = true): RoomPosition[] {
     if(Game.rooms[position.roomName]) {
         const room = Game.rooms[position.roomName];
         const potentialTargets: RoomPosition[] = [];
@@ -107,7 +107,11 @@ export function getSpotsNear(position: RoomPosition, range:number = 1): RoomPosi
             for(const x in objects[y]) {
                 let blocked = false;
                 for(const object of objects[y][x]) {
-                    if(object.type === 'creep' || object.type === 'constructionSite') {
+                    if(object.type === 'creep' && considerCreeps) {
+                        blocked = true;
+                        break;
+                    }
+                    else if (object.type === 'constructionSite') {
                         const constructionSite = object.constructionSite;
                         blocked = !!constructionSite && constructionSite.structureType in OBSTACLE_OBJECT_TYPES;
                         break;

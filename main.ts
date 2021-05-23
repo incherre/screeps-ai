@@ -1,3 +1,4 @@
+import { TrafficController } from "misc/trafficController";
 import { Empire } from "./empire";
 import { ErrorMapper } from "./utils/ErrorMapper";
 
@@ -11,6 +12,8 @@ export const loop = ErrorMapper.wrapLoop(() => {
   empire.generateRequests(); // everyone ask for things
 
   empire.run(); // everyone do things
+
+  TrafficController.getTrafficController().finalizeMoves(); // move creeps
 
   empire.cleanup(); // prepare things for the next tick
 });
