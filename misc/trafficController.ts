@@ -105,26 +105,7 @@ export class TrafficController {
      */
     public finalizeMoves(): void {
         for(const oldPosString of this.creeps.keys()) {
-            const movementInfo = this.creeps.get(oldPosString);
-            if(!movementInfo || !movementInfo.registeredMovement) {
-                // No registered movement.
-                continue;
-            }
-
-            const newPosString = constructPositionString(movePos(movementInfo.creep.pos, movementInfo.registeredMovement));
-            const conflictingCreepPos = this.movingCreeps.get(newPosString);
-            if(conflictingCreepPos && conflictingCreepPos !== oldPosString) {
-                // Someone else is moving into that spot.
-                continue;
-            }
-
-            const blockingCreepMovementInfo = this.creeps.get(newPosString);
-            if(blockingCreepMovementInfo && !blockingCreepMovementInfo.registeredMovement) {
-                // TODO(Daniel): Clear the blocker, if possible.
-                continue;
-            }
-
-            movementInfo.creep.move(movementInfo.registeredMovement);
+            this.moveFromPosition(oldPosString, /*forceMove=*/false);
         }
     }
 
@@ -150,9 +131,77 @@ export class TrafficController {
             this.creeps.set(creepPos, {
                 creep: creep,
                 registeredMovement: undefined,
+                moved: false,
             });
         }
         this.lastMapTick = Game.time;
+    }
+
+    private moveFromPosition(oldPosString: string, forceMove: boolean): boolean {
+        const movementInfo = this.creeps.get(oldPosString);
+        if(!movementInfo || movementInfo.moved) {
+            // No creep is here or the creep has already moved, okay to move into this spot.
+            return true;
+        }
+
+        let newPosString: string = '';
+        let moveDirecton: DirectionConstant | null = null;
+        if(!movementInfo.registeredMovement) {
+            if(!forceMove) {
+                // The creep doesn't need to move.
+                return true;
+            }
+
+            const freeSpots = _.filter(getSpotsNear(movementInfo.creep.pos), (pos) => !this.movingCreeps.has(constructPositionString(pos)));
+            let newPos = _.find(freeSpots, (pos) => !this.creeps.has(constructPositionString(pos)));
+            if(!newPos) {
+                newPos = _.find(freeSpots, (pos) => {
+                    const creepsEntry = this.creeps.get(constructPositionString(pos));
+                    return !creepsEntry || creepsEntry.registeredMovement;
+                });
+            }
+            if(!newPos) {
+                newPos = _.find(freeSpots, (pos) => {
+                    const creepsEntry = this.creeps.get(constructPositionString(pos));
+                    return !creepsEntry || !creepsEntry.moved;
+                });
+            }
+            if(!newPos) {
+                return false;
+            }
+
+            newPosString = constructPositionString(newPos);
+            moveDirecton = movementInfo.creep.pos.getDirectionTo(newPos.x, newPos.y);
+        }
+        else {
+            newPosString = constructPositionString(movePos(movementInfo.creep.pos, movementInfo.registeredMovement));
+            moveDirecton = movementInfo.registeredMovement;
+        }
+
+        const conflictingCreepPos = this.movingCreeps.get(newPosString);
+        if(conflictingCreepPos && conflictingCreepPos !== oldPosString) {
+            // Someone else is moving into that spot.
+            if(this.movingCreeps.get(newPosString) === oldPosString) {
+                this.movingCreeps.delete(newPosString)
+            }
+            return false;
+        }
+
+        const blockingCreepMovementInfo = this.creeps.get(newPosString);
+        if(blockingCreepMovementInfo && !blockingCreepMovementInfo.registeredMovement && !this.moveFromPosition(newPosString, /*forceMove=*/true)) {
+            // Moving the blocking creep failed, so this creep fails too.
+            if(this.movingCreeps.get(newPosString) === oldPosString) {
+                this.movingCreeps.delete(newPosString)
+            }
+            return false;
+        }
+
+        movementInfo.creep.move(moveDirecton);
+        movementInfo.moved = true;
+        if(!this.movingCreeps.has(newPosString)) {
+            this.movingCreeps.set(newPosString, oldPosString);
+        }
+        return true;
     }
 }
 
@@ -168,6 +217,7 @@ export interface TrafficControllerOptions {
 interface CreepMovementInfo {
     creep: Creep;
     registeredMovement: DirectionConstant | undefined;
+    moved: boolean;
 }
 
 function constructPositionString(pos: RoomPosition): string {
