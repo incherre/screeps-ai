@@ -1,5 +1,6 @@
 import { SOURCE_KEEPER_NAME, OWN_NAME } from './constants';
 import { getRoomInfo, addRoomInfo, getSpotsNear, movePos } from './mapFunctions';
+import { drawPath } from './visuals';
 
 /**
  * A class for managing all pathfinding and creep traffic management. Callers will register
@@ -72,6 +73,8 @@ export class TrafficController {
             path = convertPath([creep.pos].concat(pathfinderReturn.path));
             creep.memory.path = Room.serializePath(path);
         }
+
+        drawPath(creep.pos, path);
 
         // Find the next step to take on the path.
         let moveDirecton: DirectionConstant | null = null;
