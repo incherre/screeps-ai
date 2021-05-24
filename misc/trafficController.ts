@@ -170,6 +170,7 @@ export class TrafficController {
                 });
             }
             if(!newPos) {
+                console.log('Attempted to push', movementInfo.creep.name, 'but no spots were available.');
                 return false;
             }
 
@@ -184,6 +185,7 @@ export class TrafficController {
         const conflictingCreepPos = this.movingCreeps.get(newPosString);
         if(conflictingCreepPos && conflictingCreepPos !== oldPosString) {
             // Someone else is moving into that spot.
+            console.log('Attempted to finalize move for', movementInfo.creep.name, 'but another creep was moving into the same spot.');
             if(this.movingCreeps.get(newPosString) === oldPosString) {
                 this.movingCreeps.delete(newPosString)
             }
@@ -199,6 +201,7 @@ export class TrafficController {
         const blockingCreepMovementInfo = this.creeps.get(newPosString);
         if(blockingCreepMovementInfo && !blockingCreepMovementInfo.registeredMovement && !this.moveFromPosition(newPosString, /*forceMove=*/true)) {
             // Moving the blocking creep failed, so this creep fails too.
+            console.log('Attempted to finalize move for', movementInfo.creep.name, 'but it failed to move the blocking creep.');
             movementInfo.moved = false;
             if(this.movingCreeps.get(newPosString) === oldPosString) {
                 this.movingCreeps.delete(newPosString)

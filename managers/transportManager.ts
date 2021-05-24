@@ -69,7 +69,7 @@ export class TransportManager extends Manager {
         }
 
         for(let i = actualNumber; i < transportNumber; i++) {
-            requests.push(new SpawnRequest(TransportManager.type, this.parent.capitalName, 'carrier', /*priority=*/(actualNumber < transportNumber / 2) ? 2 : 3));
+            requests.push(new SpawnRequest(TransportManager.type, this.parent.capitalName, 'carrier', /*priority=*/2));
         }
 
         return requests;

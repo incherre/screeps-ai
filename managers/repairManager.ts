@@ -12,6 +12,7 @@ export class RepairManager extends Manager {
     public static towerConstant = 0.75;
     public static rampartDangerZone = 10000;
     public static repairablesPerRepairer = 20;
+    public static maxRepairers = 2;
 
     public generateRequests(): ScreepsRequest[] {
         if(!this.parent.capital) {
@@ -41,7 +42,7 @@ export class RepairManager extends Manager {
             }
         }
 
-        let repairNumber = Math.ceil(repairablesNumber / RepairManager.repairablesPerRepairer);
+        let repairNumber = Math.min(Math.ceil(repairablesNumber / RepairManager.repairablesPerRepairer), RepairManager.maxRepairers);
         let actualNumber = this.workers.length;
 
         for(const worker of this.workers) {
