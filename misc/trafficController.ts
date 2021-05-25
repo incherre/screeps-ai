@@ -146,16 +146,18 @@ export class TrafficController {
             return true;
         }
 
-        let newPosString: string = '';
-        let moveDirecton: DirectionConstant | null = null;
         if(!movementInfo.registeredMovement) {
             if(!forceMove) {
                 // The creep doesn't need to move.
                 return true;
             }
 
-            const freeSpots = _.filter(getSpotsNear(movementInfo.creep.pos, /*range=*/1, /*considerCreeps=*/false),
-                                       (pos) => !this.movingCreeps.has(constructPositionString(pos)));
+            const allSpots = getSpotsNear(movementInfo.creep.pos, /*range=*/1, /*considerCreeps=*/false);
+            const freeSpots = _.filter(allSpots,
+                                       (pos) => {
+                                            const fromString = this.movingCreeps.get(constructPositionString(pos));
+                                            return pos !== movementInfo.creep.pos && (!fromString || fromString === oldPosString);
+                                        });
             let newPos = _.find(freeSpots, (pos) => !this.creeps.has(constructPositionString(pos)));
             if(!newPos) {
                 newPos = _.find(freeSpots, (pos) => {
@@ -174,13 +176,11 @@ export class TrafficController {
                 return false;
             }
 
-            newPosString = constructPositionString(newPos);
-            moveDirecton = movementInfo.creep.pos.getDirectionTo(newPos.x, newPos.y);
+            movementInfo.registeredMovement = movementInfo.creep.pos.getDirectionTo(newPos.x, newPos.y);
         }
-        else {
-            newPosString = constructPositionString(movePos(movementInfo.creep.pos, movementInfo.registeredMovement));
-            moveDirecton = movementInfo.registeredMovement;
-        }
+
+        const newPosString = constructPositionString(movePos(movementInfo.creep.pos, movementInfo.registeredMovement));
+        const moveDirecton = movementInfo.registeredMovement;
 
         const conflictingCreepPos = this.movingCreeps.get(newPosString);
         if(conflictingCreepPos && conflictingCreepPos !== oldPosString) {

@@ -102,7 +102,7 @@ export function getSpotsNear(position: RoomPosition, range: number = 1, consider
         const maxY = Math.min(position.y + range, 48);
         const maxX = Math.min(position.x + range, 48);
 
-        const objects = room.lookAtArea(minY, minX, maxY, maxX, false);
+        const objects = room.lookAtArea(minY, minX, maxY, maxX, /*asArray=*/false);
         for(const y in objects) {
             for(const x in objects[y]) {
                 let blocked = false;
@@ -113,8 +113,10 @@ export function getSpotsNear(position: RoomPosition, range: number = 1, consider
                     }
                     else if (object.type === 'constructionSite') {
                         const constructionSite = object.constructionSite;
-                        blocked = !!constructionSite && constructionSite.structureType in OBSTACLE_OBJECT_TYPES;
-                        break;
+                        if(constructionSite && OBSTACLE_OBJECT_TYPES.includes(constructionSite.structureType as any)) {
+                            blocked = true;
+                            break;
+                        }
                     }
                     else if(object.type === 'terrain' && object.terrain === 'wall') {
                         blocked = true;
