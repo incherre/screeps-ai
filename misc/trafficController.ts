@@ -49,17 +49,16 @@ export class TrafficController {
 
         if(path.length === 0) {
             // Recalculate and save the path.
-            const freePositionInRange: RoomPosition | undefined = _.sample(getSpotsNear(targetPos, options?.range));
-            if(!freePositionInRange) {
+            const freeGoalsInRange: { pos: RoomPosition, range: number }[] = _.map(getSpotsNear(targetPos, options?.range), (pos) => {
+                return { pos: pos, range: 0 }
+            });
+            if(freeGoalsInRange.length === 0) {
                 console.log('Attempted to move', creep.name, 'but no open spots could be found.');
                 return 0;
             }
             const pathfinderReturn = PathFinder.search(
                 creep.pos,
-                {
-                    pos: freePositionInRange,
-                    range: 0,
-                },
+                freeGoalsInRange,
                 {
                     roomCallback: getPathfinderCallback(options),
                     maxOps: options?.maxOps,
@@ -80,11 +79,11 @@ export class TrafficController {
         let moveDirecton: DirectionConstant | null = null;
         let afterMovePos: string | null = null;
         let progress: number = 0;
-        for(const i in path) {
+        for(let i = path.length - 1; i >= 0; i--) {
             const step = path[i];
-            if(step.x - step.dx === creep.pos.x && step.y - step.dy === creep.pos.y) {
+            if(creep.pos.isNearTo(step.x, step.y)) {
                 progress = Number(i);
-                moveDirecton = step.direction;
+                moveDirecton = creep.pos.getDirectionTo(step.x, step.y);
                 afterMovePos = constructPositionString(new RoomPosition(step.x, step.y, creep.pos.roomName));
                 break;
             }
@@ -95,7 +94,7 @@ export class TrafficController {
             this.movingCreeps.set(afterMovePos, currentPosString);
         }
         else {
-            console.log('Attempted to move', creep.name, 'but no path was found.');
+            console.log('Attempted to move', creep.name, 'but it was off of the path.');
             return 0;
         }
 
@@ -127,6 +126,7 @@ export class TrafficController {
             return;
         }
 
+        this.movingCreeps.clear();
         this.creeps.clear();
         for(const creepName in Game.creeps) {
             const creep = Game.creeps[creepName];
@@ -162,13 +162,13 @@ export class TrafficController {
             if(!newPos) {
                 newPos = _.find(freeSpots, (pos) => {
                     const creepsEntry = this.creeps.get(constructPositionString(pos));
-                    return !creepsEntry || creepsEntry.registeredMovement;
+                    return !creepsEntry || (creepsEntry.registeredMovement && canMove(creepsEntry.creep));
                 });
             }
             if(!newPos) {
                 newPos = _.find(freeSpots, (pos) => {
                     const creepsEntry = this.creeps.get(constructPositionString(pos));
-                    return !creepsEntry || !creepsEntry.moved;
+                    return !creepsEntry || (!creepsEntry.moved && canMove(creepsEntry.creep));
                 });
             }
             if(!newPos) {
@@ -209,7 +209,14 @@ export class TrafficController {
             return false;
         }
 
-        movementInfo.creep.move(moveDirecton);
+        if(movementInfo.creep.move(moveDirecton) !== OK) {
+            console.log('Attempted to finalize move for', movementInfo.creep.name, 'but it failed due to non-OK status.');
+            movementInfo.moved = false;
+            if(this.movingCreeps.get(newPosString) === oldPosString) {
+                this.movingCreeps.delete(newPosString)
+            }
+            return false;
+        }
         return true;
     }
 }
@@ -255,6 +262,10 @@ function convertPath(path: RoomPosition[]): PathStep[] {
     }
 
     return result;
+}
+
+function canMove(creep: Creep): boolean {
+    return creep.getActiveBodyparts(MOVE) > 0 && !(creep.fatigue > 0);
 }
 
 function getPathfinderCallback(options: TrafficControllerOptions | undefined):
