@@ -158,18 +158,18 @@ export class TrafficController {
                                             const fromString = this.movingCreeps.get(constructPositionString(pos));
                                             return pos !== movementInfo.creep.pos && (!fromString || fromString === oldPosString);
                                         });
-            let newPos = _.find(freeSpots, (pos) => !this.creeps.has(constructPositionString(pos)));
+            let newPos: RoomPosition | undefined = _.sample(_.filter(freeSpots, (pos) => !this.creeps.has(constructPositionString(pos))));
             if(!newPos) {
-                newPos = _.find(freeSpots, (pos) => {
+                newPos = _.sample(_.filter(freeSpots, (pos) => {
                     const creepsEntry = this.creeps.get(constructPositionString(pos));
                     return !creepsEntry || (creepsEntry.registeredMovement && canMove(creepsEntry.creep));
-                });
+                }));
             }
             if(!newPos) {
-                newPos = _.find(freeSpots, (pos) => {
+                newPos = _.sample(_.filter(freeSpots, (pos) => {
                     const creepsEntry = this.creeps.get(constructPositionString(pos));
                     return !creepsEntry || (!creepsEntry.moved && canMove(creepsEntry.creep));
-                });
+                }));
             }
             if(!newPos) {
                 console.log('Attempted to push', movementInfo.creep.name, 'but no spots were available.');
