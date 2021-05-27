@@ -65,10 +65,13 @@ export class WorkerCreep {
         const creepPos = this.creep.pos;
         const targetPos = this.job.target;
         if(targetPos && targetPos.getRangeTo(creepPos) <= this.job.targetRange) {
+            this.creep.memory.path = undefined;
             this.job.do(this.creep);
         }
         else if(targetPos && this.creep.fatigue === 0) {
-            TrafficController.getTrafficController().registerMovement(this.creep, targetPos, { range: this.job.targetRange });
+            this.job.setTtr(TrafficController.getTrafficController().registerMovement(this.creep, targetPos, this.job.getTrafficOptions()));
+        }
+        else if(this.job.ttr > 0) {
             this.job.ttr--;
         }
 

@@ -1,3 +1,4 @@
+import { PathingCallbackOptions } from "misc/pathingCallbacks";
 import { getSpotsNear } from "../misc/mapFunctions";
 import { Job } from "./job";
 
@@ -102,6 +103,10 @@ export class HarvestJob extends Job {
         else if(this.source instanceof Mineral && this.source.mineralAmount > 0 && Game.time % HarvestJob.mineralCooldown === 0) {
             creep.harvest(this.source);
         }
+    }
+
+    public getTrafficOptions(): PathingCallbackOptions {
+        return { range: this.targetRange, walkNearSources: true };
     }
 
     public getJobType(): string {

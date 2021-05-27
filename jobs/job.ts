@@ -1,3 +1,5 @@
+import { PathingCallbackOptions } from "misc/pathingCallbacks";
+
 /**
  * Abstract base class representing a job that a creep can do.
  */
@@ -24,12 +26,19 @@ export abstract class Job {
      */
     public abstract recalculateTarget(creep: Creep): boolean;
 
-
     /**
      * Performs the task. All creep intents should be set in here.
      * @param creep - The creep performing the task
      */
     public abstract do(creep: Creep): void;
+
+    /**
+     * Get the pathfinding options that should be used for this job.
+     * @returns {PathingCallbackOptions} - The options to use when pathing for this creep
+     */
+    public getTrafficOptions(): PathingCallbackOptions {
+        return { range: this.targetRange };
+    }
 
     /**
      * Sets the Time To Recalculate. To conserve CPU, tasks are only recalculated when the creep should have reached its target.

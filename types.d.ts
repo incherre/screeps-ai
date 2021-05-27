@@ -25,6 +25,7 @@ declare namespace NodeJS {
     empire: any | undefined;
     trafficController: any | undefined;
     myMaps: {[key: string]: Array<Array<{exitDist: number, wallDist: number, sourceDist: number[], controllerDist:number}>>} | undefined;
-    myCosts: {[key: string]: {mat: CostMatrix, time: number}} | undefined;
+    myPathfinderCosts: {[key: string]: {mat: CostMatrix, time: number}} | undefined;
+    myRoomCosts: {[key: string]: {cost: number, time: number}} | undefined;
   }
 }

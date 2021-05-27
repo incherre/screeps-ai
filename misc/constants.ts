@@ -4,6 +4,11 @@
 export const SOURCE_KEEPER_NAME: string = 'Source Keeper';
 
 /**
+ * The range at which source keepers will start to attack a creep.
+ */
+export const SOURCE_KEEPER_ATTACK_RANGE: number = 3;
+
+/**
  * The in-game owner of NPC Invaders.
  */
 export const INVADER_NAME: string = 'Invader'
@@ -57,3 +62,8 @@ function _getInvertedReactionMap(): Map<ResourceConstant, [ResourceConstant, Res
  * A map of (lab product) => (required components).
  */
 export const INVERTED_REACTIONS: Map<ResourceConstant, [ResourceConstant, ResourceConstant]> = _getInvertedReactionMap();
+
+/**
+ * The width/height of a room.
+ */
+export const ROOM_SIZE: number = 50;
