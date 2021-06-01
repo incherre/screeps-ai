@@ -1,3 +1,4 @@
+import { getNewCreepName } from "misc/personalization";
 import { Colony } from "../colony";
 import { BusyJob } from "../jobs/busyJob";
 import { popMostImportant, shuffle } from "../misc/arrayFunctions";
@@ -94,7 +95,7 @@ export class SpawnManager extends Manager {
                     };
                     const body = spawnFunctions[request.creepBody](request.priority <= SpawnManager.spawnImmediatelyPriority ? energy : energyMax);
                     const totalCost = _.sum(body, (part) => BODYPART_COST[part]);
-                    const name = building.name + '-' + Game.time;
+                    const name = getNewCreepName(building.name);
 
                     // Hold out for full capacity if the priority isn't pressing.
                     if (totalCost > energy) {
