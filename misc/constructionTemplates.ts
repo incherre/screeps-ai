@@ -1,414 +1,303 @@
-interface Template {[key: string]: Array<{dx: number, dy: number}>};
+import type { Colony } from '../colony'
+
+interface Template {[key: string]: {dx: number, dy: number}[]};
+interface Layout {[key: string]: {x: number, y: number}[]};
 type MyMap = Array<Array<{exitDist: number, wallDist: number, sourceDist: number[], controllerDist:number}>>;
 
 const FREE_SPACE = 'free';
-const minCoord = 2;
-const maxCoord = 47;
+const MIN_BUILDABLE_COORD = 5;
+const MAX_BUILDABLE_COORD = 44;
+const CONTROLLER_MAX_LEVEL = 8;
 
-const idealClearance = 7;
-const minClearance = 4;
+const idealClearance = 6;
+const minClearance = 3;
 
-const maxTries = 64;
-const width = 6;
-
-export function placeBaseSites(room: Room, count: number): number {
-    if(!hasSeeds(room)) {
-        setSeeds(room);
-    }
-
-    let placed = 0;
-
-    if(room.memory.seed) {
-        const seed = room.memory.seed;
-        let template = rotateTemplate(seedTemplate, seed.r);
-        let retVal;
-        for(const type of Object.keys(template)) {
-            if(type !== FREE_SPACE) {
-                for(const delta of template[type]) {
-                    retVal = room.createConstructionSite(seed.x + delta.dx, seed.y + delta.dy, type as BuildableStructureConstant);
-                    if(retVal === OK) {
-                        placed++;
-                        if(placed >= count) {
-                            return placed;
-                        }
-                    }
-                }
-            }
-        }
-
-        if(room.memory.petals) {
-            for(const petal of room.memory.petals) {
-                template = rotateTemplate(petalTemplate, petal.r);
-                for(const type of Object.keys(template)) {
-                    if(type !== FREE_SPACE) {
-                        for(const delta of template[type]) {
-                            retVal = room.createConstructionSite(seed.x + petal.dx + delta.dx, seed.y + petal.dy + delta.dy, type as BuildableStructureConstant);
-                            if(retVal === OK) {
-                                placed++;
-                                if(placed >= count) {
-                                    return placed;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if(room.memory.lab) {
-            const lab = room.memory.lab;
-            template = rotateTemplate(labTemplate, lab.r);
-            for(const type of Object.keys(template)) {
-                if(type !== FREE_SPACE) {
-                    for(const delta of template[type]) {
-                        retVal = room.createConstructionSite(seed.x + lab.dx + delta.dx, seed.y + lab.dy + delta.dy, type as BuildableStructureConstant);
-                        if(retVal === OK) {
-                            placed++;
-                            if(placed >= count) {
-                                return placed;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    return placed;
-}
-
-export function placeBaseRamparts(room: Room, count: number): number {
-    if(!hasSeeds(room)) {
-        setSeeds(room);
-    }
-
-    if(!room.memory.seed) {
-        return 0;
-    }
-
-    let placed = 0;
-    const seed = room.memory.seed;
-    let template = rotateTemplate(seedTemplate, seed.r);
-    let retVal;
-    for(const type of Object.keys(template)) {
-        for(const delta of template[type]) {
-            const looked = room.lookForAt(LOOK_STRUCTURES, seed.x + delta.dx, seed.y + delta.dy);
-            if(type === FREE_SPACE || looked.length > 0) {
-                retVal = room.createConstructionSite(seed.x + delta.dx, seed.y + delta.dy, STRUCTURE_RAMPART);
-                if(retVal === OK) {
-                    placed++;
-                    if(placed >= count) {
-                        return placed;
-                    }
-                }
-            }
-        }
-    }
-
-    if(room.memory.petals) {
-        for(const petal of room.memory.petals) {
-            template = rotateTemplate(petalTemplate, petal.r);
-            for(const type of Object.keys(template)) {
-                for(const delta of template[type]) {
-                    const looked = room.lookForAt(LOOK_STRUCTURES, seed.x + petal.dx + delta.dx, seed.y + petal.dy + delta.dy);
-                    if(type === FREE_SPACE || looked.length > 0) {
-                        retVal = room.createConstructionSite(seed.x + petal.dx + delta.dx, seed.y + petal.dy + delta.dy, STRUCTURE_RAMPART);
-                        if(retVal === OK) {
-                            placed++;
-                            if(placed >= count) {
-                                return placed;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if(room.memory.lab) {
-        const lab = room.memory.lab;
-        template = rotateTemplate(labTemplate, lab.r);
-        for(const type of Object.keys(template)) {
-            for(const delta of template[type]) {
-                const looked = room.lookForAt(LOOK_STRUCTURES, seed.x + lab.dx + delta.dx, seed.y + lab.dy + delta.dy);
-                if(type === FREE_SPACE || looked.length > 0) {
-                    retVal = room.createConstructionSite(seed.x + lab.dx + delta.dx, seed.y + lab.dy + delta.dy, STRUCTURE_RAMPART);
-                    if(retVal === OK) {
-                        placed++;
-                        if(placed >= count) {
-                            return placed;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    return placed;
-}
-
-export function displayLayout(room: Room) {
-    if(!hasSeeds(room)) {
-        setSeeds(room);
-    }
-
-    if(room.memory.seed) {
-        let template = rotateTemplate(seedTemplate, room.memory.seed.r);
-        for(const type of Object.keys(template)) {
-            if(type === STRUCTURE_SPAWN) {
-                for(const delta of template[type]) {
-                    room.visual.circle(room.memory.seed.x + delta.dx, room.memory.seed.y + delta.dy, {radius: 0.3});
-                }
-            }
-            else if(type !== FREE_SPACE) {
-                for(const delta of template[type]) {
-                    room.visual.circle(room.memory.seed.x + delta.dx, room.memory.seed.y + delta.dy);
-                }
-            }
-        }
-
-        if(room.memory.lab) {
-            template = rotateTemplate(labTemplate, room.memory.lab.r);
-            for(const type of Object.keys(template)) {
-                if(type !== FREE_SPACE) {
-                    for(const delta of template[type]) {
-                        room.visual.circle(room.memory.seed.x + room.memory.lab.dx + delta.dx, room.memory.seed.y + room.memory.lab.dy + delta.dy, {fill: '#8846f2'});
-                    }
-                }
-            }
-        }
-
-        if(room.memory.petals) {
-            for(const petal of room.memory.petals) {
-                template = rotateTemplate(petalTemplate, petal.r);
-                for(const type of Object.keys(template)) {
-                    if(type === STRUCTURE_SPAWN) {
-                        for(const delta of template[type]) {
-                            room.visual.circle(room.memory.seed.x + delta.dx, room.memory.seed.y + delta.dy, {fill: '#cde26f', radius: 0.3});
-                        }
-                    }
-                    else if(type !== FREE_SPACE) {
-                        for(const delta of template[type]) {
-                            room.visual.circle(room.memory.seed.x + petal.dx + delta.dx, room.memory.seed.y + petal.dy + delta.dy, {fill: '#cde26f'});
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-}
-
-function hasSeeds(room: Room): boolean {
-    if(room.memory.seed && room.memory.lab && room.memory.petals && room.memory.petals.length === 3) {
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-function setSeeds(room: Room): boolean {
-    const myMap = getDistanceGraph(room);
-    if(!myMap) {
-        return false;
-    }
-
-    const maxClearance: number = _.max(_.map(myMap, (row) => _.max(_.map(row, 'wallDist'))));
-
-    if(maxClearance >= idealClearance) {
-        // set up a nice base
-        const seed = calculateOptimalPosition(myMap, idealClearance, 0.5, -1, 1);
-        if(!seed) {
-            return false;
-        }
-
-        room.memory.seed = {x: seed.x, y: seed.y, r: 0};
-        room.memory.lab = {dx: 0, dy: 0, r: 0};
-        room.memory.petals = [{dx: 0, dy: 0, r: 1}, {dx: 0, dy: 0, r: 2}, {dx: 0, dy: 0, r: 3}];
-        return true;
-    }
-    else if(maxClearance >= minClearance) {
-        // try to set up an okay base
-        const seed = calculateOptimalPosition(myMap, maxClearance, 0.5, -1, 1);
-        if(!seed) {
-            return false;
-        }
-
-        let bestDirection = -1;
-        let bestDistance = -Infinity;
-        for(let i = 0; i < 4; i++) {
-            const spot = {x: seed.x, y: seed.y};
-            let distance = 0;
-            while(myMap[spot.x] && myMap[spot.x][spot.y] && myMap[spot.x][spot.y].wallDist >= minClearance) {
-                distance++;
-                step(spot, i);
-            }
-
-            if(distance > bestDistance) {
-                bestDistance = distance;
-                bestDirection = i;
-            }
-        }
-
-        if(bestDirection === -1) {
-            return false;
-        }
-
-        const labDirection = (bestDirection + 2) % 4;
-        step(seed, bestDirection, 2); // TODO(Daniel): remove magic number
-        const trueSeed = {x: seed.x, y: seed.y, r: labDirection};
-        const lab = {dx: 0, dy: 0, r: labDirection};
-        const petals: Array<{dx: number, dy: number, r: number}> = [];
-
-        placePetals(new RoomPosition(seed.x, seed.y, room.name), labDirection, petals);
-
-        if(petals.length < 3) {
-            return false;
-        }
-
-        room.memory.seed = trueSeed;
-        room.memory.lab = lab;
-        room.memory.petals = petals;
-
-        return true;
-    }
-    else {
-        // cry, hcf
-        return false;
-    }
-}
-
-const seedTemplate: Template = {
+const coreTemplate: Template = {
     [STRUCTURE_LINK]: [{dx: 0, dy: 1}],
-    [STRUCTURE_SPAWN]: [{dx: -1, dy: 0}],
-    [STRUCTURE_STORAGE]: [{dx: 1, dy: 0}],
-    [STRUCTURE_TERMINAL]: [{dx: 0, dy: -1}],
+    [STRUCTURE_STORAGE]: [{dx: -1, dy: 0}],
+    [STRUCTURE_SPAWN]: [{dx: 0, dy: -1}],
+    [STRUCTURE_TERMINAL]: [{dx: 1, dy: 0}],
     [FREE_SPACE]: [{dx: 0, dy: 0}]
 };
-
-const petalTemplate: Template = {
-    [STRUCTURE_EXTENSION]: [
-        {dx: 1, dy: -3}, {dx: 2, dy: -3}, {dx: 3, dy: -2}, {dx: 3, dy: -1}, {dx: 2, dy: -4},
-        {dx: 3, dy: -4}, {dx: 4, dy: -3}, {dx: 4, dy: -2}, {dx: 1, dy: -5}, {dx: 3, dy: -5},
-        {dx: 4, dy: -5}, {dx: 5, dy: -4}, {dx: 5, dy: -3}, {dx: 5, dy: -1}, {dx: 1, dy: -6},
-        {dx: 2, dy: -6}, {dx: 4, dy: -6}, {dx: 6, dy: -4}, {dx: 6, dy: -2}, {dx: 6, dy: -1}
-    ],
-    [STRUCTURE_POWER_SPAWN]: [{dx: 2, dy: -1}],
-    [STRUCTURE_SPAWN]: [{dx: 2, dy: -1}],
-    [STRUCTURE_TOWER]: [{dx: 1, dy: -2}],
-    [FREE_SPACE]: [
-        {dx: 1, dy: -1}, {dx: 2, dy: -2}, {dx: 3, dy: -3}, {dx: 4, dy: -4}, {dx: 5, dy: -5},
-        {dx: 1, dy: -4}, {dx: 2, dy: -5}, {dx: 4, dy: -1}, {dx: 5, dy: -2}, {dx: 3, dy: -6},
-        {dx: 6, dy: -3}, {dx: 2, dy:  0}, {dx: 3, dy:  0}, {dx: 4, dy:  0}, {dx: 5, dy:  0},
-        {dx: 6, dy:  0}, {dx: 0, dy: -2}, {dx: 0, dy: -3}, {dx: 0, dy: -4}, {dx: 0, dy: -5},
-        {dx: 0, dy: -6},
-    ]
-};
+const initalToVisit: {dx: number, dy: number}[] = [
+    {dx: 1, dy: 1}, {dx: 1, dy: -1}, {dx: -1, dy: -1}, {dx: -1, dy: 1}
+];
+const spawnSpots: number[] = [40, 57];
+const cornerClearanceThreshold: number = 38;
 
 const labTemplate: Template = {
     [STRUCTURE_LAB]: [
-        {dx: 2, dy: -3}, {dx: 2, dy: -4}, {dx: 3, dy: -4}, {dx: 3, dy: -2}, {dx: 4, dy: -2},
-        {dx: 4, dy: -3}, {dx: 3, dy: -5}, {dx: 4, dy: -5}, {dx: 5, dy: -3}, {dx: 5, dy: -4}
+        {dx: 1, dy: 2}, {dx: 2, dy: 1}, {dx: 1, dy: 0}, {dx: 0, dy: 1}, {dx: 2, dy: 0},
+        {dx: 0, dy: 2}, {dx: 3, dy: 1}, {dx: 1, dy: 3}, {dx: 3, dy: 2}, {dx: 2, dy: 3}
     ],
-    [STRUCTURE_NUKER]: [{dx: 5, dy: -1}],
-    [STRUCTURE_OBSERVER]: [{dx: 3, dy: -1}],
-    [STRUCTURE_TOWER]: [{dx: 1, dy: -2}, {dx: 2, dy: -1}, {dx: 1, dy: -3}],
     [FREE_SPACE]: [
-        {dx: 1, dy: -1}, {dx: 2, dy: -2}, {dx: 3, dy: -3}, {dx: 4, dy: -4}, {dx: 5, dy: -5},
-        {dx: 1, dy: -4}, {dx: 2, dy: -5}, {dx: 4, dy: -1}, {dx: 5, dy: -2}
+        {dx: 0, dy: 0}, {dx: 1, dy: 1}, {dx: 2, dy: 2}
     ]
 };
 
-function placePetals(seed: RoomPosition, startDirection: number, petals: Array<{dx: number, dy: number, r: number}>): void {
-    const templates = [
-        rotateTemplate(petalTemplate, 0), rotateTemplate(petalTemplate, 1),
-        rotateTemplate(petalTemplate, 2), rotateTemplate(petalTemplate, 3)
-    ];
-
-    let dx = 0;
-    let dy = 0;
-    let rotation = (startDirection + 1) % 4;
-    let radius = 0;
-    let tries = 1;
-
-    while(petals.length < 3 && tries < maxTries) {
-        if(seed.x + (dx * width) >= 0 && seed.x + (dx * width) < 50 && seed.y + (dy * width) >= 0 && seed.y + (dy * width) < 50) {
-            // check if a petal can fit there
-            const petalPos = new RoomPosition(seed.x + (dx * width), seed.y + (dy * width), seed.roomName);
-            if(doesItFit(templates[rotation], petalPos)) {
-                petals.push({'dx': dx * width, 'dy': dy * width, r: rotation});
-            }
-        }
-
-        // advance the position
-        if(rotation === (startDirection + 3) % 4 && rotation % 2 === 0 && dy === 0) {
-            radius++;
-            dx = radius;
-            if(rotation === 2) { dx *= -1; }
-        }
-        else if(rotation === (startDirection + 3) % 4 && rotation % 2 === 1 && dx === 0) {
-            radius++;
-            dy = radius;
-            if(rotation === 3) { dy *= -1; }
-        }
-
-        if((rotation % 2 === 0 && dy === 0) || (rotation % 2 === 1 && dx === 0)) {
-            rotation = (rotation + 1) % 4;
-        }
-        else if(dy === -radius && dx < radius) {
-            dx++;
-        }
-        else if(dx === radius && dy < radius) {
-            dy++;
-        }
-        else if(dy === radius && dx > -radius) {
-            dx--;
-        }
-        else if(dx === -radius && dy > -radius) {
-            dy--;
-        }
-
-        tries++;
-    }
+const auxTemplate: Template = {
+    [STRUCTURE_NUKER]: [{dx: 0, dy: 1}],
+    [STRUCTURE_OBSERVER]: [{dx: 0, dy: 2}],
+    [STRUCTURE_POWER_SPAWN]: [{dx: 1, dy: 1}],
+    [STRUCTURE_FACTORY]: [{dx: 1, dy: 2}],
+    [FREE_SPACE]: [{dx: 0, dy: 0}, {dx: 1, dy: 0}, {dx: 2, dy: 1}]
 }
 
-function step(spot: {x: number, y: number}, r: number, dist: number = 1): void {
-    for(let i = 0; i < dist; i++) {
-        switch(r % 4) {
-            case 0: {
-                spot.x++;
-                spot.y--;
-                break;
+/**
+ * Places construction sites for the capital room of the provided colony.
+ * @param {Colony} colony - The colony for which to place construction sites
+ * @param {number} maxAllowed - The maximum number of sites to place
+ * @returns {number} - The number of sites that were placed
+ */
+export function placeBaseSites(colony: Colony, maxAllowed: number): number {
+    let placed = 0;
+    const capitalRoom = colony.capital;
+    if(!capitalRoom) {
+        console.log('Attempted to build in room', colony.capitalName, 'but could not find the room.');
+        return placed;
+    }
+
+    const layout = computeLayout(capitalRoom);
+    if(!layout) {
+        console.log('Attempted to build in room', capitalRoom.name, 'but could not find a layout.');
+        return placed;
+    }
+
+    for(const type in layout) {
+        if(type === FREE_SPACE) {
+            continue;
+        }
+
+        const controllerLevel = capitalRoom.controller ? capitalRoom.controller.level : 0;
+        const existing = colony.structures.get(type as BuildableStructureConstant);
+        const numExisting = existing ? existing.length : 0;
+        if(numExisting >= CONTROLLER_STRUCTURES[type as BuildableStructureConstant][controllerLevel] || numExisting >= layout[type].length) {
+            continue;
+        }
+
+        for(const coords of layout[type]) {
+            const returnCode = capitalRoom.createConstructionSite(coords.x, coords.y, type as BuildableStructureConstant);
+            if(returnCode === OK) {
+                placed++;
             }
-            case 1: {
-                spot.x++;
-                spot.y++;
-                break;
-            }
-            case 2: {
-                spot.x--;
-                spot.y++;
-                break;
-            }
-            case 3: {
-                spot.x--;
-                spot.y--;
-                break;
+
+            if(placed >= maxAllowed) {
+                return placed;
             }
         }
     }
+
+    return placed;
 }
 
-function doesItFit(template: Template, seedPos: RoomPosition): boolean {
-    const terrain: RoomTerrain = Game.map.getRoomTerrain(seedPos.roomName);
+/**
+ * Displays the layout for a given room.
+ * @param {Room} room - The room in which to display the layout
+ */
+export function displayLayout(room: Room): void {
+    const layout = computeLayout(room);
+    if(!layout) {
+        console.log('Attempted to display layout in room', room.name, 'but could not find a layout.');
+        return;
+    }
+
+    for(const type in layout) {
+        let color = '#8846f2';
+        if(type === STRUCTURE_LAB) {
+            color = '#ffffff';
+        }
+        else if(type === STRUCTURE_SPAWN) {
+            color = '#96f246';
+        }
+        else if(type === STRUCTURE_EXTENSION) {
+            color = '#f2e446';
+        }
+
+        for(const index in layout[type]) {
+            const coords = layout[type][index];
+            room.visual.circle(coords.x, coords.y, {fill: color});
+            room.visual.text(index, coords.x, coords.y, {color: '#000000'});
+        }
+    }
+}
+
+/**
+ * Computes or used cached construction layout for a room.
+ * @param {Room} room - The room in which to compute the layout
+ * @returns {Layout | null} - The layout, if a valid layout was found
+ */
+export function computeLayout(room: Room): Layout | null {
+    if(room.memory.layout) {
+        return room.memory.layout;
+    }
+
+    let core: {x: number, y: number} | undefined | null = room.memory.core;
+    if(!core) {
+        const roomMap = getDistanceGraph(room);
+        if(!roomMap) {
+            console.log('Tried to calulate the core for room', room.name, 'but generating the map failed.');
+            return null;
+        }
+
+        core = calculateOptimalPosition(roomMap, idealClearance, /*controllerWeight=*/0.5, /*exitWeight=*/-20, /*sourceWeight=*/1);
+
+        if(!core) {
+            core = calculateOptimalPosition(roomMap, minClearance, /*controllerWeight=*/0.5, /*exitWeight=*/-20, /*sourceWeight=*/1);
+        }
+    }
+
+    if(!core) {
+        console.log('Tried to calulate the core for room', room.name, 'but no suitable positions were found.');
+        return null;
+    }
+
+    room.memory.core = core;
+
+    const visitedNodes = new Set<string>();
+    const layout: Layout = {};
+    for(const type in coreTemplate) {
+        if(type === FREE_SPACE) {
+            for(const deltas of coreTemplate[type]) {
+                visitedNodes.add([deltas.dx, deltas.dy].join());
+            }
+            continue;
+        }
+
+        if(!layout[type]) {
+            layout[type] = [];
+        }
+
+        for(const deltas of coreTemplate[type]) {
+            layout[type].push({x: core.x + deltas.dx, y: core.y + deltas.dy});
+            visitedNodes.add([deltas.dx, deltas.dy].join());
+        }
+    }
+
+    const sourceLocations: {x: number, y: number}[] = _.map(room.find(FIND_SOURCES), (source) => { return {x: source.pos.x, y: source.pos.y}; });
+    const terrain: RoomTerrain = Game.map.getRoomTerrain(room.name);
+    const toVisit = _.cloneDeep(initalToVisit);
+    let placedSpawningVessels = 0;
+    const neededSpawningVessels = CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][CONTROLLER_MAX_LEVEL] +
+                                  CONTROLLER_STRUCTURES[STRUCTURE_SPAWN][CONTROLLER_MAX_LEVEL] - 1; // One spawn is in the core template.
+    let labsBox: {minx: number, miny: number, maxx: number, maxy: number} | null = null;
+    while(toVisit.length > 0 && placedSpawningVessels < neededSpawningVessels) {
+        const deltas: {dx: number, dy: number} | undefined = toVisit.pop();
+        if(!deltas) {
+            continue;
+        }
+        const pos = {x: core.x + deltas.dx, y: core.y + deltas.dy};
+        const absdx = Math.abs(deltas.dx);
+        const absdy = Math.abs(deltas.dy);
+
+        const nearSource = _.some(sourceLocations, (sourcePos) => pos.x >= (sourcePos.x - 1) && pos.x <= (sourcePos.x + 1) && pos.y >= (sourcePos.y - 1) && pos.y <= (sourcePos.y + 1))
+        const inAlreadyPlacedLab = labsBox ? pos.x >= labsBox.minx && pos.x <= labsBox.maxx && pos.y >= labsBox.miny && pos.y <= labsBox.maxy : false;
+        const isWall = terrain.get(pos.x, pos.y) === TERRAIN_MASK_WALL;
+        let hasAdjacentWall = false;
+        for(const wallDeltas of [{dx: 1, dy: 0}, {dx: -1, dy: 0}, {dx: 0, dy: 1}, {dx: 0, dy: -1}]) {
+            if(terrain.get(pos.x + wallDeltas.dx, pos.y + wallDeltas.dy) === TERRAIN_MASK_WALL) {
+                hasAdjacentWall = true;
+                break;
+            }
+        }
+        const couldBeLabSeed = Math.max(absdx, absdx) > 1 && absdx !== 0 && absdy !== 0 && (absdx + (2 * absdy)) % 3 === 0;
+        const couldBeVessel = (absdx === 0 && absdy % 3 === 1) || (absdy === 0 && absdx % 3 === 1) || (((absdx > 0 && absdy > 0) || placedSpawningVessels > cornerClearanceThreshold) && (absdx + (2 * absdy)) % 3 > 0);
+        let labRotation = 0; // +x, +y
+        if(deltas.dx < 0 && deltas.dy > 0) {
+            labRotation = 1; // -x, +y
+        }
+        else if(deltas.dx < 0 && deltas.dy < 0) {
+            labRotation = 2; // -x, -y
+        }
+        else if(deltas.dx > 0 && deltas.dy < 0) {
+            labRotation = 3; // +x, -y
+        }
+
+        if (!isWall && !inAlreadyPlacedLab && (!hasAdjacentWall || placedSpawningVessels > cornerClearanceThreshold) && !nearSource && couldBeVessel) {
+            const vesselType = spawnSpots.includes(placedSpawningVessels) ? STRUCTURE_SPAWN : STRUCTURE_EXTENSION;
+            if(!layout[vesselType]) {
+                layout[vesselType] = [];
+            }
+
+            layout[vesselType].push(pos);
+            placedSpawningVessels += 1;
+        }
+        else if(!labsBox && !inAlreadyPlacedLab && couldBeLabSeed && doesItFit(rotateTemplate(labTemplate, labRotation), pos, terrain)) {
+            const rotatedLabTemplate = rotateTemplate(labTemplate, labRotation);
+            labsBox = {minx: pos.x, miny: pos.y, maxx: pos.x, maxy: pos.y};
+            for(const type in rotatedLabTemplate) {
+                if(type === FREE_SPACE) {
+                    continue;
+                }
+
+                if(!layout[type]) {
+                    layout[type] = [];
+                }
+
+                for(const templateDeltas of rotatedLabTemplate[type]) {
+                    const labx = pos.x + templateDeltas.dx;
+                    const laby = pos.y + templateDeltas.dy;
+                    layout[type].push({x: labx, y: laby});
+
+                    if(labx < labsBox.minx) {
+                        labsBox.minx = labx;
+                    }
+                    if(labx > labsBox.maxx) {
+                        labsBox.maxx = labx;
+                    }
+                    if(laby < labsBox.miny) {
+                        labsBox.miny = laby;
+                    }
+                    if(laby > labsBox.maxy) {
+                        labsBox.maxy = laby;
+                    }
+                }
+            }
+        }
+
+        for(let ddx = -1; ddx <= 1; ddx++) {
+            const x: number = pos.x + ddx;
+            const newdx: number = deltas.dx + ddx;
+            if(x < MIN_BUILDABLE_COORD || x > MAX_BUILDABLE_COORD) {
+                continue
+            }
+
+            for(let ddy = -1; ddy <= 1; ddy++) {
+                const y: number = pos.y + ddy;
+                const newdy: number = deltas.dy + ddy;
+
+                if((ddx !== 0 || ddy !== 0) && y >= MIN_BUILDABLE_COORD && y < MAX_BUILDABLE_COORD &&
+                   !visitedNodes.has([newdx, newdy].join()) && terrain.get(x, y) !== TERRAIN_MASK_WALL) {
+                    toVisit.unshift({'dx': newdx, 'dy': newdy});
+                    visitedNodes.add([newdx, newdy].join());
+                }
+            }
+        }
+    }
+
+    if (placedSpawningVessels < neededSpawningVessels || !labsBox) {
+        console.log('Tried to calulate the layout for room', room.name, 'but not all structures were placed.');
+        return null;
+    }
+
+    room.memory.layout = layout;
+    return layout;
+}
+
+/**
+ * Compute whether a template fits in the terrain at a specific location.
+ * @param {Template} template - The template which may not fit
+ * @param {{x: number, y: number}} seedPos - The position corresponding to the template's (0, 0)
+ * @param {RoomTerrain} terrain - The terrain to check against
+ * @returns {boolean} - Whether the template fits or not
+ */
+function doesItFit(template: Template, seedPos: {x: number, y: number}, terrain: RoomTerrain): boolean {
     for(const type of Object.keys(template)) {
         if(type !== FREE_SPACE) {
             for(const offset of template[type]) {
-                if(seedPos.x + offset.dx < minCoord || seedPos.x + offset.dx > maxCoord) {
+                if(seedPos.x + offset.dx < MIN_BUILDABLE_COORD || seedPos.x + offset.dx > MAX_BUILDABLE_COORD) {
                     return false;
                 }
-                else if(seedPos.y + offset.dy < minCoord || seedPos.y + offset.dy > maxCoord) {
+                else if(seedPos.y + offset.dy < MIN_BUILDABLE_COORD || seedPos.y + offset.dy > MAX_BUILDABLE_COORD) {
                     return false;
                 }
                 else if(terrain.get(seedPos.x + offset.dx, seedPos.y + offset.dy) === TERRAIN_MASK_WALL) {
@@ -420,6 +309,12 @@ function doesItFit(template: Template, seedPos: RoomPosition): boolean {
     return true;
 }
 
+/**
+ * Computes a new template that is a rotated version of the provided template.
+ * @param {Template} template - The template to be rotated
+ * @param {number} rotation - The direction to rotate it in
+ * @returns {Template} - The rotated template
+ */
 function rotateTemplate(template: Template, rotation: number): Template {
     const rotated: Template = {};
     for(const type of Object.keys(template)) {
@@ -448,15 +343,26 @@ function rotateTemplate(template: Template, rotation: number): Template {
     return rotated;
 }
 
+/**
+ * Iterate through the provided map and compute a score on each position, finding the minimum.
+ * For placing the center of a bunker one might use: calculateOptimalPosition(roomMap, 5, 0.5, -1, 1);
+ * @param {MyMap} myMap - The map of information to use when computing the best position
+ * @param {number} minWallDist - The minimum clearance required
+ * @param {number} controllerWeight - How much to weight the controller distance
+ * @param {number} exitWeight - How much to weight the exit distance
+ * @param {number} sourceWeight - How much to weight the source distance
+ * @returns {{x: number, y: number} | null} - The best position, if found
+ */
 function calculateOptimalPosition (myMap: MyMap, minWallDist: number, controllerWeight: number, exitWeight: number, sourceWeight: number): {x: number, y: number} | null {
-    // For placing the center of a bunker one might use: calculateOptimalPosition(roomMap, 5, 0.5, -1, 1);
     let minPos: {x: number, y: number} | null = null;
     let minScore = 0;
 
     for(let x = 0; x < 50; x++) {
         for(let y = 0; y < 50; y++) {
             if(myMap[x][y].wallDist >= minWallDist) {
-                const score = (controllerWeight * (myMap[x][y].controllerDist * myMap[x][y].controllerDist)) + (exitWeight * myMap[x][y].exitDist) + (sourceWeight * _.sum(_.map(myMap[x][y].sourceDist, (dist) => (1 / myMap[x][y].sourceDist.length) * (dist * dist))));
+                const score = (controllerWeight * (myMap[x][y].controllerDist * myMap[x][y].controllerDist)) +
+                              (exitWeight * myMap[x][y].exitDist) +
+                              (sourceWeight * _.sum(myMap[x][y].sourceDist, (dist) => (1 / myMap[x][y].sourceDist.length) * (dist * dist)));
                 if(!minPos) {
                     minScore = score;
                     minPos = {'x': x, 'y': y}
@@ -473,20 +379,23 @@ function calculateOptimalPosition (myMap: MyMap, minWallDist: number, controller
     return minPos;
 }
 
+/**
+ * Calculates the minimum path distance from a number of places of interest, to every spot in the room.
+ * Warning: can take between 5 and 30 cpu when results are not cached, usually around 12. Run rarely.
+ * @param {Room} room - The room object to calculate the map for.
+ * @returns {MyMap | null} - The map, if sucessfully calculated.
+ */
 function getDistanceGraph(room: Room): MyMap | null {
-    // Calculates the minimum path distance from a number of places of interest, to every spot in the room
-    // Warning, can take between 5 and 30 cpu, usually around 12. Run rarely.
-
     if(global.myMaps && global.myMaps[room.name]) {
         return global.myMaps[room.name];
     }
 
-    const terrain: RoomTerrain = room.getTerrain();
-    const sources = _.map(room.find(FIND_SOURCES), (source) => source.pos);
     if(!room.controller) {
         return null;
     }
     const controller: RoomPosition = room.controller.pos;
+    const terrain: RoomTerrain = room.getTerrain();
+    const sources = _.map(room.find(FIND_SOURCES), (source) => source.pos);
     const myMap: MyMap = [];
 
     const exitQueue = [];
@@ -498,7 +407,7 @@ function getDistanceGraph(room: Room): MyMap | null {
         for(let y = 0; y < 50; y++) {
             const tempTerrain: {exitDist: number, wallDist: number, sourceDist: number[], controllerDist:number} = {exitDist: -1, wallDist: -1, sourceDist: [], controllerDist: -1};
 
-            if((x === 0 || y === 0 || x === 49 || y === 49) && terrain.get(x, y) === 0) {
+            if((x < MIN_BUILDABLE_COORD || y < MIN_BUILDABLE_COORD || x > MAX_BUILDABLE_COORD || y > MAX_BUILDABLE_COORD) && terrain.get(x, y) === 0) {
                 tempTerrain.exitDist = 0;
                 exitQueue.unshift({'x': x, 'y': y});
 

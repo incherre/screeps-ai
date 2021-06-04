@@ -2,7 +2,7 @@ import { removeAt } from "misc/arrayFunctions";
 import { Colony } from "../colony";
 import { ConstructJob } from "../jobs/constructJob";
 import { IdleJob } from "../jobs/idleJob";
-import { placeBaseRamparts, placeBaseSites } from "../misc/constructionTemplates";
+import { placeBaseSites } from "../misc/constructionTemplates";
 import { DropoffRequest } from "../requests/dropoffRequest";
 import { ScreepsRequest } from "../requests/request";
 import { SpawnRequest } from "../requests/spawnRequest";
@@ -167,7 +167,7 @@ export class ConstructionManager extends Manager {
         // build the bunker
         let sites = this.parent.capital.find(FIND_MY_CONSTRUCTION_SITES).length;
         if(sites < ConstructionManager.targetSites && controllerLevel >= 1) {
-            sites += placeBaseSites(this.parent.capital, ConstructionManager.targetSites - sites);
+            sites += placeBaseSites(this.parent, ConstructionManager.targetSites - sites);
         }
 
         // place extractor
@@ -311,9 +311,6 @@ export class ConstructionManager extends Manager {
                     sites++;
                 }
             }
-
-            // place ramparts over the base
-            sites += placeBaseRamparts(this.parent.capital, ConstructionManager.targetSites - sites);
         }
     }
 }

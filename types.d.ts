@@ -9,9 +9,8 @@ interface CreepMemory {
 interface RoomMemory {
   needsVision: boolean | undefined;
   parent: string | undefined;
-  seed: {x: number, y: number, r: number} | undefined;
-  lab: {dx: number, dy: number, r: number} | undefined;
-  petals: Array<{dx: number, dy: number, r: number}> | undefined;
+  core: {x: number, y: number} | undefined;
+  layout: {[key: string]: {x: number, y: number}[]} | undefined;
 }
 
 interface Memory {
