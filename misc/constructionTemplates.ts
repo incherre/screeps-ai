@@ -1,4 +1,5 @@
 import type { Colony } from '../colony'
+import { getNewSpawnName } from './personalization';
 
 interface Template {[key: string]: {dx: number, dy: number}[]};
 interface Layout {[key: string]: {x: number, y: number}[]};
@@ -76,7 +77,14 @@ export function placeBaseSites(colony: Colony, maxAllowed: number): number {
         }
 
         for(const coords of layout[type]) {
-            const returnCode = capitalRoom.createConstructionSite(coords.x, coords.y, type as BuildableStructureConstant);
+            let returnCode: ScreepsReturnCode = ERR_NOT_FOUND;
+            if(type === STRUCTURE_SPAWN) {
+                returnCode = capitalRoom.createConstructionSite(coords.x, coords.y, STRUCTURE_SPAWN, getNewSpawnName());
+            }
+            else {
+                returnCode = capitalRoom.createConstructionSite(coords.x, coords.y, type as BuildableStructureConstant);
+            }
+
             if(returnCode === OK) {
                 placed++;
             }
