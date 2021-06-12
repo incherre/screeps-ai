@@ -188,7 +188,8 @@ export function computeLayout(room: Room): Layout | null {
     const neededSpawningVessels = CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][CONTROLLER_MAX_LEVEL] +
                                   CONTROLLER_STRUCTURES[STRUCTURE_SPAWN][CONTROLLER_MAX_LEVEL] - 1; // One spawn is in the core template.
     let labsBox: {minx: number, miny: number, maxx: number, maxy: number} | null = null;
-    while(toVisit.length > 0 && placedSpawningVessels < neededSpawningVessels) {
+    let placedAux: boolean = false;
+    while(toVisit.length > 0 && (!placedAux || placedSpawningVessels < neededSpawningVessels)) {
         const deltas: {dx: number, dy: number} | undefined = toVisit.pop();
         if(!deltas) {
             continue;
@@ -209,15 +210,15 @@ export function computeLayout(room: Room): Layout | null {
         }
         const couldBeLabSeed = Math.max(absdx, absdx) > 1 && absdx !== 0 && absdy !== 0 && (absdx + (2 * absdy)) % 3 === 0;
         const couldBeVessel = (absdx === 0 && absdy % 3 === 1) || (absdy === 0 && absdx % 3 === 1) || (((absdx > 0 && absdy > 0) || placedSpawningVessels > cornerClearanceThreshold) && (absdx + (2 * absdy)) % 3 > 0);
-        let labRotation = 0; // +x, +y
+        let templateRotation = 0; // +x, +y
         if(deltas.dx < 0 && deltas.dy > 0) {
-            labRotation = 1; // -x, +y
+            templateRotation = 1; // -x, +y
         }
         else if(deltas.dx < 0 && deltas.dy < 0) {
-            labRotation = 2; // -x, -y
+            templateRotation = 2; // -x, -y
         }
         else if(deltas.dx > 0 && deltas.dy < 0) {
-            labRotation = 3; // +x, -y
+            templateRotation = 3; // +x, -y
         }
 
         if (!isWall && !inAlreadyPlacedLab && (!hasAdjacentWall || placedSpawningVessels > cornerClearanceThreshold) && !nearSource && couldBeVessel) {
@@ -229,8 +230,8 @@ export function computeLayout(room: Room): Layout | null {
             layout[vesselType].push(pos);
             placedSpawningVessels += 1;
         }
-        else if(!labsBox && !inAlreadyPlacedLab && couldBeLabSeed && doesItFit(rotateTemplate(labTemplate, labRotation), pos, terrain)) {
-            const rotatedLabTemplate = rotateTemplate(labTemplate, labRotation);
+        else if(!labsBox && !inAlreadyPlacedLab && couldBeLabSeed && doesItFit(rotateTemplate(labTemplate, templateRotation), pos, terrain)) {
+            const rotatedLabTemplate = rotateTemplate(labTemplate, templateRotation);
             labsBox = {minx: pos.x, miny: pos.y, maxx: pos.x, maxy: pos.y};
             for(const type in rotatedLabTemplate) {
                 if(type === FREE_SPACE) {
@@ -261,6 +262,25 @@ export function computeLayout(room: Room): Layout | null {
                 }
             }
         }
+        else if(placedSpawningVessels >= neededSpawningVessels && labsBox && !placedAux && !inAlreadyPlacedLab && couldBeLabSeed && doesItFit(rotateTemplate(auxTemplate, templateRotation), pos, terrain)) {
+            const rotatedAuxTemplate = rotateTemplate(auxTemplate, templateRotation);
+            for(const type in rotatedAuxTemplate) {
+                if(type === FREE_SPACE) {
+                    continue;
+                }
+
+                if(!layout[type]) {
+                    layout[type] = [];
+                }
+
+                for(const templateDeltas of rotatedAuxTemplate[type]) {
+                    const labx = pos.x + templateDeltas.dx;
+                    const laby = pos.y + templateDeltas.dy;
+                    layout[type].push({x: labx, y: laby});
+                }
+            }
+            placedAux = true;
+        }
 
         for(let ddx = -1; ddx <= 1; ddx++) {
             const x: number = pos.x + ddx;
@@ -282,7 +302,7 @@ export function computeLayout(room: Room): Layout | null {
         }
     }
 
-    if (placedSpawningVessels < neededSpawningVessels || !labsBox) {
+    if (placedSpawningVessels < neededSpawningVessels || !labsBox || !placedAux) {
         console.log('Tried to calulate the layout for room', room.name, 'but not all structures were placed.');
         return null;
     }
