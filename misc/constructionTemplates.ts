@@ -7,11 +7,16 @@ type MyMap = Array<Array<{exitDist: number, wallDist: number, sourceDist: number
 
 const FREE_SPACE = 'free';
 const MIN_BUILDABLE_COORD = 5;
+const MIN_COORD = 0;
 const MAX_BUILDABLE_COORD = 44;
+const MAX_COORD = 49;
+const WALL_OFFSET = 2;
 const CONTROLLER_MAX_LEVEL = 8;
 
 const idealClearance = 6;
 const minClearance = 3;
+
+const importantStructures = [STRUCTURE_SPAWN, STRUCTURE_STORAGE, STRUCTURE_TERMINAL, STRUCTURE_TOWER, STRUCTURE_CONTAINER, STRUCTURE_LINK];
 
 const coreTemplate: Template = {
     [STRUCTURE_LINK]: [{dx: 0, dy: 1}],
@@ -91,6 +96,201 @@ export function placeBaseSites(colony: Colony, maxAllowed: number): number {
 
             if(placed >= maxAllowed) {
                 return placed;
+            }
+        }
+    }
+
+    return placed;
+}
+
+/**
+ * Places construction sites for ramparts and walls in the capital room of the provided colony.
+ * @param {Colony} colony - The colony for which to place construction sites
+ * @param {number} maxAllowed - The maximum number of sites to place
+ * @returns {number} - The number of sites that were placed
+ */
+export function placeBaseRamparts(colony: Colony, maxAllowed: number): number {
+    if(!colony.capital) {
+        return 0;
+    }
+
+    // Record where ramparts already are.
+    const barrierSet = new Set<string>();
+    const ramparts = colony.structures.get(STRUCTURE_RAMPART);
+    if(ramparts) {
+        for(const rampart of ramparts) {
+            barrierSet.add([rampart.pos.x, rampart.pos.y].join());
+        }
+    }
+
+    let placed = 0;
+
+    // Place ramparts on essential structures.
+    for(const structureType of importantStructures) {
+        const structures = colony.structures.get(structureType);
+        if(!structures) {
+            continue;
+        }
+
+        for(const structure of structures) {
+            if(barrierSet.has([structure.pos.x, structure.pos.y].join())) {
+                continue;
+            }
+
+            if(structure.pos.createConstructionSite(STRUCTURE_RAMPART) === OK) {
+                placed += 1;
+            }
+            else {
+                continue;
+            }
+
+            if(placed >= maxAllowed) {
+                return placed;
+            }
+        }
+    }
+
+    const terrain = colony.capital.getTerrain();
+
+    // Place ramparts around the controller.
+    if(colony.capital.controller) {
+        const spot = colony.capital.controller.pos;
+
+        for(let dx = -1; dx <= 1; dx++) {
+            for(let dy = -1; dy <= 1; dy++) {
+                if(dx === 0 && dy === 0) {
+                    continue;
+                }
+
+                if(barrierSet.has([spot.x + dx, spot.y + dy].join())) {
+                    continue;
+                }
+
+                if(terrain.get(spot.x + dx, spot.y + dy) === TERRAIN_MASK_WALL) {
+                    continue;
+                }
+
+                if(colony.capital.createConstructionSite(spot.x + dx, spot.y + dy, STRUCTURE_RAMPART) === OK) {
+                    placed += 1;
+                }
+                else {
+                    continue;
+                }
+
+                if(placed >= maxAllowed) {
+                    return placed;
+                }
+            }
+        }
+    }
+
+    // Record where walls already are.
+    const walls = colony.structures.get(STRUCTURE_WALL);
+    if(walls) {
+        for(const wall of walls) {
+            barrierSet.add([wall.pos.x, wall.pos.y].join());
+        }
+    }
+
+    // Place exit walls.
+    const exits = Game.map.describeExits(colony.capitalName);
+    if(exits) {
+        for(const direction in exits) {
+            if(direction === TOP.toString()) {
+                const y = MIN_COORD + WALL_OFFSET;
+                for(let x = MIN_COORD + WALL_OFFSET; x <= MAX_COORD - WALL_OFFSET; x++) {
+                    if(barrierSet.has([x, y].join())) {
+                        continue;
+                    }
+
+                    if(terrain.get(x, y) === TERRAIN_MASK_WALL) {
+                        continue;
+                    }
+
+                    const type = (x + y) % 2 === 0 ? STRUCTURE_WALL : STRUCTURE_RAMPART;
+                    if(colony.capital.createConstructionSite(x, y, type) === OK) {
+                        placed += 1;
+                    }
+                    else {
+                        continue;
+                    }
+
+                    if(placed >= maxAllowed) {
+                        return placed;
+                    }
+                }
+            }
+            else if(direction === RIGHT.toString()) {
+                const x = MAX_COORD - WALL_OFFSET;
+                for(let y = MIN_COORD + WALL_OFFSET; y <= MAX_COORD - WALL_OFFSET; y++) {
+                    if(barrierSet.has([x, y].join())) {
+                        continue;
+                    }
+
+                    if(terrain.get(x, y) === TERRAIN_MASK_WALL) {
+                        continue;
+                    }
+
+                    const type = (x + y) % 2 === 0 ? STRUCTURE_WALL : STRUCTURE_RAMPART;
+                    if(colony.capital.createConstructionSite(x, y, type) === OK) {
+                        placed += 1;
+                    }
+                    else {
+                        continue;
+                    }
+
+                    if(placed >= maxAllowed) {
+                        return placed;
+                    }
+                }
+            }
+            else if(direction === BOTTOM.toString()) {
+                const y = MAX_COORD - WALL_OFFSET;
+                for(let x = MIN_COORD + WALL_OFFSET; x <= MAX_COORD - WALL_OFFSET; x++) {
+                    if(barrierSet.has([x, y].join())) {
+                        continue;
+                    }
+
+                    if(terrain.get(x, y) === TERRAIN_MASK_WALL) {
+                        continue;
+                    }
+
+                    const type = (x + y) % 2 === 0 ? STRUCTURE_WALL : STRUCTURE_RAMPART;
+                    if(colony.capital.createConstructionSite(x, y, type) === OK) {
+                        placed += 1;
+                    }
+                    else {
+                        continue;
+                    }
+
+                    if(placed >= maxAllowed) {
+                        return placed;
+                    }
+                }
+            }
+            else if(direction === LEFT.toString()) {
+                const x = MIN_COORD + WALL_OFFSET;
+                for(let y = MIN_COORD + WALL_OFFSET; y <= MAX_COORD - WALL_OFFSET; y++) {
+                    if(barrierSet.has([x, y].join())) {
+                        continue;
+                    }
+
+                    if(terrain.get(x, y) === TERRAIN_MASK_WALL) {
+                        continue;
+                    }
+
+                    const type = (x + y) % 2 === 0 ? STRUCTURE_WALL : STRUCTURE_RAMPART;
+                    if(colony.capital.createConstructionSite(x, y, type) === OK) {
+                        placed += 1;
+                    }
+                    else {
+                        continue;
+                    }
+
+                    if(placed >= maxAllowed) {
+                        return placed;
+                    }
+                }
             }
         }
     }
