@@ -3,9 +3,6 @@ import { Colony } from "./colony";
 import { IdleJob } from "./jobs/idleJob";
 import { Job } from "./jobs/job";
 import { jobTypes } from "./manifest"
-import { addRoomInfo, getRoomInfo, getSpotsNear, movePos } from "./misc/mapFunctions";
-import { OWN_NAME, SOURCE_KEEPER_NAME } from "./misc/constants";
-import { shuffle } from "misc/arrayFunctions";
 import { TrafficController } from "misc/trafficController";
 
 export class WorkerCreep {
