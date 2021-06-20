@@ -44,11 +44,13 @@ export class ReserveJob extends Job {
             const controller = Game.rooms[this.roomName].controller;
             if(controller) {
                 this.target = controller.pos;
+                this.targetRange = 1;
             }
         }
 
         if(!this.target) {
             this.target = new RoomPosition(25, 25, this.roomName);
+            this.targetRange = 22;
         }
 
         // Make sure we can claim

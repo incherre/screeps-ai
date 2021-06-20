@@ -7,6 +7,7 @@ import { Job } from "./job";
 export class VisionJob extends Job {
     public static type: string = 'vision';
     public static visionTimer: number = 5;
+    public static range: number = 22;
 
     // Inter-tick variables
     public roomName: string | null;
@@ -14,6 +15,7 @@ export class VisionJob extends Job {
 
     constructor (jobInfo: string) {
         super();
+        this.targetRange = VisionJob.range;
         const fields = jobInfo.split(',');
         if(fields.length === 1 && jobInfo !== '') {
             this.roomName = jobInfo;

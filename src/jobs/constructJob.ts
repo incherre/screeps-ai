@@ -56,10 +56,12 @@ export class ConstructJob extends Job {
         if(this.site) {
             if(this.site.pos.roomName === creep.pos.roomName) {
                 this.target = this.site.pos;
+                this.targetRange = ConstructJob.range;
             }
 
             if(!this.target) {
                 this.target = new RoomPosition(25, 25, this.site.pos.roomName);
+                this.targetRange = 22;
             }
 
             return creep.getActiveBodyparts(WORK) > 0 && creep.getActiveBodyparts(CARRY) > 0;

@@ -60,10 +60,12 @@ export class RepairJob extends Job {
         if(this.repairableId && this.repairableRoomName) {
             if(this.repairable) {
                 this.target = this.repairable.pos;
+                this.targetRange = RepairJob.range;
             }
 
             if(!this.target) {
                 this.target = new RoomPosition(25, 25, this.repairableRoomName);
+                this.targetRange = 22;
             }
 
             if(this.repairable) {

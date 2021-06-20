@@ -57,6 +57,7 @@ export class SettleJob extends Job {
 
         if(creep.room.name !== this.roomName) {
             this.target = new RoomPosition(25, 25, this.roomName);
+            this.targetRange = 22;
             return creep.getActiveBodyparts(MOVE) > 0;
         }
 

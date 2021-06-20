@@ -66,10 +66,12 @@ export class DropoffJob extends Job {
 
         if(this.container) {
             this.target = this.container.pos;
+            this.targetRange = 1;
         }
 
         if(!this.target) {
             this.target = new RoomPosition(25, 25, this.containerRoomName);
+            this.targetRange = 22;
         }
 
         if(this.containerRoomName !== creep.room.name) {

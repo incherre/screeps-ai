@@ -7,12 +7,14 @@ import { Job } from "./job";
 export class ScoutJob extends Job {
     public static type: string = 'scout';
     public static rescoutThreshold = 50;
+    public static range: number = 22;
 
     // Inter-tick variables
     public roomName: string | null;
 
     constructor (jobInfo: string) {
         super();
+        this.targetRange = ScoutJob.range;
         const fields = jobInfo.split(',');
         if(fields.length === 1 && jobInfo !== '') {
             this.roomName = jobInfo;

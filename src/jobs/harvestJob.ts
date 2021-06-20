@@ -80,10 +80,12 @@ export class HarvestJob extends Job {
                 // if the creep isn't in range of the source, find a spot to target
                 this.target = creep.pos.findClosestByRange(getSpotsNear(this.source.pos, /*range=*/1, /*considerCreeps=*/false));
             }
+            this.targetRange = 0;
         }
 
         if(!this.target) {
             this.target = new RoomPosition(25, 25, this.sourceRoomName);
+            this.targetRange = 22;
         }
 
         return creep.getActiveBodyparts(WORK) > 0;

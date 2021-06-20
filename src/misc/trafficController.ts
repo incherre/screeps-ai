@@ -49,10 +49,17 @@ export class TrafficController {
 
         if(path.length === 0) {
             // Recalculate and save the path.
-            const freeGoalsInRange: { pos: RoomPosition, range: number }[] = options?.range === 0 ? [{ pos: targetPos, range: 0 }] : _.map(
-                getSpotsNear(targetPos, options?.range), (pos) => {
-                    return { pos: pos, range: 0 }
+            let freeGoalsInRange: { pos: RoomPosition, range: number }[] = [];
+
+            if(options?.range && (options.range === 0 || creep.pos.roomName !== targetPos.roomName)) {
+                freeGoalsInRange = [{ pos: targetPos, range: options.range}];
+            }
+            else {
+                freeGoalsInRange = _.map(getSpotsNear(targetPos, options?.range), (pos) => {
+                    return { pos: pos, range: 0 };
                 });
+            }
+
             if(freeGoalsInRange.length === 0) {
                 console.log('Attempted to move', creep.name, 'but no open spots could be found.');
                 return 0;

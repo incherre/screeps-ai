@@ -41,6 +41,9 @@ export class DefendJob extends Job {
         if(creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
             this.targetRange = 3;
         }
+        else {
+            this.targetRange = 1;
+        }
 
         // find an enemy
         const closestHostile = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
@@ -49,6 +52,7 @@ export class DefendJob extends Job {
         }
         else {
             this.target = new RoomPosition(25, 25, this.roomName);
+            this.targetRange = 22;
         }
 
         return (creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0) && (creep.room.name !== this.roomName || creep.room.find(FIND_HOSTILE_CREEPS).length > 0);
