@@ -22,4 +22,9 @@ describe("main", () => {
   it("should return void when called with no context", () => {
     assert.isUndefined(loop());
   });
+
+  it("should setup procedure memory if unavailable", () => {
+    loop();
+    assert.isObject(global.Memory?.procedures);
+  })
 });
